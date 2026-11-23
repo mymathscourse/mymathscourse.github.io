@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pythagoras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#DCEDEC; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.wk{font-family:var(--head);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A9C4C3;margin:1rem .3rem .3rem}
+.wk:first-of-type{margin-top:0}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.95rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem;max-width:65ch}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none;align-items:center}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Triangle pictures */
+svg.tri{display:block;width:100%;max-width:230px;height:auto;margin:.3rem auto}
+svg.tri text{font-family:var(--head)}
+.sdg{cursor:pointer}
+.sdg:hover .vis{stroke:var(--sand)}
+.sdg.right .vis{stroke:var(--good)}
+.sdg.wrong .vis{stroke:var(--bad)}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--head);font-size:1.5rem;font-weight:700;color:var(--deep)}
+.ex .exq.long{font-family:var(--body);font-size:1.05rem;font-weight:700;line-height:1.5}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex li{margin:.25rem 0}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+.hinge{border-left-color:var(--sea)}
+.hinge .opts{list-style:none;margin:.4rem 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-family:var(--head)}
+.hinge .opts b{color:var(--sea)}
+.hinge details{margin-top:.4rem}
+.hinge summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.kind-h{display:block;font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem;counter-reset:q}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.3rem;background:#FBFCFC}
+.qs.wordy{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+@media (max-width:560px){.qs.wordy{grid-template-columns:1fr}}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-family:var(--body);font-size:1.1rem;line-height:1.5}
+.qs .a{font-family:var(--head);font-size:1.4rem;color:var(--sea);font-weight:700;visibility:hidden;margin-top:auto}
+.qs .a.long{font-size:1.05rem}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+.qask{margin:-.25rem 0 .8rem;font-weight:700;color:var(--deep)}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q{font-size:1.6rem}
+#qPanel:fullscreen .qs .a{font-size:2rem}
+#qPanel:fullscreen .qs .a.long{font-size:1.5rem}
+#qPanel:fullscreen svg.tri{max-width:340px}
+
+/* Scaffolds */
+.sc-stack{display:flex;flex-direction:column;gap:1rem}
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.tool-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.tool-head .btn{text-decoration:none;white-space:nowrap}
+#toolFrame{display:block;width:100%;height:1500px;border:0;margin-top:.25rem}
+.bd-q{font-family:var(--body);font-size:1.25rem;font-weight:700;line-height:1.5;max-width:60ch;color:var(--deep)}
+.bd-q svg.tri{max-width:280px;margin:.5rem 0}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.35rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer input{width:12rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.bd-tip{font-size:.9rem;color:var(--muted);margin-top:.4rem}
+.hy-fig svg.tri{max-width:360px}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(580px,100%);height:300px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1.05rem,2.3vw,1.45rem);color:var(--deep);line-height:1.45;max-width:34ch;white-space:pre-line}
+.fc-text svg.tri{max-width:190px;margin:.3rem auto 0}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card p.task{color:var(--ink)}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card details{margin-top:auto;font-size:.95rem}
+.card summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+.card.wide{grid-column:span 2}
+@media (max-width:640px){.card.wide{grid-column:auto}}
+.card svg.pic{display:block;width:100%;max-width:240px;height:auto;margin:.3rem auto}
+
+/* Add or subtract game */
+.bs-btns{display:flex;gap:.5rem;flex-wrap:wrap}
+.bs-score{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.as-fig svg.tri{max-width:260px}
+
+/* Word scramble */
+.ws-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-bottom:1rem}
+.ws-top .fc-count{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .9rem;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.tog{display:inline-flex;gap:.4rem;align-items:center;font-size:.95rem;color:var(--muted);cursor:pointer}
+.tog input{width:1.1rem;height:1.1rem;accent-color:var(--sea)}
+.ws-one{text-align:center}
+.ws-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.5rem 0 1rem}
+.ws-tiles .gap{width:1.2rem}
+.ws-tiles span.t{width:2.6rem;height:3rem;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:1.6rem;color:var(--deep);box-shadow:0 3px 0 #C99C25}
+.ws-def{background:var(--sand-soft);border-radius:8px;padding:.6rem .9rem;max-width:52ch;margin:0 auto 1rem;text-align:left}
+.ws-def b{font-family:var(--head);color:var(--deep)}
+.ws-ans{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.ws-ans input{width:min(16rem,100%);padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem;text-transform:uppercase}
+.ws-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;counter-reset:w}
+.ws-list li{counter-increment:w;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;background:#FBFCFC}
+.ws-list li::before{content:counter(w);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem;display:block}
+.ws-list .scr{font-family:var(--head);font-weight:700;font-size:1.45rem;letter-spacing:.12em;color:var(--deep)}
+.ws-list .word{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.15rem;visibility:hidden}
+.ws-list.show .word{visibility:visible}
+.ws-list .d{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+#vocab:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#vocab:fullscreen .ws-list .scr{font-size:2rem}
+
+ol.talkq{margin:.2rem 0 .4rem;padding-left:1.3rem;font-size:.95rem}
+ol.talkq li{margin:.2rem 0}
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S3-t2-pythagoras">Hub</a> › S3 Term 2 › Pythagoras</nav>
+</header>
+
+<div class="layout">
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <div id="seqWrap"></div>
+    <div class="whole">
+      <button class="step" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, rich tasks and games</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step. Then try the quick check.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub"></p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <p class="qask" id="qAsk"></p>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+      <div class="sc-stack">
+
+      <!-- Find the hypotenuse -->
+      <div class="panel scaffold" id="sc-hy">
+        <h3>Find the hypotenuse</h3>
+        <p class="sub">Press the side you think is the hypotenuse. Find the right angle first: the hypotenuse is the side opposite it, and it is always the longest side.</p>
+        <div class="hy-fig" id="hyFig"></div>
+        <div class="feedback" id="hyFb" role="status"></div>
+        <div class="bs-btns"><button class="btn alt" id="hyNew">New triangle</button> <span class="bs-score" id="hyScore"></span></div>
+      </div>
+
+      <!-- Teaching tool -->
+      <div class="panel scaffold" id="sc-tool">
+        <div class="tool-head">
+          <div><h3>Squares on the sides</h3>
+            <p class="sub">Type your own numbers or press <b>New question</b>, then press <b>Next step</b> to build the diagram and the written method one step at a time.</p></div>
+          <a class="btn alt" id="toolOpen" href="#" target="_blank" rel="noopener">Open full size ↗</a>
+        </div>
+        <iframe id="toolFrame" title="Pythagoras teaching tool: squares on the sides"></iframe>
+      </div>
+
+      <!-- Break it down -->
+      <div class="panel scaffold" id="sc-bd">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time.</p>
+        <div class="bd-q" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <label for="bdIn">Your answer</label>
+          <input id="bdIn" inputmode="text" autocomplete="off">
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <p class="bd-tip">Give your answer to 1 decimal place if it doesn't come out exactly. You don't need to type the units. For "is it…?" questions, type yes or no.</p>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+      </div>
+    </section>
+
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <section class="block" id="vocab" data-for="vocab" aria-labelledby="ws-title">
+      <div class="block-head"><h2 id="ws-title">Word scramble</h2><p>Unscramble the key words for this topic.</p></div>
+      <div class="panel">
+        <div class="ws-top">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="wsModeOne" aria-pressed="true">One at a time</button>
+            <button id="wsModeAll" aria-pressed="false">Whole list</button>
+          </div>
+          <label class="tog"><input type="checkbox" id="wsDefs"> Show the definitions</label>
+          <span class="fc-count" id="wsCount" aria-live="polite"></span>
+        </div>
+
+        <div class="ws-one" id="wsOne">
+          <div class="ws-tiles" id="wsTiles" aria-label="Scrambled letters"></div>
+          <div class="ws-def" id="wsDef" hidden></div>
+          <div class="ws-ans">
+            <label for="wsIn" class="sr">Your word</label>
+            <input id="wsIn" autocomplete="off" spellcheck="false" placeholder="Type the word">
+            <button class="btn" id="wsCheck">Check</button>
+            <button class="btn alt" id="wsDefBtn">Show the definition</button>
+            <button class="btn alt" id="wsReveal">Reveal</button>
+            <button class="btn alt" id="wsNext">Next word</button>
+          </div>
+          <div class="feedback" id="wsFb" role="status"></div>
+        </div>
+
+        <div id="wsAll" hidden>
+          <div class="controls">
+            <div class="btn-row" style="margin-left:0">
+              <button class="btn" id="wsReshuffle">New scramble</button>
+              <button class="btn alt" id="wsShowAll" aria-pressed="false">Show answers</button>
+              <button class="btn alt" id="wsFull">Full screen</button>
+            </div>
+          </div>
+          <ol class="ws-list" id="wsList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Think hard, explain your reasoning.</p></div>
+      <div class="cards" id="taskCards"></div>
+    </section>
+
+    <section class="block" id="talks" data-for="all" aria-labelledby="pt-title">
+      <div class="block-head"><h2 id="pt-title">Picture talks</h2><p>What do you notice? Why does it work?</p></div>
+      <p style="margin:0 0 1rem;color:var(--muted)">Look at the picture on your own first, then share your thinking. There is often more than one way to see it.</p>
+      <div class="cards">
+        <div class="card"><span class="kind">Talk 1</span><h3>Count the squares</h3>
+          <div id="talk1"></div>
+          <ol class="talkq"><li>How many small squares are in the blue square? The red square?</li><li>How many are in the purple square? How could you check, when it is tilted?</li><li>What do you notice? Will it work for any right-angled triangle?</li></ol>
+          <details><summary>Answer</summary>Blue 9, red 16, purple 25, and 9 + 16 = 25. Count the whole squares in the purple square, then fit the part squares together. It works for every right-angled triangle: that is Pythagoras' theorem, a² + b² = c².</details></div>
+        <div class="card"><span class="kind">Talk 2</span><h3>Two big squares</h3>
+          <svg class="pic" viewBox="0 0 360 172" role="img" aria-label="Two equal squares, each containing four copies of the same right-angled triangle, arranged differently">
+            <rect x="2" y="6" width="160" height="160" fill="#E4B8E6"/>
+            <polygon points="2,6 62,6 2,106" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="162,6 162,66 62,6" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="162,166 102,166 162,66" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="2,166 2,106 102,166" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <rect x="2" y="6" width="160" height="160" fill="none" stroke="#17262E" stroke-width="2.5"/>
+            <rect x="198" y="6" width="60" height="60" fill="#C3C8F6" stroke="#17262E" stroke-width="1.5"/>
+            <rect x="258" y="66" width="100" height="100" fill="#FFBDBD" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="258,6 358,6 258,66" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="358,6 358,66 258,66" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="198,66 258,66 198,166" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <polygon points="258,66 258,166 198,166" fill="#DDE3E2" stroke="#17262E" stroke-width="1.5"/>
+            <rect x="198" y="6" width="160" height="160" fill="none" stroke="#17262E" stroke-width="2.5"/>
+          </svg>
+          <ol class="talkq"><li>The two big squares are the same size. What is the same in both pictures? What is different?</li><li>Each grey triangle has shorter sides a and b and hypotenuse c. Where can you see a², b² and c²?</li><li>Explain why the purple area must equal the blue and red areas together.</li></ol>
+          <details><summary>Answer</summary>Both big squares have sides a + b and both contain the same four grey triangles. Take the triangles away from each: on the left you are left with the purple square c², on the right with the blue square a² and the red square b². The same amount was taken from the same size of square, so c² = a² + b².</details></div>
+        <div class="card"><span class="kind">Talk 3</span><h3>Odd one out</h3>
+          <p class="task">Triangles with these sides (in cm):</p>
+          <p class="task" style="font-family:var(--head);font-size:1.15rem">6, 8, 10 &nbsp;·&nbsp; 5, 12, 13 &nbsp;·&nbsp; 4, 5, 6 &nbsp;·&nbsp; 9, 12, 15</p>
+          <ol class="talkq"><li>Which is the odd one out? Convince me.</li><li>Can you find a reason for a different one to be the odd one out?</li></ol>
+          <details><summary>Answer</summary>4, 5, 6 is the only one that isn't right-angled: 4² + 5² = 41 but 6² = 36. Other answers: 5, 12, 13 is the only right-angled one that isn't a multiple of 3, 4, 5; 6, 8, 10 is the only one where every side is even. Accept any reason that is convincing.</details></div>
+        <div class="card"><span class="kind">Talk 4</span><h3>Not just squares?</h3>
+          <p class="task">Instead of squares, draw a semicircle on each side of a 3, 4, 5 triangle.</p>
+          <ol class="talkq"><li>Do you think the two smaller semicircles add up to the biggest one?</li><li>What about equilateral triangles on each side?</li><li>Work out the areas to check. What do you notice?</li></ol>
+          <details><summary>Answer</summary>Yes, both times. The semicircles have areas π × 1.5² ÷ 2 = 3.53, π × 2² ÷ 2 = 6.28 and π × 2.5² ÷ 2 = 9.82 cm², and 3.53 + 6.28 = 9.82 (rounded). Any shape works, as long as the three shapes are similar (the same shape, enlarged), because each area is the side² times the same number.</details></div>
+      </div>
+    </section>
+
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Games and activities</h2><p>Quick practice for the whole class or on your own.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Teaching tool</span><h3>Squares on the sides</h3><p>The hypotenuse, a shorter side, the converse, coordinates, isosceles triangles, chords in a circle and cuboids, drawn as squares on the sides and right-angled triangles next to the written method, step by step. Type your own numbers or make up a question.</p>
+          <a class="open" href="Pythagoras%20teaching%20tool%20-%20squares%20on%20the%20sides.html" target="_blank" rel="noopener">Open tool</a></div>
+        <div class="card wide"><span class="kind">Quick-fire game</span><h3>Add or subtract?</h3>
+          <p>Don't work it out! Is x the hypotenuse (square, add, square root) or a shorter side (square, subtract, square root)?</p>
+          <div class="as-fig" id="asFig"></div>
+          <div class="bs-btns">
+            <button class="btn" id="asAdd">Square, add, root</button>
+            <button class="btn" id="asSub">Square, subtract, root</button>
+            <button class="btn alt" id="asNext">Next</button>
+          </div>
+          <div class="feedback" id="asFb" role="status"></div>
+          <span class="bs-score" id="asScore"></span></div>
+        <div class="card"><span class="kind">Pairs or small groups</span><h3>Pythagoras pile-up</h3><p>Pile the triangles up: each hypotenuse becomes a shorter side of the next triangle. Whole numbers first, then the surds version as a challenge.</p>
+          <p><a href="Pythagoras-Pile-Up-Integers.pdf" target="_blank" rel="noopener">Whole numbers</a> · <a href="Pythagoras-Pile-Up-Surds.pdf" target="_blank" rel="noopener">Surds (challenge)</a></p></div>
+        <div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>
+      </div>
+    </section>
+
+    <footer>S3 Term 2 · Pythagoras · MTH 4-16a</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files
+   ===================================================================== */
+const WEEKS = [
+  {label:"Week 3 · Pythagoras", from:1, to:5},
+  {label:"Week 4 · Pythagoras (continued)", from:6, to:9}
+];
+const STEPS = [
+  {s:"I can find the hypotenuse of a right-angled triangle and explain Pythagoras' theorem with squares on the sides.", eg:"e.g. 3² + 4² = 9 + 16 = 25 = 5²"},
+  {s:"I can calculate a missing hypotenuse.", eg:"e.g. shorter sides 6 cm and 8 cm: x² = 36 + 64, x = 10 cm"},
+  {s:"I can calculate a missing shorter side.", eg:"e.g. hypotenuse 13 cm, side 5 cm: x² = 169 − 25, x = 12 cm"},
+  {s:"I can calculate the distance between two coordinate points.", eg:"e.g. A(1, 2) and B(4, 6): across 3, up 4, AB = 5"},
+  {s:"I can calculate missing sides in isosceles triangles.", eg:"e.g. the height of a triangle with sides 10 cm, 10 cm and 12 cm is 8 cm"},
+  {s:"I can use Pythagoras in circles.", eg:"e.g. a chord 16 cm long in a circle of radius 10 cm is 6 cm from the centre"},
+  {s:"I can use the converse of Pythagoras to show a triangle is right-angled.", eg:"e.g. 8² + 15² = 289 = 17², so it is right-angled"},
+  {s:"I can solve problems that take more than one step.", eg:"e.g. find a missing side, then the area or perimeter; ladders; water in a pipe"},
+  {s:"I can use Pythagoras in 3D, e.g. the space diagonal of a cuboid.", eg:"e.g. a 6 by 4 by 3 cuboid: x² = 6² + 4² + 3², x = 7.8 cm"}
+];
+// What pupils do with each step's questions (shown above the questions)
+const ASK = {1:"Answer each question.",2:"Use a calculator. Give answers to 1 decimal place if they don't come out exactly.",3:"Use a calculator. Give answers to 1 decimal place if they don't come out exactly.",
+  4:"Draw a sketch. Give answers to 1 decimal place if they don't come out exactly.",5:"Draw a sketch and split the triangle in half. Round to 1 decimal place.",6:"Draw a sketch and mark the right angle. Round to 1 decimal place.",
+  7:"Show your working and finish with a sentence.",8:"Draw each right-angled triangle on its own. Round to 1 decimal place at the end.",9:"Draw the right-angled triangles. Round to 1 decimal place at the end."};
+// Scaffolds for each step (in order): hy = find the hypotenuse, tool = squares on the sides teaching tool, bd = break it down
+const SCAFFOLD = {1:["hy","tool"],2:["tool","bd"],3:["tool","bd"],4:["tool","bd"],5:["tool","bd"],6:["tool","bd"],7:["tool","bd"],8:["bd","tool"],9:["tool","bd"]};
+// What the teaching tool shows first on each step
+const TOOL_START = {1:"hyp,3,4,cm",2:"hyp,6,8,cm",3:"short,13,5,cm",4:"coord,1,2,4,6",5:"iso,10,12,cm",6:"chord,10,16,cm",7:"conv,8,15,17,cm",8:"short,13,5,cm",9:"cuboid,6,4,3,cm"};
+const VOCAB_STEPS = [1,6];
+
+const LINKS = [
+  {steps:[1,2,3,4,5,6,7,8,9], title:"Corbettmaths", text:"Videos and practice questions. Search for “Pythagoras”.", url:"https://corbettmaths.com/contents/"},
+  {steps:[1,2,3], title:"Maths is Fun", text:"Pythagoras' theorem explained with pictures of the squares on the sides.", url:"https://www.mathsisfun.com/pythagoras.html"},
+  {steps:[2,3,4,5,6,8,9], title:"Desmos scientific calculator", text:"An online scientific calculator if you don't have yours.", url:"https://www.desmos.com/scientific"},
+  {steps:[7,8,9], title:"NRICH", text:"Pythagoras puzzles and problems. Search for “Pythagoras”.", url:"https://nrich.maths.org"}
+];
+const FILES = [
+  {steps:[2,3], kind:"Activity", title:"Pythagoras pile-up (whole numbers)", path:"Pythagoras-Pile-Up-Integers.pdf"},
+  {steps:[2,3,8], kind:"Activity", title:"Pythagoras pile-up (surds, challenge)", path:"Pythagoras-Pile-Up-Surds.pdf"},
+  {steps:[3], kind:"Word", title:"Practising rearranging three-term equations", path:"Practising rearranging three term equations with addition and subtraction.docx"}
+];
+
+// fig: [shorter side, shorter side, [labels]] draws a right-angled triangle; tool: what to show in the teaching tool
+const WE = {
+ 1:[{q:"Triangle PQR has a right angle at Q. Which side is the hypotenuse?",steps:["Find the right angle: it is at Q.","The hypotenuse is opposite the right angle, so it is the side that doesn't touch Q.","That is the side from P to R."],a:"PR",note:"The hypotenuse is always the longest side of a right-angled triangle."},
+    {q:"Squares are drawn on the sides of a right-angled triangle with shorter sides 3 cm and 4 cm. Find the area of each square.",steps:["Square on the 3 cm side: 3² = 3 × 3 = 9 cm²","Square on the 4 cm side: 4² = 4 × 4 = 16 cm²","Square on the hypotenuse: 9 + 16 = 25 cm². So the hypotenuse is √25 = 5 cm."],a:"9 cm², 16 cm² and 25 cm²",tool:"hyp,3,4,cm",
+     note:"Pythagoras' theorem: the two smaller squares together have the same area as the square on the hypotenuse. a² + b² = c², where c is the hypotenuse."},
+    {q:"Write Pythagoras' theorem for a right-angled triangle with shorter sides p and q and hypotenuse r.",steps:["r is the hypotenuse, so r² goes on its own.","The squares on the other two sides add up to it."],a:"r² = p² + q²"}],
+ 2:[{q:"Find x.",fig:[6,8,["6 cm","8 cm","x"]],steps:["x is opposite the right angle, so it is the hypotenuse: square, add, square root.","x² = 6² + 8² = 36 + 64 = 100","x = √100 = 10"],a:"10 cm",tool:"hyp,6,8,cm"},
+    {q:"Find x.",fig:[7,9,["7 cm","9 cm","x"]],steps:["x² = 7² + 9² = 49 + 81 = 130","x = √130 = 11.401…","Round to 1 decimal place."],a:"11.4 cm",tool:"hyp,7,9,cm"},
+    {q:"A rectangle is 24 cm long and 10 cm wide. Find the length of its diagonal.",steps:["The diagonal cuts the rectangle into two right-angled triangles. The diagonal is the hypotenuse.","d² = 24² + 10² = 576 + 100 = 676","d = √676 = 26"],a:"26 cm",tool:"hyp,24,10,cm",
+     note:"Don't add the sides first: 24 + 10 = 34 is wrong. Square, add, then square root."}],
+ 3:[{q:"Find x.",fig:[9,12,["9 cm","x","15 cm"]],steps:["15 cm is opposite the right angle, so it is the hypotenuse. x is a shorter side: square, subtract, square root.","x² = 15² − 9² = 225 − 81 = 144","x = √144 = 12"],a:"12 cm",tool:"short,15,9,cm",note:"Check: 12 cm is shorter than the hypotenuse ✓"},
+    {q:"A 6 m ladder leans against a wall. Its foot is 1.5 m from the wall. How high up the wall does it reach?",steps:["The ladder is the hypotenuse.","h² = 6² − 1.5² = 36 − 2.25 = 33.75","h = √33.75 = 5.809…"],a:"5.8 m",tool:"short,6,1.5,m"},
+    {q:"The diagonal of a rectangle is 10 cm and its width is 6.5 cm. Find its length.",steps:["The diagonal is the hypotenuse.","l² = 10² − 6.5² = 100 − 42.25 = 57.75","l = √57.75 = 7.599…"],a:"7.6 cm",tool:"short,10,6.5,cm"}],
+ 4:[{q:"Find the distance between A(1, 2) and B(4, 6).",steps:["Sketch it: go across from A, then up to B. That makes a right-angled triangle with AB as the hypotenuse.","Across: 4 − 1 = 3. Up: 6 − 2 = 4.","AB² = 3² + 4² = 9 + 16 = 25, so AB = √25 = 5."],a:"5 units",tool:"coord,1,2,4,6"},
+    {q:"Find the distance between P(−2, 5) and Q(3, −1).",steps:["Across: 3 − (−2) = 5. Down: 5 − (−1) = 6.","PQ² = 5² + 6² = 25 + 36 = 61","PQ = √61 = 7.810…"],a:"7.8 units",tool:"coord,-2,5,3,-1",
+     note:"Going down instead of up doesn't matter: squaring makes the length positive."}],
+ 5:[{q:"An isosceles triangle has two sides of 10 cm and a base of 12 cm. Find its height.",steps:["The height cuts the base in half and makes two right-angled triangles.","Half the base = 6 cm. The 10 cm side is the hypotenuse.","h² = 10² − 6² = 100 − 36 = 64, so h = √64 = 8."],a:"8 cm",tool:"iso,10,12,cm",note:"Now you can find the area: ½ × 12 × 8 = 48 cm²."},
+    {q:"An equilateral triangle has sides of 8 cm. Find its height.",steps:["Half the base = 4 cm. An 8 cm side is the hypotenuse.","h² = 8² − 4² = 64 − 16 = 48","h = √48 = 6.928…"],a:"6.9 cm",tool:"iso,8,8,cm"},
+    {q:"An isosceles triangle has a base of 16 cm and a height of 6 cm. Find the length of each equal side.",steps:["Half the base = 8 cm. This time the equal side is the hypotenuse.","s² = 8² + 6² = 64 + 36 = 100","s = √100 = 10"],a:"10 cm",tool:"hyp,8,6,cm"}],
+ 6:[{q:"A chord 16 cm long is in a circle of radius 10 cm. How far is the chord from the centre?",steps:["The line from the centre at right angles to the chord cuts it in half: 8 cm.","Join the centre to the end of the chord: that is a radius, 10 cm, and it is the hypotenuse.","d² = 10² − 8² = 100 − 64 = 36, so d = 6."],a:"6 cm",tool:"chord,10,16,cm"},
+    {q:"A chord is 4 cm from the centre of a circle of radius 8.5 cm. How long is the chord?",steps:["Let x be half the chord. The radius is the hypotenuse.","x² = 8.5² − 4² = 72.25 − 16 = 56.25, so x = 7.5","The chord is 2 × 7.5 = 15."],a:"15 cm",tool:"chordlen,8.5,4,cm",note:"Pythagoras gives half the chord. Double it at the end."}],
+ 7:[{q:"A triangle has sides 8 cm, 15 cm and 17 cm. Is it right-angled?",steps:["Square the longest side: 17² = 289","Square the other two and add: 8² + 15² = 64 + 225 = 289","They are equal."],a:"Yes. 8² + 15² = 17², so by the converse of Pythagoras the triangle is right-angled.",tool:"conv,8,15,17,cm"},
+    {q:"A triangle has sides 7 cm, 10 cm and 12 cm. Is it right-angled?",steps:["12² = 144","7² + 10² = 49 + 100 = 149","149 ≠ 144"],a:"No. 7² + 10² ≠ 12², so by the converse of Pythagoras the triangle is not right-angled.",tool:"conv,7,10,12,cm",note:"149 is a little more than 144, so the angle is a little less than 90°."},
+    {q:"A gate is 2.4 m by 1 m and its diagonal is 2.6 m. Is the gate rectangular?",steps:["Rectangular means the corners are right angles.","2.6² = 6.76","2.4² + 1² = 5.76 + 1 = 6.76. They are equal."],a:"Yes. By the converse of Pythagoras the corner is a right angle, so the gate is rectangular.",tool:"conv,1,2.4,2.6,m"}],
+ 8:[{q:"A right-angled triangle has a hypotenuse of 13 cm and one shorter side of 5 cm. Find its area.",steps:["First the other shorter side: x² = 13² − 5² = 144, so x = 12 cm.","The two shorter sides are the base and the height.","Area = ½ × 5 × 12 = 30"],a:"30 cm²",tool:"short,13,5,cm",note:"Don't use the hypotenuse as the height."},
+    {q:"A 5 m ladder reaches 4 m up a wall. The foot slides 1 m further from the wall. How far up the wall does it reach now?",steps:["Foot at the start: √(5² − 4²) = √9 = 3 m","New foot: 3 + 1 = 4 m","New height: √(5² − 4²) = √9 = 3 m"],a:"3 m",tool:"short,5,4,m"},
+    {q:"A pipe has a radius of 25 cm. The water surface is 40 cm wide, and the water is less than half way up. How deep is the water?",steps:["Half the width: 20 cm. The radius is the hypotenuse.","Centre to the water: d² = 25² − 20² = 225, so d = 15 cm.","Depth = 25 − 15 = 10"],a:"10 cm",tool:"chord,25,40,cm"}],
+ 9:[{q:"A cuboid is 6 cm by 4 cm by 3 cm. Find the length of its space diagonal.",steps:["Base diagonal: d² = 6² + 4² = 36 + 16 = 52. Keep 52.","Space diagonal: x² = 52 + 3² = 52 + 9 = 61","x = √61 = 7.810…"],a:"7.8 cm",tool:"cuboid,6,4,3,cm",note:"In one go: x² = 6² + 4² + 3² = 61."},
+    {q:"A box is 30 cm by 20 cm by 10 cm. Will a 38 cm stick fit inside?",steps:["The longest thing that fits goes along the space diagonal.","x² = 30² + 20² + 10² = 900 + 400 + 100 = 1400","x = √1400 = 37.4 cm, which is less than 38 cm."],a:"No. The longest stick that fits is 37.4 cm.",tool:"cuboid,30,20,10,cm"}]
+};
+
+// Hinge questions: every wrong answer shows a common mistake
+const HINGE = {
+ 1:[{q:"In triangle ABC the right angle is at C. The hypotenuse is:",o:["AC","BC","AB","the shortest side"],c:2,why:"A, B: these sides touch the right angle. D: the hypotenuse is the longest side."}],
+ 2:[{q:"The shorter sides are 5 cm and 12 cm. The hypotenuse is:",o:["17 cm","13 cm","169 cm","8.5 cm"],c:1,why:"A: added the sides without squaring. C: forgot the square root. D: halved 17."}],
+ 3:[{q:"The hypotenuse is 10 cm and one shorter side is 6 cm. The other side is:",o:["11.7 cm","4 cm","8 cm","64 cm"],c:2,why:"A: added the squares instead of subtracting. B: took the sides away without squaring. D: forgot the square root."}],
+ 4:[{q:"The distance between (1, 1) and (4, 5) is:",o:["7","5","25","6.4"],c:1,why:"A: added across and up (that's the route along the grid lines). C: forgot the square root. D: used the coordinates of (4, 5) instead of across and up."}],
+ 5:[{q:"An isosceles triangle has equal sides of 13 cm and a base of 10 cm. Its height is:",o:["12 cm","8.3 cm","16.4 cm","3 cm"],c:0,why:"B: used the whole base, √(169 − 100). C: added instead of subtracting. D: 13 − 10."}],
+ 6:[{q:"A chord 24 cm long is in a circle of radius 13 cm. Its distance from the centre is:",o:["5 cm","26.7 cm","11 cm","It can't be done"],c:0,why:"B: added the squares. C: took 13 from 24. D: forgot to halve the chord, so 13² − 24² looked impossible."}],
+ 7:[{q:"A triangle has sides 6 cm, 8 cm and 11 cm. Is it right-angled?",o:["Yes, 6 + 8 is more than 11","Yes, 6² + 8² = 100","No, 6² + 8² = 100 but 11² = 121","You can't tell without measuring"],c:2,why:"A: that only shows it is a triangle. B: didn't compare with the longest side squared. D: the converse decides from the lengths."}],
+ 8:[{q:"A right-angled triangle has hypotenuse 13 cm and one shorter side 5 cm. Its area is:",o:["32.5 cm²","30 cm²","60 cm²","65 cm²"],c:1,why:"A: used the hypotenuse as the height. C: forgot to halve. D: 13 × 5."}],
+ 9:[{q:"A cuboid is 4 cm by 3 cm by 12 cm. Its space diagonal is:",o:["13 cm","19 cm","12.6 cm","169 cm"],c:0,why:"B: added the edges. C: used only 4 and 12 and missed out a side. D: forgot the square root."}]
+};
+
+const RULES = [
+  {st:[1],q:"What is the hypotenuse?",a:"The longest side of a right-angled triangle.\nIt is opposite the right angle."},
+  {st:[1,2,3],q:"Pythagoras' theorem",a:"a² + b² = c²\nwhere c is the hypotenuse"},
+  {st:[1],q:"What do the squares on the sides show?",a:"The two smaller squares together\nhave the same area as the square on the hypotenuse."},
+  {st:[2],q:"How do you find the hypotenuse?",a:"Square, add, square root.\nx² = 6² + 8² = 100, x = 10"},
+  {st:[3],q:"How do you find a shorter side?",a:"Square, subtract, square root.\nx² = 13² − 5² = 144, x = 12"},
+  {st:[2,3],q:"How can you check your answer?",a:"The hypotenuse must be the longest side.\nA shorter side must be less than the hypotenuse."},
+  {st:[2],q:"Shorter sides 6 and 8. Is the hypotenuse 14?",a:"No! Square first.\n6² + 8² = 100, √100 = 10"},
+  {st:[2,3,4,5,6,8,9],q:"When do you round?",a:"Only at the very end.\nGive the answer to 1 decimal place."},
+  {st:[4],q:"Distance between two points",a:"Across and up make a right-angled triangle.\nAB² = across² + up²"},
+  {st:[4],q:"Distance from (1, 2) to (4, 6)",a:"across 3, up 4\n√(9 + 16) = 5"},
+  {st:[5],q:"Height of an isosceles triangle",a:"Halve the base.\nThe equal side is the hypotenuse."},
+  {st:[6],q:"A line from the centre at right angles to a chord…",a:"cuts the chord in half."},
+  {st:[6],q:"In a circle, which side is usually the hypotenuse?",a:"The radius."},
+  {st:[7],q:"The converse of Pythagoras",a:"If a² + b² = c² (c the longest side),\nthe triangle is right-angled."},
+  {st:[7],q:"How do you finish a converse question?",a:"With a sentence and a reason:\n“… so by the converse of Pythagoras the triangle is right-angled.”"},
+  {st:[8],q:"Area of a right-angled triangle",a:"½ × the two shorter sides\n(not the hypotenuse)"},
+  {st:[8,9],q:"Problems with more than one step",a:"Draw each right-angled triangle on its own\nand label it before you calculate."},
+  {st:[9],q:"Space diagonal of a cuboid",a:"Across the base first, then up.\nx² = l² + b² + h²"},
+  {st:[9],q:"Why keep d² exact in 3D?",a:"So you don't round twice.\nUse d² = 52, not d = 7.2."}
+];
+const WORDS = [
+  {q:"Hypotenuse",a:"The longest side of a right-angled triangle, opposite the right angle."},
+  {q:"Right angle",a:"An angle of exactly 90°, shown with a small square."},
+  {q:"Theorem",a:"A rule in maths that has been proved to be always true."},
+  {q:"Pythagoras",a:"A Greek mathematician. His theorem says a² + b² = c² in a right-angled triangle."},
+  {q:"Square root",a:"The number that was squared. √25 = 5 because 5² = 25."},
+  {q:"Squared",a:"Multiplied by itself: 7² = 7 × 7 = 49."},
+  {q:"Converse",a:"The theorem turned round: if a² + b² = c², the triangle has a right angle."},
+  {q:"Perpendicular",a:"At right angles to."},
+  {q:"Isosceles",a:"A triangle with two equal sides and two equal angles."},
+  {q:"Equilateral",a:"A triangle with all three sides equal and all angles 60°."},
+  {q:"Chord",a:"A straight line joining two points on a circle."},
+  {q:"Radius",a:"The distance from the centre of a circle to its edge."},
+  {q:"Diameter",a:"A straight line across a circle through its centre. It is 2 × the radius."},
+  {q:"Diagonal",a:"A straight line joining two corners that are not next to each other."},
+  {q:"Space diagonal",a:"A line through the inside of a cuboid, from one corner to the opposite corner."},
+  {q:"Bisect",a:"Cut into two equal parts."}
+];
+
+// Rich tasks. step = the step after which to use it.
+const TASKS = [
+  {step:1,title:"Squared paper proof",task:"Draw a right-angled triangle with shorter sides 5 and 12 squares on squared paper. Draw a square on each side.",extra:"Count (or work out) the area of each square. Does the theorem work? Try a triangle that is not right-angled.",ans:"25 + 144 = 169 = 13², so it works. For a triangle without a right angle the two smaller squares don't add up to the biggest one."},
+  {step:2,title:"Pythagorean triples",task:"3, 4, 5 · 5, 12, 13 · 7, 24, 25\nThese are whole-number right-angled triangles. Spot the pattern.",extra:"Use it to find the next one, starting with 9.",ans:"The shortest side is odd. The other two sides are next to each other and add up to the shortest side squared (3² = 9 = 4 + 5, 5² = 25 = 12 + 13). So 9² = 81 = 40 + 41: the next one is 9, 40, 41."},
+  {step:3,title:"Always, sometimes, never",task:"“If you double both shorter sides, the hypotenuse doubles.”\n“If you add 1 cm to both shorter sides, the hypotenuse grows by 1 cm.”",extra:"Test some examples, then explain.",ans:"The first is always true: 6, 8, 10 is 3, 4, 5 doubled. The second is never true: 3, 4, 5 becomes 4, 5, 6.4, which grows by 1.4 cm. The hypotenuse always grows by more than 1 cm."},
+  {step:4,title:"Taxi or crow?",task:"A taxi has to drive along the grid lines from (0, 0) to (6, 8). A crow flies straight there.",extra:"How much further does the taxi go? Find two other points where the taxi goes 7 units and the crow flies 5.",ans:"The taxi goes 6 + 8 = 14 units, the crow √(36 + 64) = 10 units, so the taxi goes 4 units further. 7 and 5 come from across 3 and up 4, e.g. (0, 0) to (3, 4), or (1, 1) to (5, 4)."},
+  {step:6,title:"Two chords",task:"Two parallel chords are drawn in a circle of radius 10 cm. One is 16 cm long and the other is 12 cm long.",extra:"How far apart are they? There are two answers. Draw both.",ans:"The 16 cm chord is 6 cm from the centre and the 12 cm chord is 8 cm from the centre. On the same side of the centre they are 8 − 6 = 2 cm apart. On opposite sides they are 8 + 6 = 14 cm apart."},
+  {step:7,title:"The builder's rope",task:"Long ago, builders made right angles with a loop of rope tied with 12 equally spaced knots.",extra:"How did they do it? Explain why it works using the converse of Pythagoras.",ans:"Pull the rope into a triangle with sides of 3, 4 and 5 spaces. 3² + 4² = 9 + 16 = 25 = 5², so by the converse the angle between the 3 and 4 sides is a right angle."},
+  {step:8,title:"Spiral of Theodorus",task:"Start with a right-angled triangle with shorter sides 1 and 1. Use its hypotenuse as a shorter side of the next triangle, with another side of 1. Keep going.",extra:"Which triangle is the first one with a whole-number hypotenuse?",ans:"The hypotenuses are √2, √3, √4, √5, … The 3rd triangle has hypotenuse √4 = 2. The next whole number is √9 = 3, on the 8th triangle."},
+  {step:9,title:"Will it fit?",task:"What is the longest pencil that fits inside a pencil case 20 cm by 5 cm by 3 cm?",extra:"Would a 21 cm ruler fit if it can't bend?",ans:"The space diagonal: √(20² + 5² + 3²) = √434 = 20.8 cm. A 21 cm ruler won't fit."},
+  {step:9,title:"Challenge: the slipping ladder",task:"A 2.5 m ladder leans against a wall with its foot 0.7 m from the wall. The top slips 0.4 m down the wall.",extra:"How far does the foot move out?",ans:"Height at the start: √(2.5² − 0.7²) = √5.76 = 2.4 m. New height: 2.0 m. New foot: √(2.5² − 2²) = √2.25 = 1.5 m. The foot moves 1.5 − 0.7 = 0.8 m."}
+];
+
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isLong=s=>s.length>26||/[a-z]{3}/i.test(s);
+/* Numbers: up to 6 decimal places, a proper minus sign */
+const fx=v=>{const r=Math.round(v*1e6)/1e6;return (r<0?'−':'')+String(Math.abs(r));};
+const sq=v=>fx(v*v);
+const br=v=>v<0?`(${fx(v)})`:fx(v);
+const exact=S=>{const e=Math.round(Math.sqrt(S)*100)/100;return Math.abs(e*e-S)<1e-9;};   // √S has at most 2 d.p.
+const d1=v=>(Math.round(v*10)/10).toFixed(1);
+const cut=v=>(Math.floor(v*1000+1e-9)/1000).toFixed(3)+'…';
+/* √S: the value to check against (n), the answer to show (s) and the working (root) */
+function res(S){const v=Math.sqrt(S);return exact(S)?{v,n:v,s:fx(v),root:`√${fx(S)} = ${fx(v)}`}:{v,n:+d1(v),s:d1(v),root:`√${fx(S)} = ${cut(v)} = ${d1(v)} (1 d.p.)`};}
+const ans=(S,u)=>{const R=res(S);return {a:`${R.s} ${u}`,n:R.n};};
+const TRIPLES=[[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[9,12,15],[12,16,20],[20,21,29],[10,24,26],[15,20,25],[1.5,2,2.5],[0.9,1.2,1.5],[2.5,6,6.5]];
+const WHOLE=TRIPLES.filter(t=>t.every(Number.isInteger));
+function legs(){const t=rnd(0,9);if(t<4)return shuffle(pick(TRIPLES).slice(0,2));if(t<8)return [rnd(3,15),rnd(3,15)];return [rnd(25,95)/10,rnd(3,12)];}
+function hypSteps(nm,a,b,u){const S=a*a+b*b;return [`${nm} is the hypotenuse: square, add, square root.`,`${nm}² = ${fx(a)}² + ${fx(b)}² = ${sq(a)} + ${sq(b)} = ${fx(S)}`,`${nm} = ${res(S).root} ${u}`];}
+function shortSteps(nm,c,a,u){const S=c*c-a*a;return [`The hypotenuse is ${fx(c)} ${u}, so ${nm} is a shorter side: square, subtract, square root.`,`${nm}² = ${fx(c)}² − ${fx(a)}² = ${sq(c)} − ${sq(a)} = ${fx(S)}`,`${nm} = ${res(S).root} ${u}`];}
+const list=xs=>xs.slice(0,-1).join(', ')+' and '+xs[xs.length-1];
+
+/* A right-angled triangle picture: shorter sides a and b, labels [side a, side b, hypotenuse].
+   o.ang turns it (degrees, a random quarter turn if left out), o.flip mirrors it, o.click makes the sides pressable. */
+const sub=(p,q)=>[p[0]-q[0],p[1]-q[1]], unit=p=>{const l=Math.hypot(p[0],p[1])||1;return [p[0]/l,p[1]/l];};
+function triFig(a,b,lab,o={}){
+  const k=Math.max(a,b)/Math.min(a,b); if(k>2.6){ if(a>b) b=a/2.6; else a=b/2.6; }   // very thin triangles are drawn less thin
+  const th=(o.ang!==undefined?o.ang:rnd(0,3)*90)*Math.PI/180, fl=o.flip!==undefined?o.flip:rnd(0,1);
+  const P=[[0,0],[a,0],[0,b]].map(([x,y])=>{if(fl)x=-x;return [x*Math.cos(th)-y*Math.sin(th),x*Math.sin(th)+y*Math.cos(th)];});
+  const W=o.w||230,H=o.h||170,pad=o.pad||40;
+  const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const sc=Math.min((W-2*pad)/(x1-x0),(H-2*pad)/(y1-y0)), ox=(W-sc*(x1-x0))/2, oy=(H-sc*(y1-y0))/2;
+  const S=P.map(([x,y])=>[ox+(x-x0)*sc,oy+(y1-y)*sc]), G=[(S[0][0]+S[1][0]+S[2][0])/3,(S[0][1]+S[1][1]+S[2][1])/3];
+  const pt=p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+  let s=`<svg class="tri" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||'Right-angled triangle'+(lab?' with sides labelled '+lab.join(', '):''))}">`;
+  s+=`<polygon points="${S.map(pt).join(' ')}" fill="#FBFCFC" stroke="#17262E" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const e1=unit(sub(S[1],S[0])),e2=unit(sub(S[2],S[0])),m=W>300?16:11, q1=[S[0][0]+e1[0]*m,S[0][1]+e1[1]*m], q3=[S[0][0]+e2[0]*m,S[0][1]+e2[1]*m];
+  s+=`<polyline points="${pt(q1)} ${pt([q1[0]+e2[0]*m,q1[1]+e2[1]*m])} ${pt(q3)}" fill="none" stroke="#17262E" stroke-width="1.8"/>`;
+  [[0,1,'a'],[0,2,'b'],[1,2,'c']].forEach(([i,j,id],k)=>{
+    const A=S[i],B=S[j],M=[(A[0]+B[0])/2,(A[1]+B[1])/2];
+    let n=unit([-(B[1]-A[1]),B[0]-A[0]]); if(n[0]*(G[0]-M[0])+n[1]*(G[1]-M[1])>0) n=[-n[0],-n[1]];
+    if(o.click) s+=`<g class="sdg" data-side="${id}"><line class="vis" x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="#17262E" stroke-width="5" stroke-linecap="round"/><line x1="${A[0].toFixed(1)}" y1="${A[1].toFixed(1)}" x2="${B[0].toFixed(1)}" y2="${B[1].toFixed(1)}" stroke="transparent" stroke-width="26"/></g>`;
+    const t=lab&&lab[k];
+    if(t){ const anc=n[0]>0.45?'start':n[0]<-0.45?'end':'middle';
+      s+=`<text x="${(M[0]+n[0]*12).toFixed(1)}" y="${(M[1]+n[1]*12+5+n[1]*5).toFixed(1)}" font-size="15" font-weight="700" text-anchor="${anc}" fill="${t==='x'?'#1C6670':'#17262E'}">${esc(t)}</text>`; }
+  });
+  return s+'</svg>';
+}
+
+/* ---------- Question generators ----------
+   Each returns {q, a, n: the number to check (or yn: true/false for yes/no questions), steps (hints), fig (optional picture), tool (optional)} */
+const GEN = {
+ 1:()=>{
+   const t=rnd(0,5);
+   if(t===0){const L=pick(['ABC','PQR','XYZ','KLM','DEF','STU']).split(''),i=rnd(0,2),o=L.filter((_,k)=>k!==i);
+     return {q:`Triangle ${L.join('')} has a right angle at ${L[i]}. Which side is the hypotenuse?`,a:o.join(''),steps:[`The hypotenuse is opposite the right angle at ${L[i]}: it is the side that doesn't touch ${L[i]}.`]};}
+   if(t===1){const T=pick(WHOLE);return {q:`A right-angled triangle has sides ${list(shuffle(T).map(v=>v+' cm'))}. Which side is the hypotenuse?`,a:`${T[2]} cm`,n:T[2],steps:['The hypotenuse is always the longest side.']};}
+   if(t===2){const T=pick(WHOLE);return {q:`The squares on the two shorter sides of a right-angled triangle have areas ${T[0]**2} cm² and ${T[1]**2} cm². What is the area of the square on the hypotenuse?`,a:`${T[2]**2} cm²`,n:T[2]**2,
+     steps:[`The two smaller squares add up to the square on the hypotenuse: ${T[0]**2} + ${T[1]**2} = ${T[2]**2}`]};}
+   if(t===3){const T=pick(WHOLE),i=rnd(0,1);return {q:`The square on the hypotenuse of a right-angled triangle has area ${T[2]**2} cm². The square on one shorter side has area ${T[i]**2} cm². What is the area of the square on the other shorter side?`,a:`${T[1-i]**2} cm²`,n:T[1-i]**2,
+     steps:[`The two smaller squares add up to the big one, so take away: ${T[2]**2} − ${T[i]**2} = ${T[1-i]**2}`]};}
+   if(t===4){const v=shuffle(pick([['p','q','r'],['d','e','f'],['k','m','n'],['s','t','u']]));return {q:`A right-angled triangle has hypotenuse ${v[2]} and shorter sides ${v[0]} and ${v[1]}. Write Pythagoras' theorem for it.`,a:`${v[2]}² = ${v[0]}² + ${v[1]}²`,
+     steps:['The square on the hypotenuse = the squares on the other two sides added together.']};}
+   const v=shuffle(['p','q','r']),[a,b]=legs();
+   return {q:'Which letter is the hypotenuse?',fig:triFig(a,b,v),a:v[2],steps:['Find the right angle. The hypotenuse is the side opposite it.']};
+ },
+ 2:()=>{
+   const [a,b]=legs(), t=rnd(0,5), dec=!Number.isInteger(a)||!Number.isInteger(b), S=a*a+b*b;
+   if(t===0) return {q:`A rectangle is ${fx(Math.max(a,b))} cm long and ${fx(Math.min(a,b))} cm wide. How long is its diagonal?`,...ans(S,'cm'),tool:`hyp,${a},${b},cm`,
+     steps:['The diagonal cuts the rectangle into two right-angled triangles. The diagonal is the hypotenuse.',...hypSteps('d',a,b,'cm').slice(1)]};
+   if(t===1){const [lo,hi]=[Math.min(a,b),Math.max(a,b)];return {q:`A ramp goes ${fx(hi)} m along the ground and rises ${fx(lo)} m. How long is the sloping surface of the ramp?`,...ans(S,'m'),tool:`hyp,${hi},${lo},m`,
+     steps:['The ground and the rise meet at a right angle. The slope is the hypotenuse.',...hypSteps('s',hi,lo,'m').slice(1)]};}
+   if(t===2) return {q:`A boat sails ${fx(a)} km east, then ${fx(b)} km north. How far is it from where it started?`,...ans(S,'km'),tool:`hyp,${a},${b},km`,
+     steps:['East and north are at right angles. The straight line back to the start is the hypotenuse.',...hypSteps('d',a,b,'km').slice(1)]};
+   const u=dec?'m':'cm';
+   return {q:'Find x.',fig:triFig(a,b,[`${fx(a)} ${u}`,`${fx(b)} ${u}`,'x']),...ans(S,u),tool:`hyp,${a},${b},${u}`,steps:hypSteps('x',a,b,u)};
+ },
+ 3:()=>{
+   let c,a; const r=rnd(0,9);
+   if(r<4){const T=pick(TRIPLES);c=T[2];a=T[rnd(0,1)];}
+   else if(r<8){c=rnd(8,20);a=rnd(Math.ceil(c/4),c-2);}
+   else {c=rnd(40,120)/10;a=rnd(Math.ceil(c*2.5),Math.floor(c*10)-6)/10;}
+   const S=c*c-a*a, t=rnd(0,4), u=Number.isInteger(c)&&Number.isInteger(a)?'cm':'m';
+   if(t===0) return {q:`A ${fx(c)} m ladder leans against a wall. Its foot is ${fx(a)} m from the wall. How high up the wall does it reach?`,...ans(S,'m'),tool:`short,${c},${a},m`,
+     steps:['The wall and the ground meet at a right angle. The ladder is the hypotenuse.',...shortSteps('h',c,a,'m').slice(1)]};
+   if(t===1) return {q:`A rectangle has a diagonal of ${fx(c)} cm and is ${fx(a)} cm wide. How long is it?`,...ans(S,'cm'),tool:`short,${c},${a},cm`,
+     steps:['The diagonal is the hypotenuse.',...shortSteps('l',c,a,'cm').slice(1)]};
+   return {q:'Find x.',fig:triFig(a,Math.sqrt(S),[`${fx(a)} ${u}`,'x',`${fx(c)} ${u}`]),...ans(S,u),tool:`short,${c},${a},${u}`,steps:shortSteps('x',c,a,u)};
+ },
+ 4:()=>{
+   let dx,dy; if(rnd(0,2)===0)[dx,dy]=pick([[3,4],[4,3],[6,8],[8,6],[5,12]]); else {dx=rnd(1,8);dy=rnd(1,8);}
+   dx*=pick([1,-1]); dy*=pick([1,-1]);
+   const x1=rnd(Math.max(-8,-8-dx),Math.min(8,8-dx)), y1=rnd(Math.max(-8,-8-dy),Math.min(8,8-dy)), x2=x1+dx, y2=y1+dy;
+   const [A,B]=pick([['A','B'],['P','Q'],['C','D'],['M','N']]), X=Math.abs(dx), Y=Math.abs(dy), S=X*X+Y*Y, R=res(S);
+   const diff=(p,q)=>`${fx(Math.max(p,q))} − ${br(Math.min(p,q))}`;
+   return {q:`Find the distance between ${A}(${fx(x1)}, ${fx(y1)}) and ${B}(${fx(x2)}, ${fx(y2)}).`,a:`${R.s} units`,n:R.n,tool:`coord,${x1},${y1},${x2},${y2}`,
+     steps:[`Sketch it. Across: ${diff(x1,x2)} = ${X}. ${dy>0?'Up':'Down'}: ${diff(y1,y2)} = ${Y}.`,`${A}${B} is the hypotenuse: ${A}${B}² = ${X}² + ${Y}² = ${X*X} + ${Y*Y} = ${S}`,`${A}${B} = ${R.root}`]};
+ },
+ 5:()=>{
+   const t=rnd(0,2);
+   if(t===0){let s,b; if(rnd(0,1)){const T=pick(WHOLE);s=T[2];b=2*T[rnd(0,1)];} else {s=rnd(5,15);b=2*rnd(2,s-1);}
+     const S=s*s-(b/2)**2;
+     return {q:`An isosceles triangle has two sides of ${s} cm and a base of ${b} cm. Find its height.`,...ans(S,'cm'),tool:`iso,${s},${b},cm`,
+       steps:[`The height cuts the base in half: ${b} ÷ 2 = ${b/2} cm. The ${s} cm side is the hypotenuse.`,`h² = ${s}² − ${b/2}² = ${s*s} − ${(b/2)**2} = ${S}`,`h = ${res(S).root} cm`]};}
+   if(t===1){let hb,h; if(rnd(0,1))[hb,h]=shuffle(pick(WHOLE).slice(0,2)); else {hb=rnd(3,10);h=rnd(3,12);}
+     const S=hb*hb+h*h;
+     return {q:`An isosceles triangle has a base of ${2*hb} cm and a height of ${h} cm. How long is each of the equal sides?`,...ans(S,'cm'),tool:`hyp,${hb},${h},cm`,
+       steps:[`The height cuts the base in half: ${hb} cm. This time the equal side is the hypotenuse.`,`s² = ${hb}² + ${h}² = ${hb*hb} + ${h*h} = ${S}`,`s = ${res(S).root} cm`]};}
+   const s=2*rnd(2,8), S=s*s-(s/2)**2;
+   return {q:`An equilateral triangle has sides of ${s} cm. Find its height.`,...ans(S,'cm'),tool:`iso,${s},${s},cm`,
+     steps:[`The height cuts the base in half: ${s/2} cm. A ${s} cm side is the hypotenuse.`,`h² = ${s}² − ${s/2}² = ${s*s} − ${(s/2)**2} = ${S}`,`h = ${res(S).root} cm`]};
+ },
+ 6:()=>{
+   const t=rnd(0,2);
+   if(t===0){let r,L; if(rnd(0,1)){const T=pick(WHOLE);r=T[2];L=2*T[rnd(0,1)];} else {r=rnd(5,15);L=rnd(4,2*r-2);}
+     const h=L/2,S=r*r-h*h;
+     return {q:`A chord ${L} cm long is in a circle of radius ${r} cm. How far is the chord from the centre?`,...ans(S,'cm'),tool:`chord,${r},${L},cm`,
+       steps:[`The line from the centre at right angles to the chord cuts it in half: ${fx(h)} cm. The radius is the hypotenuse.`,`d² = ${r}² − ${fx(h)}² = ${r*r} − ${sq(h)} = ${fx(S)}`,`d = ${res(S).root} cm`]};}
+   if(t===1){let r,d; if(rnd(0,1)){const T=pick(WHOLE);r=T[2];d=T[rnd(0,1)];} else {r=rnd(5,15);d=rnd(1,r-2);}
+     const S=r*r-d*d, x=Math.sqrt(S), L=2*x, ex=exact(S);
+     return {q:`A chord is ${d} cm from the centre of a circle of radius ${r} cm. How long is the chord?`,a:`${ex?fx(L):d1(L)} cm`,n:ex?L:+d1(L),tool:`chordlen,${r},${d},cm`,
+       steps:['Let x be half the chord. The radius is the hypotenuse.',`x² = ${r}² − ${d}² = ${r*r} − ${d*d} = ${S}`,`x = √${S} = ${ex?fx(x):cut(x)}`,`The chord is 2 × x = ${ex?fx(L):d1(L)+' (1 d.p.)'} cm`]};}
+   let w,h; if(rnd(0,1))[w,h]=shuffle(pick(WHOLE).slice(0,2)); else {w=rnd(4,14);h=rnd(3,w);}
+   const S=w*w+h*h, D=Math.sqrt(S), ex=exact(S);
+   return {q:`A rectangle ${w} cm by ${h} cm fits exactly inside a circle, with all four corners on the circle. Find the radius of the circle.`,a:`${ex?fx(D/2):d1(D/2)} cm`,n:ex?D/2:+d1(D/2),tool:`hyp,${w},${h},cm`,
+     steps:['The diagonal of the rectangle goes through the centre of the circle, so it is a diameter.',`diagonal² = ${w}² + ${h}² = ${w*w} + ${h*h} = ${S}, so the diagonal is ${ex?fx(D):cut(D)}`,`radius = diagonal ÷ 2 = ${ex?fx(D/2):d1(D/2)+' (1 d.p.)'} cm`]};
+ },
+ 7:()=>{
+   const right=rnd(0,1)===1; let s=[...pick(WHOLE.slice(0,9))];
+   if(!right){ do{ s=[...pick(WHOLE.slice(0,9))]; s[rnd(0,2)]+=pick([-1,1]); s.sort((x,y)=>x-y); }while(s[0]+s[1]<=s[2]||s[0]**2+s[1]**2===s[2]**2); }
+   const frame=rnd(0,2)===0; if(frame) s=s.map(v=>v/10);
+   const [p,q,r]=[...s].sort((x,y)=>x-y), P=p*p,Q=q*q,R=r*r,T=P+Q, ok=Math.abs(T-R)<1e-9, u=frame?'m':'cm';
+   const qq=frame?`A wooden frame is ${fx(p)} m by ${fx(q)} m. Its diagonal measures ${fx(r)} m. Is the frame rectangular?`
+                 :`A triangle has sides ${list(shuffle([p,q,r]).map(v=>fx(v)+' cm'))}. Is it right-angled?`;
+   return {q:qq,a:ok?`Yes. ${fx(p)}² + ${fx(q)}² = ${fx(T)} = ${fx(r)}²`:`No. ${fx(p)}² + ${fx(q)}² = ${fx(T)}, but ${fx(r)}² = ${fx(R)}`,yn:ok,tool:`conv,${p},${q},${r},${u}`,
+     steps:[`Square the longest side: ${fx(r)}² = ${fx(R)}`,`Square the other two and add: ${fx(p)}² + ${fx(q)}² = ${fx(P)} + ${fx(Q)} = ${fx(T)}`,
+       ok?`They are equal, so by the converse of Pythagoras ${frame?'the corner is a right angle and the frame is rectangular':'the triangle is right-angled'}.`
+         :`${fx(T)} ≠ ${fx(R)}, so by the converse of Pythagoras ${frame?'the corner is not a right angle and the frame is not rectangular':'the triangle is not right-angled'}.`]};
+ },
+ 8:()=>{
+   const t=rnd(0,5), T=pick(WHOLE.slice(0,9));
+   if(t===0){const [a,b]=shuffle(T.slice(0,2)),c=T[2],P=a+b+c;
+     return {q:`A right-angled triangle has shorter sides of ${a} cm and ${b} cm. Find its perimeter.`,a:`${P} cm`,n:P,tool:`hyp,${a},${b},cm`,
+       steps:[`First the hypotenuse: x² = ${a}² + ${b}² = ${a*a+b*b}, so x = ${c} cm.`,`Perimeter: add all three sides. ${a} + ${b} + ${c} = ${P} cm`]};}
+   if(t===1){const i=rnd(0,1),a=T[i],b=T[1-i],c=T[2],A=a*b/2;
+     return {q:`A right-angled triangle has a hypotenuse of ${c} cm and one shorter side of ${a} cm. Find its area.`,a:`${fx(A)} cm²`,n:A,tool:`short,${c},${a},cm`,
+       steps:[`First the other shorter side: x² = ${c}² − ${a}² = ${c*c-a*a}, so x = ${b} cm.`,'The two shorter sides are the base and the height (not the hypotenuse).',`Area = ½ × ${a} × ${b} = ${fx(A)} cm²`]};}
+   if(t===2){const [f,h,c]=pick([[3,4,5],[6,8,10],[1.5,2,2.5],[5,12,13],[0.7,2.4,2.5]]), k=pick([0.3,0.5,1,2].filter(k=>f+k<c*0.95)), nf=f+k, S=c*c-nf*nf, R=res(S);
+     return {q:`A ${fx(c)} m ladder reaches ${fx(h)} m up a wall. The foot of the ladder slides ${fx(k)} m further away from the wall. How far up the wall does it reach now?`,a:`${R.s} m`,n:R.n,tool:`short,${c},${nf},m`,
+       steps:[`Foot at the start: √(${fx(c)}² − ${fx(h)}²) = √${fx(c*c-h*h)} = ${fx(f)} m`,`New foot: ${fx(f)} + ${fx(k)} = ${fx(nf)} m`,`New height: √(${fx(c)}² − ${fx(nf)}²) = ${R.root} m`]};}
+   if(t===3){const i=rnd(0,1),bd=T[i],ad=T[1-i],ab=T[2],dc=rnd(3,16),S=ad*ad+dc*dc,R=res(S);
+     return {q:`In triangle ABC, D is on BC and AD is at right angles to BC. AB = ${ab} cm, BD = ${bd} cm and DC = ${dc} cm. Find AC.`,a:`${R.s} cm`,n:R.n,tool:`hyp,${ad},${dc},cm`,
+       steps:[`Sketch it. Triangle ABD: AB is the hypotenuse, so AD² = ${ab}² − ${bd}² = ${ad*ad} and AD = ${ad} cm.`,`Triangle ADC: AC is the hypotenuse. AC² = ${ad}² + ${dc}² = ${ad*ad} + ${dc*dc} = ${S}`,`AC = ${R.root} cm`]};}
+   if(t===4){const i=rnd(0,1),hw=T[i],d=T[1-i],r=T[2];
+     return {q:`A pipe has a radius of ${r} cm. The surface of the water is ${2*hw} cm wide, and the water is less than half way up. How deep is the water?`,a:`${r-d} cm`,n:r-d,tool:`chord,${r},${2*hw},cm`,
+       steps:[`Half the width: ${hw} cm. The radius is the hypotenuse.`,`Centre to the water: d² = ${r}² − ${hw}² = ${d*d}, so d = ${d} cm.`,`Depth = radius − d = ${r} − ${d} = ${r-d} cm`]};}
+   const i=rnd(0,1),w=T[i],l=T[1-i],c=T[2],P=2*(w+l);
+   return {q:`A rectangle has a diagonal of ${c} cm and a width of ${w} cm. Find its perimeter.`,a:`${P} cm`,n:P,tool:`short,${c},${w},cm`,
+     steps:[`The diagonal is the hypotenuse: l² = ${c}² − ${w}² = ${l*l}, so l = ${l} cm.`,`Perimeter = ${l} + ${w} + ${l} + ${w} = ${P} cm`]};
+ },
+ 9:()=>{
+   const t=rnd(0,3);
+   if(t===0){const [l,w,h]=rnd(0,1)?pick([[2,3,6],[1,4,8],[2,6,9],[4,4,7],[6,6,7],[3,4,12],[6,4,3],[8,5,4],[12,4,3]]):[rnd(3,12),rnd(2,9),rnd(2,9)];
+     const D=l*l+w*w,X=D+h*h,R=res(X);
+     return {q:`A cuboid is ${l} cm long, ${w} cm wide and ${h} cm high. Find the length of its space diagonal.`,a:`${R.s} cm`,n:R.n,tool:`cuboid,${l},${w},${h},cm`,
+       steps:[`Across the base: d² = ${l}² + ${w}² = ${l*l} + ${w*w} = ${D}. Keep ${D}.`,`Then up: x² = ${D} + ${h}² = ${D} + ${h*h} = ${X}`,`x = ${R.root} cm`]};}
+   if(t===1){const l=5*rnd(4,10),w=5*rnd(2,6),h=5*rnd(2,4),X=l*l+w*w+h*h,x=Math.sqrt(X),stick=Math.round(x)+pick([-2,-1,1,2]),fits=stick<=x;
+     return {q:`A box is ${l} cm by ${w} cm by ${h} cm. Will a stick ${stick} cm long fit inside?`,a:fits?`Yes. The space diagonal is ${d1(x)} cm, which is longer than ${stick} cm.`:`No. The space diagonal is only ${d1(x)} cm.`,yn:fits,tool:`cuboid,${l},${w},${h},cm`,
+       steps:['The longest thing that fits goes along the space diagonal.',`x² = ${l}² + ${w}² + ${h}² = ${l*l} + ${w*w} + ${h*h} = ${X}`,`x = √${X} = ${d1(x)} cm. Compare it with ${stick} cm.`]};}
+   if(t===2){const e=rnd(2,12),X=3*e*e,R=res(X);
+     return {q:`A cube has edges of ${e} cm. Find the length of its space diagonal.`,a:`${R.s} cm`,n:R.n,tool:`cuboid,${e},${e},${e},cm`,
+       steps:[`Across one face: d² = ${e}² + ${e}² = ${2*e*e}.`,`Then up: x² = ${2*e*e} + ${e}² = ${X}`,`x = ${R.root} cm`]};}
+   const l=rnd(4,15),w=rnd(3,10),h=rnd(2,10),S=l*l+w*w;
+   return {q:`A cuboid is ${l} cm by ${w} cm by ${h} cm high. Find the length of the diagonal across its ${l} cm by ${w} cm base.`,...ans(S,'cm'),tool:`cuboid,${l},${w},${h},cm`,steps:hypSteps('d',l,w,'cm')};
+ }
+};
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();const key=g.q+g.a;if(seen.has(key))continue;seen.add(key);out.push({...g,st});}
+  return out;
+}
+
+/* ---------- Sidebar ---------- */
+const seqWrap=document.getElementById('seqWrap');
+seqWrap.innerHTML=WEEKS.map(w=>`<p class="wk">${esc(w.label)}</p><ol class="steps" start="${w.from}">`+
+  STEPS.slice(w.from-1,w.to).map((st,k)=>{const n=w.from+k;return `<li><button class="step" data-view="${n}"><span class="num">${n}</span>
+    <span class="txt">${esc(st.s)}${st.eg?`<span class="eg">${esc(st.eg)}</span>`:''}</span></button></li>`;}).join('')+'</ol>').join('');
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';
+const qSel=new Set(STEPS.map((_,i)=>i+1));
+function showView(v){
+  view=v;
+  const isStep=v!=='all';
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===String(v))));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = s.dataset.for==='vocab' ? !(v==='all'||VOCAB_STEPS.includes(v)) : (s.dataset.for==='step')!==isStep);
+  const jumps=isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],...(VOCAB_STEPS.includes(v)?[['vocab','Word scramble']]:[]),['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['vocab','Word scramble'],['tasks','Rich tasks'],['talks','Picture talks'],['games','Games']];
+  document.getElementById('jump').innerHTML=jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('')+
+    (isStep?`<li class="stepnav">${v>1?`<button class="btn alt" data-go="${v-1}">← Step ${v-1}</button>`:''}${v<STEPS.length?`<button class="btn" data-go="${v+1}">Step ${v+1} →</button>`:''}</li>`:'');
+  const kicker=document.getElementById('kicker'),title=document.getElementById('title'),heroEg=document.getElementById('heroEg');
+  if(isStep){
+    const wk=WEEKS.find(w=>v>=w.from&&v<=w.to);
+    kicker.textContent=`Step ${v} of ${STEPS.length} · ${wk.label}`;
+    title.textContent=STEPS[v-1].s; heroEg.textContent=STEPS[v-1].eg||'';
+    renderExamples(v); renderScaffold(v); renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=`New questions for step ${v} every time.`;
+    document.getElementById('qAsk').textContent=ASK[v]||'';
+  } else {
+    kicker.textContent='S3 Term 2 · Weeks 3–4 · MTH 4-16a';
+    title.textContent='Pythagoras';
+    heroEg.textContent='Squares on the sides of a right-angled triangle, finding the hypotenuse and the shorter sides, then using Pythagoras with coordinates, isosceles triangles, circles, the converse and in 3D.';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include.';
+    document.getElementById('qAsk').textContent='Use a calculator. Give answers to 1 decimal place if they don\'t come out exactly.';
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g) location.hash='step-'+g.dataset.go;
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d+)$/);
+  const v=m&&+m[1]>=1&&+m[1]<=STEPS.length?+m[1]:'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples and hinge questions ---------- */
+function renderExamples(n){
+  const ex=(WE[n]||[]).map((ex,i)=>{const L=!!ex.fig||isLong(ex.q);return `
+    <div class="ex">
+      <div class="exq${L?' long':''}">${esc(ex.q)}</div>
+      ${ex.fig?triFig(ex.fig[0],ex.fig[1],ex.fig[2],{ang:0,flip:0}):''}
+      <ol>${ex.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+      <div class="exa">Answer: ${esc(ex.a)}</div>
+      ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}
+      ${ex.tool?`<button class="btn alt try" data-ex="${i}">Show it step by step</button>`:''}
+    </div>`;});
+  const hg=(HINGE[n]||[]).map(h=>`
+    <div class="ex hinge"><span class="kind-h">Quick check · hinge question</span>
+      <div class="exq long">${esc(h.q)}</div>
+      <ul class="opts">${h.o.map((o,i)=>`<li><b>${'ABCD'[i]}</b>  ${esc(o)}</li>`).join('')}</ul>
+      <details><summary>Answer</summary><b>${'ABCD'[h.c]}: ${esc(h.o[h.c])}</b><br>${esc(h.why)}</details>
+    </div>`);
+  document.getElementById('exs').innerHTML=[...ex,...hg].join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ex]'); if(!t) return;
+  const ex=WE[view][+t.dataset.ex];
+  if((SCAFFOLD[view]||[]).includes('tool')){ toolLoad(ex.tool); document.getElementById('sc-tool').scrollIntoView(); }
+  else window.open(encodeURI(TOOL)+'#q='+ex.tool,'_blank','noopener');
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'),qsEl=document.getElementById('qs');
+STEPS.forEach((_,i)=>{const n=i+1,b=document.createElement('button');
+  b.className='chip';b.textContent=n;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${n}`);
+  b.onclick=()=>{qSel.has(n)?qSel.delete(n):qSel.add(n);b.setAttribute('aria-pressed',qSel.has(n));newChecks();};
+  chips.appendChild(b);});
+function newChecks(){
+  const steps=view==='all'?[...qSel]:[view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  qsEl.classList.toggle('wordy',out.some(g=>g.q.length>45));
+  qsEl.innerHTML=out.map(g=>`<li><span class="q">${esc(g.q)}</span>${g.fig||''}<span class="a${g.a.length>14?' long':''}">${esc(g.a)}</span>${view==='all'?`<span class="from">Step ${g.st}</span>`:''}</li>`).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(n){
+  const ks=SCAFFOLD[n]||[], stack=document.querySelector('.sc-stack');
+  ['hy','tool','bd'].forEach(id=>document.getElementById('sc-'+id).hidden=!ks.includes(id));
+  ks.forEach(id=>stack.appendChild(document.getElementById('sc-'+id)));   // show them in the order listed
+  if(ks.includes('hy')) hyNew();
+  if(ks.includes('tool')) toolLoad(TOOL_START[n]);
+  if(ks.includes('bd')) newBD();
+}
+
+/* Teaching tool (separate file, shown in a frame) */
+const TOOL='Pythagoras teaching tool - squares on the sides.html';
+const toolFrame=document.getElementById('toolFrame');
+function toolLoad(h){
+  document.getElementById('toolOpen').href=encodeURI(TOOL)+'#q='+h;
+  toolFrame.src=encodeURI(TOOL)+'#embed&q='+h;   // only the # part changes after the first load, so the tool updates without reloading
+}
+window.addEventListener('message',e=>{ if(e.data && e.data.toolHeight) toolFrame.style.height=(e.data.toolHeight+4)+'px'; });
+
+/* Find the hypotenuse */
+const hyFig=document.getElementById('hyFig'),hyFb=document.getElementById('hyFb');
+let hy={score:0,done:0,locked:false};
+function hyNew(){
+  const a=rnd(4,10),b=rnd(4,10);
+  hyFig.innerHTML=triFig(a,b,null,{ang:rnd(0,359),click:true,w:360,h:260,pad:28,aria:'Right-angled triangle. Press the hypotenuse.'});
+  hy.locked=false; hyFb.textContent=''; hyFb.className='feedback';
+}
+hyFig.addEventListener('click',e=>{
+  const g=e.target.closest('.sdg'); if(!g||hy.locked) return;
+  hy.locked=true; hy.done++; const ok=g.dataset.side==='c'; if(ok) hy.score++;
+  g.classList.add(ok?'right':'wrong'); if(!ok) hyFig.querySelector('.sdg[data-side="c"]').classList.add('right');
+  hyFb.textContent=ok?'Yes! That side is opposite the right angle.':'Not this time. The hypotenuse (green) is opposite the right angle: it doesn\'t touch the little square.';
+  hyFb.className='feedback '+(ok?'ok':'no');
+  document.getElementById('hyScore').textContent=`Score: ${hy.score} out of ${hy.done}`;
+});
+document.getElementById('hyNew').onclick=hyNew;
+
+/* Break it down */
+let bd=null,shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIn=document.getElementById('bdIn'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  let g=0; do{ bd=GEN[view==='all'?pick([2,3,4,5,6,7,8,9]):view](); }while(bd.n===undefined&&bd.yn===undefined&&g++<50);
+  shown=0; bdQ.innerHTML=esc(bd.q)+(bd.fig||'');
+  bdSteps.innerHTML=''; bdIn.value=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.textContent=bd.steps[shown++];bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+function checkBD(s){
+  s=s.trim().toLowerCase();
+  if(bd.yn!==undefined){
+    const no=/\bno\b|\bnot\b|isn|won|doesn/.test(s), yes=/\byes\b/.test(s);
+    if(no===yes) return {cls:'no',msg:'Answer yes or no.'};
+    return yes===bd.yn?{cls:'ok',msg:`Correct: ${bd.a}`}:{cls:'no',msg:'Not yet. Check your working, or show a hint.'};
+  }
+  const m=s.replace(/,/g,'.').replace(/−/g,'-').match(/-?\d+(\.\d+)?/);
+  if(!m) return {cls:'no',msg:'Type a number, like 11.4'};
+  const v=+m[0], places=m[1]?m[1].length-1:0;
+  if(Math.abs(v-bd.n)<1e-6) return {cls:'ok',msg:`Correct: ${bd.a}`};
+  if(Math.abs(v-bd.n)<0.051 && places>1) return {cls:'no',msg:`Nearly! Round to 1 decimal place.`};
+  return {cls:'no',msg:'Not yet. Check your working, or show a hint.'};
+}
+document.getElementById('bdCheck').onclick=()=>{
+  if(!bdIn.value.trim()){bdFb.textContent='Type your answer first.';bdFb.className='feedback no';return;}
+  const r=checkBD(bdIn.value); bdFb.textContent=r.msg; bdFb.className='feedback '+r.cls;
+};
+bdIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+function renderLinks(n){
+  const web=LINKS.filter(l=>l.steps.includes(n)).map(l=>`<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open ${esc(l.title)}</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(n)).map(f=>`<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${esc(encodeURI(f.path).replace(/\(/g,'%28').replace(/\)/g,'%29'))}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+`<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+
+/* ---------- Rich tasks ---------- */
+document.getElementById('taskCards').innerHTML=TASKS.map(t=>`<div class="card"><span class="kind">${t.step<=5?'Week 3':'Week 4'} · after step ${t.step}</span><h3>${esc(t.title)}</h3>
+    <p class="task" style="white-space:pre-line">${esc(t.task)}</p>${t.extra?`<p>${esc(t.extra)}</p>`:''}
+    <details><summary>Answer</summary>${esc(t.ans)}</details></div>`).join('');
+
+/* ---------- Picture talk 1: squares on a 3, 4, 5 triangle, split into 1 by 1 squares ---------- */
+(function(){
+  const a=3,b=4,O=[0,0],A=[a,0],B=[0,b];
+  const out=(P,Q,R)=>{const u=sub(Q,P);let n=[-u[1],u[0]];if(n[0]*(R[0]-P[0])+n[1]*(R[1]-P[1])>0)n=[-n[0],-n[1]];return [P,Q,[Q[0]+n[0],Q[1]+n[1]],[P[0]+n[0],P[1]+n[1]]];};
+  const sqs=[[out(O,A,B),'#4B57E0','#C3C8F6',a],[out(O,B,A),'#E84C4C','#FFBDBD',b],[out(A,B,O),'#A0109F','#E4B8E6',5]];
+  const all=[O,A,B,...sqs.flatMap(s=>s[0])], xs=all.map(p=>p[0]), ys=all.map(p=>p[1]);
+  const x0=Math.min(...xs), y1=Math.max(...ys), k=220/Math.max(Math.max(...xs)-x0,y1-Math.min(...ys)), S=p=>[10+(p[0]-x0)*k,10+(y1-p[1])*k];
+  const pt=p=>S(p).map(v=>v.toFixed(1)).join(','), lerp=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+  let s='<svg class="pic" viewBox="0 0 240 240" role="img" aria-label="A right-angled triangle with sides 3, 4 and 5 and a square on each side, split into small squares">';
+  sqs.forEach(([Q,c,cl,n])=>{
+    s+=`<polygon points="${Q.map(pt).join(' ')}" fill="${cl}" stroke="${c}" stroke-width="2"/>`;
+    for(let i=1;i<n;i++) s+=`<polyline points="${pt(lerp(Q[0],Q[1],i/n))} ${pt(lerp(Q[3],Q[2],i/n))}" stroke="${c}" stroke-width="1" opacity=".5"/><polyline points="${pt(lerp(Q[0],Q[3],i/n))} ${pt(lerp(Q[1],Q[2],i/n))}" stroke="${c}" stroke-width="1" opacity=".5"/>`;
+  });
+  s+=`<polygon points="${[O,A,B].map(pt).join(' ')}" fill="#fff" stroke="#17262E" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+  document.getElementById('talk1').innerHTML=s;
+})();
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+function buildDeckMenu(v){
+  const opts=v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['rules','Rules'],['words','Key words']]
+    : [['step',`Step ${v} questions`],['rules',`Rules for step ${v}`],...(VOCAB_STEPS.includes(v)?[['words','Key words']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='rules') return shuffle(view==='all'?RULES:RULES.filter(r=>r.st.includes(view)));
+  if(type==='words') return shuffle(WORDS);
+  const steps=type==='step'?[view]:STEPS.map((_,i)=>i+1);
+  return makeQs(steps,12).map(g=>({q:g.q,a:g.a,fig:g.fig}));
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i]; fcSetFlip(false); fcFront.innerHTML=esc(c.q)+(c.fig||'');
+  setTimeout(()=>{fcBack.textContent=c.a;},250);
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+(left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){if(!fc.flipped)return;knew?fc.known++:fc.again.push(fc.deck[fc.i]);fc.i++;fcShow();}
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true); fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Word scramble (uses WORDS) ---------- */
+const wsDefs=document.getElementById('wsDefs'),wsTiles=document.getElementById('wsTiles'),wsDef=document.getElementById('wsDef'),
+      wsIn=document.getElementById('wsIn'),wsFb=document.getElementById('wsFb'),wsCount=document.getElementById('wsCount'),
+      wsDefBtn=document.getElementById('wsDefBtn'),wsList=document.getElementById('wsList');
+function scramble(word){
+  return word.toUpperCase().split(' ').map(w=>{
+    if(w.length<2) return w; let s,g=0; do{s=shuffle([...w]).join('');}while(s===w&&g++<50); return s;}).join(' ');
+}
+let ws={order:[],i:0,solved:0,defOn:false};
+function wsStart(){ws={order:shuffle(WORDS),i:0,solved:0,defOn:false};wsShow();wsBuildList();}
+function wsShow(){
+  const w=ws.order[ws.i];
+  wsTiles.innerHTML=scramble(w.q).split('').map(c=>c===' '?'<span class="gap"></span>':`<span class="t">${esc(c)}</span>`).join('');
+  wsDef.innerHTML=`<b>Definition:</b> ${esc(w.a)}`;
+  ws.defOn=wsDefs.checked; wsDefSync();
+  wsIn.value=''; wsFb.textContent=''; wsFb.className='feedback';
+  wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+}
+function wsDefSync(){wsDef.hidden=!ws.defOn;wsDefBtn.textContent=ws.defOn?'Hide the definition':'Show the definition';}
+const norm=s=>s.toUpperCase().replace(/[^A-Z]/g,'');
+document.getElementById('wsCheck').onclick=()=>{
+  const w=ws.order[ws.i];
+  if(!wsIn.value.trim()){wsFb.textContent='Type your word first.';wsFb.className='feedback no';return;}
+  if(norm(wsIn.value)===norm(w.q)){
+    if(!wsFb.classList.contains('ok')) ws.solved++;
+    wsFb.textContent=`Correct: ${w.q.toUpperCase()}`;wsFb.className='feedback ok';
+    ws.defOn=true;wsDefSync();
+    wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+  } else {wsFb.textContent='Not yet. Try the definition for a clue.';wsFb.className='feedback no';}
+};
+wsIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('wsCheck').click();});
+wsDefBtn.onclick=()=>{ws.defOn=!ws.defOn;wsDefSync();};
+document.getElementById('wsReveal').onclick=()=>{const w=ws.order[ws.i];wsFb.textContent=`The word is ${w.q.toUpperCase()}`;wsFb.className='feedback';ws.defOn=true;wsDefSync();};
+document.getElementById('wsNext').onclick=()=>{ws.i=(ws.i+1)%ws.order.length;if(ws.i===0){ws.order=shuffle(WORDS);ws.solved=0;}wsShow();};
+
+function wsBuildList(){
+  wsList.innerHTML=shuffle(WORDS).map(w=>`<li><div class="scr">${esc(scramble(w.q))}</div><div class="word">${esc(w.q.toUpperCase())}</div>${wsDefs.checked?`<div class="d">${esc(w.a)}</div>`:''}</li>`).join('');
+}
+wsDefs.onchange=()=>{ws.defOn=wsDefs.checked;wsDefSync();
+  wsList.querySelectorAll('li').forEach(li=>{const word=li.querySelector('.word').textContent,w=WORDS.find(x=>x.q.toUpperCase()===word);
+    let d=li.querySelector('.d'); if(wsDefs.checked&&!d){d=document.createElement('div');d.className='d';d.textContent=w.a;li.appendChild(d);} if(!wsDefs.checked&&d) d.remove();});};
+const modeOne=document.getElementById('wsModeOne'),modeAll=document.getElementById('wsModeAll');
+function wsMode(all){modeOne.setAttribute('aria-pressed',!all);modeAll.setAttribute('aria-pressed',all);
+  document.getElementById('wsOne').hidden=all;document.getElementById('wsAll').hidden=!all;wsCount.hidden=all;}
+modeOne.onclick=()=>wsMode(false); modeAll.onclick=()=>wsMode(true);
+document.getElementById('wsReshuffle').onclick=wsBuildList;
+const wsShowAll=document.getElementById('wsShowAll');
+wsShowAll.onclick=()=>{const on=wsList.classList.toggle('show');wsShowAll.setAttribute('aria-pressed',on);wsShowAll.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('wsFull').onclick=()=>{const el=document.getElementById('vocab');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+wsStart();
+
+/* ---------- Add or subtract? ---------- */
+let as=null,asRight=0,asDone=0;
+function asNew(){
+  const hyp=rnd(0,1)===1; let a,b,c;
+  if(rnd(0,1)){const T=pick(WHOLE);[a,b]=shuffle(T.slice(0,2));c=T[2];} else {a=rnd(3,12);b=rnd(3,12);c=Math.hypot(a,b);}
+  const lab=hyp?[`${a} cm`,`${b} cm`,'x']:[`${a} cm`,'x',`${Number.isInteger(c)?c:d1(c)} cm`];
+  const S=hyp?a*a+b*b:c*c-a*a;
+  as={hyp,a,b,c:Number.isInteger(c)?c:+d1(c),R:res(hyp?S:(+lab[2].split(' ')[0])**2-a*a),done:false};
+  document.getElementById('asFig').innerHTML=triFig(a,b,lab,{ang:rnd(0,359)});
+  document.getElementById('asFb').textContent=''; document.getElementById('asFb').className='feedback';
+}
+function asAns(add){
+  if(!as||as.done) return; as.done=true; asDone++;
+  const ok=add===as.hyp; if(ok) asRight++;
+  const fb=document.getElementById('asFb');
+  fb.textContent=(ok?'Yes! ':'Not this time. ')+(as.hyp
+    ?`x is opposite the right angle, so it is the hypotenuse: square, add, square root. x = √(${as.a}² + ${as.b}²) = ${as.R.s} cm.`
+    :`The hypotenuse (${as.c} cm) is given, so x is a shorter side: square, subtract, square root. x = √(${as.c}² − ${as.a}²) = ${as.R.s} cm.`);
+  fb.className='feedback '+(ok?'ok':'no');
+  document.getElementById('asScore').textContent=`Score: ${asRight} out of ${asDone}`;
+}
+document.getElementById('asAdd').onclick=()=>asAns(true);
+document.getElementById('asSub').onclick=()=>asAns(false);
+document.getElementById('asNext').onclick=asNew;
+asNew();
+
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s3/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

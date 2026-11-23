@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pythagoras: squares on the sides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --blue:#4B57E0; --red:#E84C4C; --purp:#A0109F;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.1rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+.wrap{padding:1.25rem clamp(1rem,2.5vw,2rem) 2.5rem;max-width:1500px;margin:0 auto}
+
+/* Control bar */
+.bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:.35rem}
+.grp .lab{font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:.45rem;flex-wrap:wrap;align-items:flex-end}
+.fld{display:flex;flex-direction:column;gap:.1rem}
+.fld small{font-size:.78rem;font-weight:700;color:var(--muted)}
+.row input{width:5.4rem;padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.2rem;text-align:center}
+.row select{padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.05rem;background:var(--paper)}
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn.big{font-size:1.15rem;padding:.65rem 1.3rem}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .85rem;font-weight:700;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--deep)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.err{color:#B23B3B;font-weight:700;font-size:.95rem;min-height:1.2rem}
+.hintline{font-size:.85rem;color:var(--muted)}
+
+/* Question + stepping */
+.qbar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin:1.25rem 0 1rem}
+.question{font-family:var(--head);font-weight:700;font-size:clamp(1.3rem,2.6vw,1.9rem);color:var(--deep);max-width:44ch;line-height:1.3}
+.question .ans{display:block;color:var(--sea);margin-top:.2rem}
+.steps-ctl{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto;align-items:center}
+.stepcount{font-family:var(--head);color:var(--muted);font-size:.95rem;margin-right:.3rem}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:1fr;gap:1.25rem}
+@media (min-width:1100px){.panels{grid-template-columns:3fr 2fr}}
+.panels.one{grid-template-columns:1fr}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem 1.25rem;display:flex;flex-direction:column;min-width:0}
+.panel h2{font-size:1.2rem;color:var(--deep);border-bottom:2px solid var(--deep);padding-bottom:.35rem;margin-bottom:.9rem}
+.stage{display:flex;align-items:center;justify-content:safe center;padding:.25rem 0;overflow-x:auto}
+svg.am{width:100%;height:auto;display:block;max-width:820px;margin:0 auto}
+svg.am text{font-family:var(--head)}
+svg.am .pop{animation:pop .35s ease both}
+@keyframes pop{from{opacity:0}to{opacity:1}}
+.say{list-style:none;margin:.75rem 0 0;padding:0;font-size:1.12rem}
+.say li{padding:.35rem 0 .35rem .9rem;border-left:4px solid var(--line);margin:.3rem 0;animation:in .35s ease both}
+.say li.now{border-left-color:var(--sand)}
+.say li.answer{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.3rem;border-left-color:var(--sea)}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:3px;border:1.5px solid var(--ink);vertical-align:-.1em;margin-right:.35em}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Written method */
+.wm{font-family:var(--head);font-weight:600;font-size:1.65rem;color:var(--deep);min-height:4rem}
+.wm .wl{padding:.3rem 0;animation:in .35s ease both;white-space:nowrap;overflow-x:auto}
+.wm .wl.txt{font-family:var(--body);font-weight:700;font-size:1.2rem;white-space:normal;line-height:1.4}
+.wm .wl.now{background:var(--sand-soft);border-radius:8px;padding-left:.4rem;margin-left:-.4rem}
+.tip{background:var(--sand-soft);border-radius:8px;padding:.5rem .8rem;margin-top:.6rem;font-size:1rem}
+
+.help{margin-top:1.25rem;color:var(--muted);font-size:.95rem}
+.help b{color:var(--ink)}
+body.embed{background:var(--paper)}
+body.embed .topbar,body.embed .help{display:none}
+body.embed .wrap{padding:0;max-width:none}
+body.embed .bar{background:var(--bg)}
+body.embed .panel{padding:.9rem .9rem 1rem}
+body.embed .qbar{margin:.9rem 0 .8rem}
+body.embed .say{font-size:1.02rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S3-t2-pythagoras">Hub</a> › <a href="Topic%20page%20-%20Pythagoras.html">Pythagoras</a> › Squares on the sides</nav>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="grp">
+      <span class="lab">Type a question</span>
+      <div class="row">
+        <select id="mode" aria-label="Type of question"></select>
+        <span class="row" id="fields"></span>
+        <span class="fld" id="unitBox"><small>Units</small><select id="unit" aria-label="Units"><option>cm</option><option>m</option><option>mm</option><option>km</option></select></span>
+        <button class="btn" id="go">Use these numbers</button>
+      </div>
+      <span class="hintline" id="hintline"></span>
+    </div>
+    <div class="grp">
+      <span class="lab">Or make one up</span>
+      <div class="row">
+        <select id="kind" aria-label="Type of question to make up"></select>
+        <button class="btn" id="rand">New question</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Show</span>
+      <div class="seg" role="group" aria-label="What to show">
+        <button data-show="both" aria-pressed="true">Both</button>
+        <button data-show="am" aria-pressed="false">Diagram</button>
+        <button data-show="wm" aria-pressed="false">Written method</button>
+      </div>
+    </div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <div class="qbar">
+    <div class="question" id="question" aria-live="polite"></div>
+    <div class="steps-ctl">
+      <span class="stepcount" id="stepCount"></span>
+      <button class="btn alt" id="back">← Back</button>
+      <button class="btn big" id="next">Next step →</button>
+      <button class="btn alt" id="all">Show all</button>
+      <button class="btn alt" id="reset">Start again</button>
+    </div>
+  </div>
+
+  <div class="panels" id="panels">
+    <section class="panel" id="pAm" aria-labelledby="hAm">
+      <h2 id="hAm">Diagram</h2>
+      <div class="stage" id="amStage"></div>
+      <ul class="say" id="amSay"></ul>
+    </section>
+    <section class="panel" id="pWm" aria-labelledby="hWm">
+      <h2 id="hWm">Written method</h2>
+      <div class="wm" id="wmLines"></div>
+      <ul class="say" id="wmSay"></ul>
+      <div class="tip" id="wmTip" hidden></div>
+    </section>
+  </div>
+
+  <p class="help"><b>Tips:</b> press <b>Next step</b> (or the space bar / right arrow) to build the diagram one step at a time. <b>Blue</b> and <b>red</b> are the two shorter sides and the squares drawn on them. <b>Purple</b> is the hypotenuse: its square has the same area as the blue and red squares together. When the sides are whole numbers up to 20, the squares are split into 1 by 1 squares you can count.</p>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+/* A number as it is written: up to 6 decimal places, a proper minus sign */
+const fx=v=>{const r=Math.round(v*1e6)/1e6;return (r<0?'−':'')+String(Math.abs(r));};
+const sq=v=>fx(v*v);
+const br=v=>v<0?`(${fx(v)})`:fx(v);                      // negative numbers in brackets
+const exact=S=>{const e=Math.round(Math.sqrt(S)*100)/100;return Math.abs(e*e-S)<1e-9;};   // √S has at most 2 d.p.
+const d1=v=>(Math.round(v*10)/10).toFixed(1);
+const cut=v=>(Math.floor(v*1000+1e-9)/1000).toFixed(3)+'…';
+const calc=S=>exact(S)?fx(Math.sqrt(S)):cut(Math.sqrt(S));  // √S as the calculator shows it
+const short=(v,u)=>exact(v*v)?`${fx(v)} ${u}`:`${d1(v)} ${u}`;
+const final=(v,u)=>exact(v*v)?`${fx(v)} ${u}`:`${d1(v)} ${u} (1 d.p.)`;
+/* The last two lines of the written method: square root, then round */
+function rootLines(nm,S,u){
+  const v=Math.sqrt(S);
+  return [{h:`${nm} = √${fx(S)}`, say:'Square root, to undo the square.'},
+    exact(S)?{h:`${nm} = ${fx(v)} ${u}`, say:`Check: ${fx(v)}² = ${fx(S)} ✓`}
+            :{h:`${nm} = ${d1(v)} ${u} (1 d.p.)`, say:`On the calculator, √${fx(S)} = ${cut(v)}. Round to 1 decimal place.`}];
+}
+const C={blue:'#4B57E0',blueL:'#C3C8F6',red:'#E84C4C',redL:'#FFBDBD',purp:'#A0109F',purpL:'#E4B8E6',ink:'#17262E',deep:'#0E3A42',sea:'#1C6670',muted:'#55666E',grid:'#D3DCDB',sand:'#F3C64F'};
+const sw=c=>`<i class="sw" style="background:${c}"></i>`;
+
+/* Vectors */
+const add=(p,q)=>[p[0]+q[0],p[1]+q[1]], sub=(p,q)=>[p[0]-q[0],p[1]-q[1]], mul=(p,k)=>[p[0]*k,p[1]*k];
+const len=p=>Math.hypot(p[0],p[1]), unit=p=>{const l=len(p)||1;return [p[0]/l,p[1]/l];};
+const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2], lerp=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+const centre=ps=>[ps.reduce((s,p)=>s+p[0],0)/ps.length, ps.reduce((s,p)=>s+p[1],0)/ps.length];
+
+/* SVG pieces (screen coordinates) */
+const P2=p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+const poly=(pts,fill,extra='')=>`<polygon points="${pts.map(P2).join(' ')}" fill="${fill}" ${extra}/>`;
+const L=(p,q,w=2,c=C.ink,extra='')=>`<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${q[0].toFixed(1)}" y2="${q[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const TX=(x,y,t,fs,fill,w=700,anchor='middle')=>`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${Math.round(fs)}" font-weight="${w}" fill="${fill}" text-anchor="${anchor}" stroke="#fff" stroke-width="${fs>15?5:4}" paint-order="stroke" stroke-linejoin="round">${t}</text>`;
+const dot=(p,r=6,c=C.deep)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" fill="${c}" stroke="#fff" stroke-width="2"/>`;
+/* Fit points (maths coordinates, y up) into a box on screen */
+function fit(pts,box){
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const k=Math.min(box.w/((x1-x0)||1),box.h/((y1-y0)||1));
+  const ox=box.x+(box.w-k*(x1-x0))/2-k*x0, oy=box.y+(box.h-k*(y1-y0))/2+k*y1;
+  return {k,S:p=>[ox+k*p[0],oy-k*p[1]]};
+}
+/* The square on side AB, on the opposite side from the third corner O (maths coordinates) */
+function sqOut(A,B,O){
+  const u=sub(B,A); let n=[-u[1],u[0]];
+  const t=sub(O,A); if(n[0]*t[0]+n[1]*t[1]>0) n=mul(n,-1);
+  return [A,B,add(B,n),add(A,n)];
+}
+/* Right-angle mark at V, between the directions to A and B */
+function rightMark(V,A,B,s=16){
+  const e1=unit(sub(A,V)),e2=unit(sub(B,V)),p=add(V,mul(e1,s)),q=add(p,mul(e2,s)),r=add(V,mul(e2,s));
+  return `<polyline points="${[p,q,r].map(P2).join(' ')}" fill="none" stroke="${C.ink}" stroke-width="2"/>`;
+}
+/* Angle arc at V with a label inside the angle */
+function arcMark(V,A,B,R,lab,col){
+  const e1=unit(sub(A,V)),e2=unit(sub(B,V)),p=add(V,mul(e1,R)),q=add(V,mul(e2,R));
+  const sweep=(e1[0]*e2[1]-e1[1]*e2[0])>0?1:0, b=unit(add(e1,e2)), t=add(V,mul(b,R+20));
+  return `<path d="M${P2(p)} A${R} ${R} 0 0 ${sweep} ${P2(q)}" fill="none" stroke="${col}" stroke-width="2.5"/>`+TX(t[0],t[1]+7,lab,20,col);
+}
+/* A label just outside segment PQ, on the far side from point I */
+function labOut(P,Q,I,t,col,fs=19,off=20){
+  const M=mid(P,Q),u=sub(Q,P); let n=unit([-u[1],u[0]]);
+  if(n[0]*(I[0]-M[0])+n[1]*(I[1]-M[1])>0) n=mul(n,-1);
+  const x=M[0]+n[0]*off, y=M[1]+n[1]*off+fs*0.35;
+  return TX(x+(Math.abs(n[0])>0.4?n[0]*t.length*fs*0.22:0),y,t,fs,col);
+}
+/* A label written along segment PQ (turned to match it, never upside down), on the far side from point I */
+function labAlong(P,Q,I,t,col,fs=18,off=14){
+  const M=mid(P,Q),u=sub(Q,P); let n=unit([-u[1],u[0]]);
+  if(n[0]*(I[0]-M[0])+n[1]*(I[1]-M[1])>0) n=mul(n,-1);
+  let a=Math.atan2(u[1],u[0])*180/Math.PI; if(a>90) a-=180; if(a<-90) a+=180;
+  const x=M[0]+n[0]*off, y=M[1]+n[1]*off;
+  return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${a.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})" font-size="${fs}" font-weight="700" fill="${col}" text-anchor="middle" dominant-baseline="central" stroke="#fff" stroke-width="5" paint-order="stroke" stroke-linejoin="round">${t}</text>`;
+}
+/* A square drawn on a side: light fill, a grid of 1 by 1 squares when the side is a whole number up to 20, its area in the middle */
+function drawSquare(Q,s,col,colL,top,big,pop){
+  const side=len(sub(Q[1],Q[0]));
+  let o=`<g${pop?' class="pop"':''}>`+poly(Q,colL,`stroke="${col}" stroke-width="2.5" stroke-linejoin="round"`);
+  const n=Math.round(s);
+  if(Math.abs(s-n)<1e-9 && n>1 && n<=20 && side/n>=7)
+    for(let k=1;k<n;k++) o+=L(lerp(Q[0],Q[1],k/n),lerp(Q[3],Q[2],k/n),1,col,'opacity=".35"')+L(lerp(Q[0],Q[3],k/n),lerp(Q[1],Q[2],k/n),1,col,'opacity=".35"');
+  const c=add(centre(Q),mul(unit(sub(Q[3],Q[0])),side*0.1)), fs=Math.max(13,Math.min(30,side*0.2));   // nudged away from the side label
+  if(top && side>=80) o+=TX(c[0],c[1]-fs*0.35,top,fs*0.62,col)+TX(c[0],c[1]+fs*0.85,big,fs,col);
+  else o+=TX(c[0],c[1]+fs*0.35,big,fs,col);
+  return o+'</g>';
+}
+/* A triangle with squares on its sides. V: three corners (maths coordinates).
+   sides: {i, j, col, colL, s, show, pop, top, big, lab, thick}. right: the corner with the right angle. */
+function triPic(sp){
+  const W=820,H=sp.H||470;
+  const sqs=sp.sides.map(sd=>sqOut(sp.V[sd.i],sp.V[sd.j],sp.V[3-sd.i-sd.j]));
+  const F=fit([...sp.V,...sqs.flat()],{x:24,y:14,w:W-48,h:H-28});
+  const V=sp.V.map(F.S), G=centre(V);
+  let o=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="${sp.aria}">`;
+  sp.sides.forEach((sd,k)=>{ if(sd.show) o+=drawSquare(sqs[k].map(F.S),sd.s,sd.col,sd.colL,sd.top,sd.big,sd.pop); });
+  o+=poly(V,'#fff',`stroke="${C.ink}" stroke-width="3" stroke-linejoin="round"`);
+  sp.sides.forEach(sd=>{ if(sd.thick) o+=L(V[sd.i],V[sd.j],6,sd.col); });
+  if(sp.right!==undefined) o+=rightMark(V[sp.right],V[(sp.right+1)%3],V[(sp.right+2)%3]);
+  if(sp.arc) o+=arcMark(V[sp.arc.at],V[(sp.arc.at+1)%3],V[(sp.arc.at+2)%3],26,sp.arc.lab,sp.arc.col);
+  sp.sides.forEach(sd=>{ o+=labAlong(V[sd.i],V[sd.j],G,sd.lab,sd.col); });   // along the outside of the side, on the edge of its square
+  return o+'</svg>';
+}
+/* A right-angled triangle "pulled out" of a diagram: right angle at (x0, y0), one side across, one side up */
+function pulled(x0,y0,lh,lv,lab,col,pop,title){
+  const A=[x0,y0],B=[x0+lh,y0],T=[x0,y0-lv];
+  let o=`<g${pop?' class="pop"':''}>`+(title?TX(x0+lh/2,y0-lv-22,title,15,C.muted,600):'');
+  o+=poly([A,B,T],col.fill||'#fff',`stroke="${C.ink}" stroke-width="2.5" stroke-linejoin="round"`);
+  o+=L(A,B,5,col.bot)+L(A,T,5,col.left)+L(T,B,5,col.hyp)+rightMark(A,B,T,14);
+  o+=TX(x0+lh/2,y0+28,lab.bot,19,col.bot)+TX(x0-12,y0-lv/2+7,lab.left,19,col.left,700,'end');
+  const n=unit([lv,-lh]), m=[x0+lh/2,y0-lv/2];
+  o+=TX(m[0]+n[0]*16,m[1]+n[1]*16+7,lab.hyp,19,col.hyp,700,n[0]>0.35?'start':'middle');
+  return o+'</g>';
+}
+/* Tick marks across a segment (equal sides) */
+function ticks(P,Q,k=1){
+  const M=mid(P,Q),u=unit(sub(Q,P)),n=[-u[1],u[0]];let o='';
+  for(let i=0;i<k;i++){const c=add(M,mul(u,(i-(k-1)/2)*7));o+=L(add(c,mul(n,8)),add(c,mul(n,-8)),2.2,C.ink);}
+  return o;
+}
+
+/* =====================================================================
+   1. Find the hypotenuse: squares on the two shorter sides, add them,
+      that is the square on the hypotenuse, then square root
+   ===================================================================== */
+function buildHyp([a,b],u){
+  const S=a*a+b*b, c=Math.sqrt(S);
+  const dia=[
+    {say:`A right-angled triangle with shorter sides ${fx(a)} ${u} and ${fx(b)} ${u}. ${sw(C.purp)}The hypotenuse, x, is the longest side, opposite the right angle.`},
+    {say:`${sw(C.blue)}Draw a square on the ${fx(a)} ${u} side. Its area is ${fx(a)}² = ${fx(a)} × ${fx(a)} = ${sq(a)} ${u}².`},
+    {say:`${sw(C.red)}Draw a square on the ${fx(b)} ${u} side. Its area is ${fx(b)}² = ${fx(b)} × ${fx(b)} = ${sq(b)} ${u}².`},
+    {say:`${sw(C.purp)}Pythagoras: the square on the hypotenuse has the same area as the other two squares together. ${sq(a)} + ${sq(b)} = ${fx(S)} ${u}².`},
+    {say:`The side of the purple square is the hypotenuse: x = √${fx(S)} = ${calc(S)}.`, answer:true}
+  ];
+  const written=[
+    {h:`x² = ${fx(a)}² + ${fx(b)}²`, say:'x is the hypotenuse: square, add, square root.'},
+    {h:`x² = ${sq(a)} + ${sq(b)}`, say:'Square the two shorter sides.'},
+    {h:`x² = ${fx(S)}`, say:'Add.'},
+    ...rootLines('x',S,u)
+  ];
+  written[written.length-1].answer=true;
+  const tip=`Check: the hypotenuse is the longest side, and ${short(c,u)} is longer than ${fx(a)} ${u} and ${fx(b)} ${u} ✓. Don't add the sides first: ${fx(a)} + ${fx(b)} = ${fx(a+b)} is wrong.`;
+  const draw=lv=>triPic({aria:'Squares on the sides of a right-angled triangle',V:[[0,0],[a,0],[0,b]],right:0,sides:[
+    {i:0,j:1,col:C.blue,colL:C.blueL,s:a,show:lv>=1,pop:lv===1,top:`${fx(a)} × ${fx(a)}`,big:sq(a),lab:`${fx(a)} ${u}`},
+    {i:0,j:2,col:C.red,colL:C.redL,s:b,show:lv>=2,pop:lv===2,top:`${fx(b)} × ${fx(b)}`,big:sq(b),lab:`${fx(b)} ${u}`},
+    {i:1,j:2,col:C.purp,colL:C.purpL,s:c,show:lv>=3,pop:lv===3,top:`${sq(a)} + ${sq(b)}`,big:fx(S),lab:lv>=4?`x = ${short(c,u)}`:'x',thick:lv===0}]});
+  return {dia,written,draw,ans:final(c,u),tip,title:`Find the hypotenuse x. The shorter sides are ${fx(a)} ${u} and ${fx(b)} ${u}.`};
+}
+
+/* =====================================================================
+   2. Find a shorter side: square on the hypotenuse, take away the
+      square on the side you know, what is left is the third square
+   ===================================================================== */
+function buildShort([c,a],u){
+  const S=c*c-a*a, x=Math.sqrt(S);
+  const dia=[
+    {say:`A right-angled triangle. ${sw(C.purp)}The hypotenuse (opposite the right angle) is ${fx(c)} ${u}, so x is one of the shorter sides.`},
+    {say:`${sw(C.purp)}Draw a square on the hypotenuse. Its area is ${fx(c)}² = ${sq(c)} ${u}².`},
+    {say:`${sw(C.blue)}Draw a square on the ${fx(a)} ${u} side. Its area is ${fx(a)}² = ${sq(a)} ${u}².`},
+    {say:`${sw(C.red)}The blue and red squares together make the purple square. So the red square is what is left: ${sq(c)} − ${sq(a)} = ${fx(S)} ${u}².`},
+    {say:`The side of the red square is x = √${fx(S)} = ${calc(S)}.`, answer:true}
+  ];
+  const written=[
+    {h:`x² = ${fx(c)}² − ${fx(a)}²`, say:'x is a shorter side: square, subtract, square root. Take the smaller square away from the square on the hypotenuse.'},
+    {h:`x² = ${sq(c)} − ${sq(a)}`, say:'Square both sides you know.'},
+    {h:`x² = ${fx(S)}`, say:'Subtract.'},
+    ...rootLines('x',S,u)
+  ];
+  written[written.length-1].answer=true;
+  const tip=`Check: a shorter side must be less than the hypotenuse, and ${short(x,u)} is less than ${fx(c)} ${u} ✓. If your answer is longer than the hypotenuse, you added instead of subtracting.`;
+  const draw=lv=>triPic({aria:'Squares on the sides of a right-angled triangle',V:[[0,0],[a,0],[0,x]],right:0,sides:[
+    {i:0,j:1,col:C.blue,colL:C.blueL,s:a,show:lv>=2,pop:lv===2,top:`${fx(a)} × ${fx(a)}`,big:sq(a),lab:`${fx(a)} ${u}`},
+    {i:0,j:2,col:C.red,colL:C.redL,s:x,show:lv>=3,pop:lv===3,top:`${sq(c)} − ${sq(a)}`,big:fx(S),lab:lv>=4?`x = ${short(x,u)}`:'x'},
+    {i:1,j:2,col:C.purp,colL:C.purpL,s:c,show:lv>=1,pop:lv===1,top:`${fx(c)} × ${fx(c)}`,big:sq(c),lab:`${fx(c)} ${u}`,thick:lv===0}]});
+  return {dia,written,draw,ans:final(x,u),tip,title:`Find x. The hypotenuse is ${fx(c)} ${u} and one shorter side is ${fx(a)} ${u}.`};
+}
+
+/* =====================================================================
+   3. The converse: is it right-angled? Squares on the true triangle;
+      compare the two smaller squares with the biggest one
+   ===================================================================== */
+function buildConv(sides,u){
+  const [p,q,r]=[...sides].sort((x,y)=>x-y), P=p*p,Q=q*q,R=r*r, T=P+Q, right=Math.abs(T-R)<1e-9;
+  const cosC=(P+Q-R)/(2*p*q), ang=Math.round(Math.acos(Math.max(-1,Math.min(1,cosC)))*180/Math.PI);
+  const cosA=(Q+R-P)/(2*q*r), V=[[0,0],[r,0],[q*cosA,q*Math.sqrt(1-cosA*cosA)]];
+  const verdict=right?`They are equal, so the angle opposite the longest side is a right angle.`
+    : T>R?`${fx(T)} is more than ${fx(R)}: the purple square is too small, so the angle is less than 90° (about ${ang}°).`
+         :`${fx(T)} is less than ${fx(R)}: the purple square is too big, so the angle is more than 90° (about ${ang}°).`;
+  const dia=[
+    {say:`A triangle with sides ${fx(p)}, ${fx(q)} and ${fx(r)} ${u}. ${sw(C.purp)}The longest side is ${fx(r)} ${u}. If there is a right angle, it is opposite this side.`},
+    {say:`${sw(C.blue)}Square on the ${fx(p)} ${u} side: ${fx(p)}² = ${fx(P)} ${u}².`},
+    {say:`${sw(C.red)}Square on the ${fx(q)} ${u} side: ${fx(q)}² = ${fx(Q)} ${u}². Together: ${fx(P)} + ${fx(Q)} = ${fx(T)} ${u}².`},
+    {say:`${sw(C.purp)}Square on the longest side: ${fx(r)}² = ${fx(R)} ${u}². Is it the same as ${fx(T)}?`},
+    {say:verdict, answer:true}
+  ];
+  const written=[
+    {h:`${fx(r)}² = ${fx(R)}`, say:'Square the longest side.'},
+    {h:`${fx(p)}² + ${fx(q)}² = ${fx(P)} + ${fx(Q)}`, say:'Square the other two sides and add.'},
+    {h:`${fx(p)}² + ${fx(q)}² = ${fx(T)}`, say:'Add.'},
+    {h:`${fx(T)} ${right?'=':'≠'} ${fx(R)}`, say:'Compare.'},
+    {h:right?`${fx(p)}² + ${fx(q)}² = ${fx(r)}², so by the converse of Pythagoras the triangle is right-angled.`
+            :`${fx(p)}² + ${fx(q)}² ≠ ${fx(r)}², so by the converse of Pythagoras the triangle is not right-angled.`, txt:true,
+     say:'Always finish with a sentence that gives the reason.', answer:true}
+  ];
+  const tip=right?'Builders use this: a triangle with sides 3, 4 and 5 always has a right angle, so they can check a corner is square with a tape measure.'
+    :'If the two smaller squares add up to more than the biggest, the angle is acute (less than 90°). If they add up to less, it is obtuse (more than 90°).';
+  const draw=lv=>triPic({aria:'Squares on the sides of a triangle',V,right:lv>=4&&right?2:undefined,
+    arc:lv>=4&&right?null:{at:2,lab:lv>=4?`${ang}°`:'?',col:C.purp},sides:[
+    {i:1,j:2,col:C.blue,colL:C.blueL,s:p,show:lv>=1,pop:lv===1,top:`${fx(p)} × ${fx(p)}`,big:fx(P),lab:`${fx(p)} ${u}`},
+    {i:0,j:2,col:C.red,colL:C.redL,s:q,show:lv>=2,pop:lv===2,top:`${fx(q)} × ${fx(q)}`,big:fx(Q),lab:`${fx(q)} ${u}`},
+    {i:0,j:1,col:C.purp,colL:C.purpL,s:r,show:lv>=3,pop:lv===3,top:`${fx(r)} × ${fx(r)}`,big:fx(R),lab:`${fx(r)} ${u}`,thick:lv===0}]});
+  return {dia,written,draw,ans:right?'Yes, it is right-angled.':'No, it is not right-angled.',tip,
+    title:`Is a triangle with sides ${fx(p)} ${u}, ${fx(q)} ${u} and ${fx(r)} ${u} right-angled?`};
+}
+
+/* =====================================================================
+   4. Distance between two points: across, up, then Pythagoras
+   ===================================================================== */
+function buildCoord([x1,y1,x2,y2]){
+  const dx=Math.abs(x2-x1), dy=Math.abs(y2-y1), S=dx*dx+dy*dy, d=Math.sqrt(S), up=y2>y1;
+  const diff=(p,q)=>`${fx(Math.max(p,q))} − ${br(Math.min(p,q))}`;
+  const dia=[
+    {say:`Plot A(${fx(x1)}, ${fx(y1)}) and B(${fx(x2)}, ${fx(y2)}). ${sw(C.purp)}We want the length of the line AB.`},
+    {say:`${sw(C.blue)}Go across from A until you are in line with B: from x = ${fx(x1)} to x = ${fx(x2)} is ${dx} across.`},
+    {say:`${sw(C.red)}Then go ${up?'up':'down'} to B: from y = ${fx(y1)} to y = ${fx(y2)} is ${dy} ${up?'up':'down'}.`},
+    {say:`${sw(C.purp)}That makes a right-angled triangle, and AB is its hypotenuse: square, add, square root.`},
+    {say:`AB² = ${dx}² + ${dy}² = ${dx*dx} + ${dy*dy} = ${S}, so AB = √${S} = ${calc(S)}.`, answer:true}
+  ];
+  const written=[
+    {h:`across = ${diff(x1,x2)} = ${dx}`, say:'Take the smaller x-coordinate from the bigger one.'},
+    {h:`${up?'up':'down'} = ${diff(y1,y2)} = ${dy}`, say:'Take the smaller y-coordinate from the bigger one.'},
+    {h:`AB² = ${dx}² + ${dy}²`, say:'AB is the hypotenuse: square, add, square root.'},
+    {h:`AB² = ${dx*dx} + ${dy*dy} = ${S}`, say:'Square and add.'},
+    ...rootLines('AB',S,'units')
+  ];
+  written[written.length-1].answer=true;
+  const tip=`Taking away in the other order gives ${-dx} or ${-dy}, but squaring makes them positive, so you still get the same answer.`;
+  function draw(lv){
+    const gx0=Math.min(x1,x2,0)-1,gx1=Math.max(x1,x2,0)+1,gy0=Math.min(y1,y2,0)-1,gy1=Math.max(y1,y2,0)+1;
+    const W=820, cell=Math.min(46,(W-80)/(gx1-gx0),420/(gy1-gy0)), H=Math.round((gy1-gy0)*cell+44);
+    const left=(W-(gx1-gx0)*cell)/2, top=18, S2=([x,y])=>[left+(x-gx0)*cell,top+(gy1-y)*cell];
+    const every=cell<22?2:1;
+    let o=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Coordinate grid with points A and B">`;
+    for(let x=gx0;x<=gx1;x++) o+=L(S2([x,gy0]),S2([x,gy1]),1,C.grid);
+    for(let y=gy0;y<=gy1;y++) o+=L(S2([gx0,y]),S2([gx1,y]),1,C.grid);
+    o+=L(S2([gx0,0]),S2([gx1,0]),2,C.ink)+L(S2([0,gy0]),S2([0,gy1]),2,C.ink);
+    for(let x=gx0+1;x<gx1;x++) if(x&&x%every===0){const p=S2([x,0]);o+=TX(p[0],p[1]+17,fx(x),12,C.muted,600);}
+    for(let y=gy0+1;y<gy1;y++) if(y&&y%every===0){const p=S2([0,y]);o+=TX(p[0]-8,p[1]+4,fx(y),12,C.muted,600,'end');}
+    const A=S2([x1,y1]),B=S2([x2,y2]),K=S2([x2,y1]);
+    o+=L(A,B,lv>=3?5:3,C.purp,lv>=3?'':'stroke-dasharray="8 7"');
+    if(lv>=1) o+=`<g${lv===1?' class="pop"':''}>${L(A,K,5,C.blue)}${labOut(A,K,B,`${dx} across`,C.blue,17,16)}</g>`;
+    if(lv>=2) o+=`<g${lv===2?' class="pop"':''}>${L(K,B,5,C.red)}${labOut(K,B,A,`${dy} ${up?'up':'down'}`,C.red,17,18)}</g>`;
+    if(lv>=3) o+=rightMark(K,A,B,13);
+    if(lv>=4) o+=labOut(A,B,K,`AB = ${short(d,'')}`.trim(),C.purp,19,20);
+    const lp=(P,Q,t)=>{const v=unit(sub(P,Q));return TX(P[0]+v[0]*22,P[1]+v[1]*22+6,t,17,C.deep);};
+    o+=dot(A)+dot(B)+lp(A,B,`A(${fx(x1)}, ${fx(y1)})`)+lp(B,A,`B(${fx(x2)}, ${fx(y2)})`);
+    return o+'</svg>';
+  }
+  return {dia,written,draw,ans:final(d,'units'),tip,title:`Find the distance between A(${fx(x1)}, ${fx(y1)}) and B(${fx(x2)}, ${fx(y2)}).`};
+}
+
+/* =====================================================================
+   5. Height of an isosceles triangle: split it down the middle
+   ===================================================================== */
+function buildIso([s,b],u){
+  const hb=b/2, S=s*s-hb*hb, h=Math.sqrt(S);
+  const dia=[
+    {say:`An isosceles triangle: two equal sides of ${fx(s)} ${u} and a base of ${fx(b)} ${u}. We want its height, h.`},
+    {say:`${sw(C.red)}The height goes straight down from the top and meets the base at a right angle. ${sw(C.blue)}It cuts the base in half: ${fx(b)} ÷ 2 = ${fx(hb)} ${u}.`},
+    {say:`${sw(C.purpL)}That makes two matching right-angled triangles. Use one of them.`},
+    {say:`Pull it out. ${sw(C.purp)}The ${fx(s)} ${u} side is opposite the right angle, so it is the hypotenuse. h is a shorter side: square, subtract, square root.`},
+    {say:`h² = ${fx(s)}² − ${fx(hb)}² = ${sq(s)} − ${sq(hb)} = ${fx(S)}, so h = √${fx(S)} = ${calc(S)}.`, answer:true}
+  ];
+  const written=[
+    {h:`half the base = ${fx(b)} ÷ 2 = ${fx(hb)}`, say:'The height cuts the base in half.'},
+    {h:`h² = ${fx(s)}² − ${fx(hb)}²`, say:'The equal side is the hypotenuse, so subtract.'},
+    {h:`h² = ${sq(s)} − ${sq(hb)} = ${fx(S)}`, say:'Square and subtract.'},
+    ...rootLines('h',S,u)
+  ];
+  written[written.length-1].answer=true;
+  const tip=`Now you can find the area: ½ × base × height = ½ × ${fx(b)} × ${exact(S)?fx(h):cut(h)} = ${exact(S)?fx(b*h/2):d1(b*h/2)} ${u}².`;
+  function draw(lv){
+    const W=820,H=420,k=Math.min(380/b,310/h), cx=225, by=370, half=k*hb, ht=k*h;
+    const L0=[cx-half,by],R0=[cx+half,by],T=[cx,by-ht],M=[cx,by];
+    let o=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Isosceles triangle split into two right-angled triangles">`;
+    if(lv>=2) o+=poly([M,R0,T],C.purpL,lv===2?'class="pop"':'');
+    o+=poly([L0,R0,T],'none',`stroke="${C.ink}" stroke-width="3" stroke-linejoin="round"`);
+    o+=ticks(L0,T)+ticks(R0,T);
+    o+=labOut(L0,T,M,`${fx(s)} ${u}`,C.purp)+labOut(R0,T,M,`${fx(s)} ${u}`,C.purp);
+    if(lv<1) o+=TX(cx,by+30,`${fx(b)} ${u}`,19,C.blue);
+    else{
+      o+=`<g${lv===1?' class="pop"':''}>${L(T,M,4,C.red,lv>=2?'':'stroke-dasharray="8 6"')}${rightMark(M,R0,T)}`+
+        L(L0,M,5,C.blue)+L(M,R0,5,C.blue)+TX(cx-half/2,by+30,`${fx(hb)} ${u}`,18,C.blue)+TX(cx+half/2,by+30,`${fx(hb)} ${u}`,18,C.blue)+
+        TX(cx+10,by-ht*0.3+7,lv>=4?`h = ${short(h,u)}`:'h',19,C.red,700,'start')+'</g>';
+    }
+    if(lv>=3) o+=pulled(530,370,half,ht,{bot:`${fx(hb)} ${u}`,left:lv>=4?`h = ${short(h,u)}`:'h',hyp:`${fx(s)} ${u}`},
+      {bot:C.blue,left:C.red,hyp:C.purp,fill:C.purpL},lv===3,'One of the right-angled triangles');
+    return o+'</svg>';
+  }
+  return {dia,written,draw,ans:final(h,u),tip,title:`Find the height h of an isosceles triangle with equal sides ${fx(s)} ${u} and a base of ${fx(b)} ${u}.`};
+}
+
+/* =====================================================================
+   6. Chords in a circle: the line from the centre at right angles to a
+      chord cuts it in half. findLen: find the chord instead of the distance
+   ===================================================================== */
+function buildChord(nums,u,findLen){
+  const r=nums[0], hc=findLen?Math.sqrt(r*r-nums[1]*nums[1]):nums[1]/2, d=findLen?nums[1]:Math.sqrt(r*r-hc*hc);
+  const S=findLen?r*r-d*d:r*r-hc*hc, L2=2*hc;
+  const dia=findLen?[
+    {say:`A circle with centre O and radius ${fx(r)} ${u}. The chord AB is ${fx(d)} ${u} from the centre. How long is AB?`},
+    {say:`${sw(C.red)}The line from O at right angles to the chord cuts it in half at M. ${sw(C.blue)}Call each half x.`},
+    {say:`${sw(C.purp)}Join O to A. OA is a radius, so it is ${fx(r)} ${u}. Triangle OMA is right-angled.`},
+    {say:`Pull it out. The radius is the hypotenuse, so x is a shorter side: square, subtract, square root.`},
+    {say:`x² = ${fx(r)}² − ${fx(d)}² = ${fx(S)}, so x = √${fx(S)} = ${calc(S)}.`},
+    {say:`x is only half the chord. AB = 2 × x = ${exact(S)?fx(L2):d1(L2)} ${u}.`, answer:true}
+  ]:[
+    {say:`A circle with centre O and radius ${fx(r)} ${u}. The chord AB is ${fx(nums[1])} ${u} long. How far is it from the centre?`},
+    {say:`${sw(C.red)}The line from O at right angles to the chord cuts it in half at M. ${sw(C.blue)}Each half is ${fx(nums[1])} ÷ 2 = ${fx(hc)} ${u}.`},
+    {say:`${sw(C.purp)}Join O to A. OA is a radius, so it is ${fx(r)} ${u}. Triangle OMA is right-angled.`},
+    {say:`Pull it out. The radius is the hypotenuse, so the distance d is a shorter side: square, subtract, square root.`},
+    {say:`d² = ${fx(r)}² − ${fx(hc)}² = ${sq(r)} − ${sq(hc)} = ${fx(S)}, so d = √${fx(S)} = ${calc(S)}.`, answer:true}
+  ];
+  dia[dia.length-1].answer=true;
+  const written=findLen?[
+    {h:`x² = ${fx(r)}² − ${fx(d)}²`, say:'x is half the chord. The radius is the hypotenuse, so subtract.'},
+    {h:`x² = ${sq(r)} − ${sq(d)} = ${fx(S)}`, say:'Square and subtract.'},
+    {h:`x = √${fx(S)} = ${calc(S)}`, say:exact(S)?'Square root.':'Square root. Don\'t round yet: double it first.'},
+    {h:`AB = 2 × ${calc(S)}`, say:'Double it to get the whole chord.'},
+    {h:`AB = ${final(L2,u)}`, say:exact(S)?'':'Now round to 1 decimal place.', answer:true}
+  ]:[
+    {h:`half the chord = ${fx(nums[1])} ÷ 2 = ${fx(hc)}`, say:'The line from the centre cuts the chord in half.'},
+    {h:`d² = ${fx(r)}² − ${fx(hc)}²`, say:'The radius is the hypotenuse, so subtract.'},
+    {h:`d² = ${sq(r)} − ${sq(hc)} = ${fx(S)}`, say:'Square and subtract.'},
+    ...rootLines('d',S,u)
+  ];
+  written[written.length-1].answer=true;
+  const tip=findLen?'Pythagoras gives half the chord. Remember to double it at the end.':'Always halve the chord first. The radius is (nearly always) the hypotenuse.';
+  function draw(lv){
+    const W=820,H=440,R=170,cx=230,cy=212,k=R/r, yM=cy+k*d, hx=k*hc;
+    const O=[cx,cy],A=[cx+hx,yM],B=[cx-hx,yM],M=[cx,yM];
+    let o=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Circle with a chord">`;
+    if(lv>=2) o+=poly([O,M,A],C.purpL,lv===2?'class="pop"':'');
+    o+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${C.ink}" stroke-width="3"/>`;
+    o+=L(B,A,3.5,C.ink);
+    if(lv<2){ const Rp=[cx-R*Math.cos(Math.PI/3.2),cy-R*Math.sin(Math.PI/3.2)];
+      o+=L(O,Rp,3.5,C.purp)+labOut(O,Rp,[cx+40,cy],`${fx(r)} ${u}`,C.purp,18,16); }
+    const showOM=lv>=1||findLen;
+    if(showOM) o+=L(O,M,4,C.red,lv>=1?'':'stroke-dasharray="8 6"')+TX(cx-10,(cy+yM)/2+7,findLen?`${fx(d)} ${u}`:(lv>=4?`d = ${short(d,u)}`:'d'),18,C.red,700,'end');
+    if(lv>=1) o+=`<g${lv===1?' class="pop"':''}>${rightMark(M,A,O,13)}${L(B,M,5,C.blue)}${L(M,A,5,C.blue)}${ticks(B,M)}${ticks(M,A)}`+
+      (findLen?TX(cx-hx/2,yM+27,'x',18,C.blue)+TX(cx+hx/2,yM+27,'x',18,C.blue):TX(cx-hx/2,yM+27,`${fx(hc)} ${u}`,17,C.blue)+TX(cx+hx/2,yM+27,`${fx(hc)} ${u}`,17,C.blue))+'</g>';
+    else o+=TX(cx,yM+27,findLen?'?':`${fx(nums[1])} ${u}`,18,C.blue);
+    if(lv>=2) o+=`<g${lv===2?' class="pop"':''}>${L(O,A,4,C.purp)}${labOut(O,A,M,`${fx(r)} ${u}`,C.purp,18,16)}</g>`;
+    o+=dot(O,5,C.ink)+TX(cx,cy-12,'O',18,C.ink)+TX(A[0]+14,A[1]+6,'A',17,C.ink,700,'start')+TX(B[0]-14,B[1]+6,'B',17,C.ink,700,'end');
+    if(lv>=1) o+=TX(cx+8,yM+24,'M',15,C.ink,700,'start');
+    if(findLen&&lv>=5) o+=TX(cx,yM+58,`AB = ${short(L2,u)}`,20,C.blue);
+    if(lv>=3){ const s2=Math.min(1,250/hx,250/(k*d||1));
+      o+=pulled(530,330,hx*s2,k*d*s2,{bot:findLen?(lv>=4?`x = ${short(hc,u)}`:'x'):`${fx(hc)} ${u}`,left:findLen?`${fx(d)} ${u}`:(lv>=4?`d = ${short(d,u)}`:'d'),hyp:`${fx(r)} ${u}`},
+        {bot:C.blue,left:C.red,hyp:C.purp,fill:C.purpL},lv===3,'Triangle OMA'); }
+    return o+'</svg>';
+  }
+  return findLen
+    ? {dia,written,draw,ans:final(L2,u),tip,title:`A chord AB is ${fx(d)} ${u} from the centre of a circle of radius ${fx(r)} ${u}. How long is AB?`}
+    : {dia,written,draw,ans:final(d,u),tip,title:`A chord ${fx(nums[1])} ${u} long is in a circle of radius ${fx(r)} ${u}. How far is it from the centre?`};
+}
+
+/* =====================================================================
+   7. Space diagonal of a cuboid: across the base, then up
+   ===================================================================== */
+function buildCuboid([l,w,h],u){
+  const D2=l*l+w*w, X2=D2+h*h, x=Math.sqrt(X2), dd=Math.sqrt(D2);
+  const dia=[
+    {say:`A cuboid ${fx(l)} by ${fx(w)} by ${fx(h)} ${u}. ${sw(C.purp)}The space diagonal goes from one corner, through the middle, to the opposite corner.`},
+    {say:`${sw(C.blue)}First, the diagonal d across the base. It is the hypotenuse of a right-angled triangle on the bottom face, with sides ${fx(l)} ${u} and ${fx(w)} ${u}.`},
+    {say:`d² = ${fx(l)}² + ${fx(w)}² = ${sq(l)} + ${sq(w)} = ${fx(D2)}. Keep d² = ${fx(D2)}: we need it next, so don't round.`},
+    {say:`${sw(C.red)}Now a right-angled triangle standing up inside the cuboid: d along the bottom, the height ${fx(h)} ${u} up the side, and the space diagonal x as its hypotenuse.`},
+    {say:`x² = d² + ${fx(h)}² = ${fx(D2)} + ${sq(h)} = ${fx(X2)}, so x = √${fx(X2)} = ${calc(X2)}.`, answer:true}
+  ];
+  const written=[
+    {h:`d² = ${fx(l)}² + ${fx(w)}²`, say:'The diagonal of the base: square, add.'},
+    {h:`d² = ${sq(l)} + ${sq(w)} = ${fx(D2)}`, say:`Keep d² = ${fx(D2)}. Don't square root and round it yet.`},
+    {h:`x² = d² + ${fx(h)}²`, say:'The space diagonal: the base diagonal and the height are the shorter sides.'},
+    {h:`x² = ${fx(D2)} + ${sq(h)} = ${fx(X2)}`, say:'Square and add.'},
+    ...rootLines('x',X2,u)
+  ];
+  written[written.length-1].answer=true;
+  const tip=`In one go: x² = ${fx(l)}² + ${fx(w)}² + ${fx(h)}² = ${fx(X2)}. The space diagonal is the longest straight line that fits inside the cuboid.`;
+  function draw(lv){
+    const W=820,H=450, dv=[w*0.45,w*0.32];
+    const F=[[0,0],[l,0],[l,h],[0,h]], Bk=F.map(p=>add(p,dv));
+    const Fi=fit([...F,...Bk],{x:60,y:40,w:380,h:340}), f=F.map(Fi.S), bk=Bk.map(Fi.S);
+    let o=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Cuboid with its space diagonal">`;
+    if(lv>=1) o+=poly([f[0],f[1],bk[1]],C.blueL,lv===1?'class="pop"':'');
+    if(lv>=3) o+=poly([f[0],bk[1],bk[2]],C.redL,`opacity=".75"${lv===3?' class="pop"':''}`);
+    const hid='stroke-dasharray="7 6" opacity=".55"';
+    o+=L(f[0],bk[0],2,C.ink,hid)+L(bk[0],bk[1],2,C.ink,hid)+L(bk[0],bk[3],2,C.ink,hid);
+    [[f[0],f[1]],[f[1],f[2]],[f[2],f[3]],[f[3],f[0]],[f[1],bk[1]],[bk[1],bk[2]],[f[2],bk[2]],[bk[2],bk[3]],[f[3],bk[3]]].forEach(([p,q])=>o+=L(p,q,3,C.ink));
+    if(lv>=1) o+=L(f[0],bk[1],4.5,C.blue);
+    if(lv>=3) o+=L(bk[1],bk[2],5,C.red)+L(f[0],bk[2],5,C.purp);
+    else if(lv===0) o+=L(f[0],bk[2],4,C.purp,'stroke-dasharray="9 7"');
+    o+=TX((f[0][0]+f[1][0])/2,f[0][1]+28,`${fx(l)} ${u}`,18,C.ink)+TX((f[1][0]+bk[1][0])/2+14,(f[1][1]+bk[1][1])/2+16,`${fx(w)} ${u}`,18,C.ink,700,'start')+
+      TX(bk[1][0]+12,(bk[1][1]+bk[2][1])/2+6,`${fx(h)} ${u}`,18,lv>=3?C.red:C.ink,700,'start');
+    if(lv>=2){const m=lerp(f[0],bk[1],0.55);o+=TX(m[0],m[1]-10,`d² = ${fx(D2)}`,17,C.blue);}
+    if(lv>=4){const m=lerp(f[0],bk[2],0.42);o+=TX(m[0]-12,m[1]-6,`x = ${short(x,u)}`,18,C.purp,700,'end');}
+    const k2=Math.min(230/Math.max(l,dd),140/Math.max(w,h));
+    if(lv>=1) o+=pulled(560,205,k2*l,k2*w,{bot:`${fx(l)} ${u}`,left:`${fx(w)} ${u}`,hyp:lv>=2?`d² = ${fx(D2)}`:'d'},{bot:C.ink,left:C.ink,hyp:C.blue,fill:C.blueL},lv===1,'On the base');
+    if(lv>=3) o+=pulled(560,420,k2*dd,k2*h,{bot:'d',left:`${fx(h)} ${u}`,hyp:lv>=4?`x = ${short(x,u)}`:'x'},{bot:C.blue,left:C.red,hyp:C.purp,fill:C.redL},lv===3,'Standing up inside');
+    return o+'</svg>';
+  }
+  return {dia,written,draw,ans:final(x,u),tip,title:`Find the space diagonal x of a cuboid ${fx(l)} ${u} by ${fx(w)} ${u} by ${fx(h)} ${u}.`};
+}
+
+/* ---------- The types of question ---------- */
+const MODES={
+  hyp:{name:'Find the hypotenuse',f:['Shorter side','Shorter side'],def:[6,8],build:buildHyp},
+  short:{name:'Find a shorter side',f:['Hypotenuse','Shorter side'],def:[13,5],build:buildShort},
+  coord:{name:'Distance between two points',f:['A: x','A: y','B: x','B: y'],def:[1,2,4,6],build:n=>buildCoord(n),noUnit:true},
+  iso:{name:'Isosceles triangle: height',f:['Equal sides','Base'],def:[10,12],build:buildIso},
+  chord:{name:'Circle: chord to centre',f:['Radius','Chord'],def:[10,16],build:(n,u)=>buildChord(n,u,false)},
+  chordlen:{name:'Circle: length of a chord',f:['Radius','From centre'],def:[8.5,4],build:(n,u)=>buildChord(n,u,true)},
+  conv:{name:'Is it right-angled?',f:['Side','Side','Side'],def:[8,15,17],build:buildConv},
+  cuboid:{name:'Cuboid: space diagonal',f:['Length','Breadth','Height'],def:[6,4,3],build:buildCuboid}
+};
+const HINT={hyp:'Type the two shorter sides, e.g. 6 and 8, or 1.5 and 2',short:'Type the hypotenuse (the longest side) first',
+  coord:'Whole numbers from −10 to 10',iso:'Type the length of each equal side, then the base',chord:'Type the radius, then the length of the chord',
+  chordlen:'Type the radius, then how far the chord is from the centre',conv:'Type the three sides in any order',cuboid:'Type the length, breadth and height'};
+
+function check(mode,n){
+  if(mode==='coord'){
+    if(n.some(v=>!Number.isInteger(v)||v<-10||v>10)) return 'Use whole numbers from −10 to 10.';
+    if(n[0]===n[2]||n[1]===n[3]) return 'Choose points that aren\'t level or straight above each other (then you can just count).';
+    return '';
+  }
+  if(n.some(v=>!(v>0))) return 'Use numbers bigger than 0.';
+  if(n.some(v=>v>100)) return 'Keep the numbers up to 100.';
+  if(n.some(v=>Math.abs(v*100-Math.round(v*100))>1e-9)) return 'Use up to 2 decimal places.';
+  const ratio=(p,q)=>Math.max(p,q)/Math.min(p,q)>8;
+  if(mode==='hyp'&&ratio(n[0],n[1])) return 'Keep the sides within 8 times each other so the picture fits.';
+  if(mode==='short'){ if(n[1]>=n[0]) return 'The hypotenuse must be the longest side. Type it first.'; if(ratio(n[1],Math.sqrt(n[0]**2-n[1]**2))) return 'Those sides make a very thin triangle. Try the hypotenuse a bit longer.'; }
+  if(mode==='conv'){ const s=[...n].sort((a,b)=>a-b); if(s[0]+s[1]<=s[2]) return 'Those sides don\'t make a triangle: the two shorter sides must add up to more than the longest.'; if(ratio(s[0],s[2])) return 'Keep the sides within 8 times each other so the picture fits.'; }
+  if(mode==='iso'&&n[1]>=2*n[0]) return 'The base must be less than twice the equal sides, or the triangle is flat.';
+  if(mode==='chord'&&n[1]>=2*n[0]) return 'The chord must be shorter than the diameter (2 × the radius).';
+  if(mode==='chordlen'&&n[1]>=n[0]) return 'The chord must be closer to the centre than the radius.';
+  if(mode==='cuboid'&&ratio(Math.min(...n),Math.max(...n))) return 'Keep the edges within 8 times each other so the picture fits.';
+  return '';
+}
+
+/* ---------- Narration and drawing ---------- */
+let Q=null, step=0, MODEL=null;
+function sayList(id,stages,upto){
+  const n=Math.min(upto,stages.length-1);
+  document.getElementById(id).innerHTML=stages.slice(0,n+1).filter(s=>s.say).map((s,i,arr)=>`<li class="${i===arr.length-1?'now':''}">${s.say}</li>`).join('')+
+    (stages[n].answer?`<li class="answer">Answer: ${MODEL.ans}</li>`:'');
+}
+const maxStep=()=>Math.max(MODEL.dia.length,MODEL.written.length)-1;
+function render(){
+  const done=step>=maxStep();
+  document.getElementById('question').innerHTML=MODEL.title+(done?`<span class="ans">${MODEL.ans}</span>`:'');
+  const ai=Math.min(step,MODEL.dia.length-1);
+  document.getElementById('amStage').innerHTML=MODEL.draw(ai);
+  sayList('amSay',MODEL.dia,ai);
+  const wi=Math.min(step,MODEL.written.length-1);
+  document.getElementById('wmLines').innerHTML=MODEL.written.slice(0,wi+1).map((w,i)=>`<div class="wl${w.txt?' txt':''}${i===wi?' now':''}">${w.h}</div>`).join('');
+  sayList('wmSay',MODEL.written,wi);
+  const tip=document.getElementById('wmTip'); tip.hidden=!(MODEL.tip&&wi===MODEL.written.length-1); tip.textContent=MODEL.tip||'';
+  document.getElementById('stepCount').textContent=`Step ${step+1} of ${maxStep()+1}`;
+  document.getElementById('back').disabled=step===0;
+  document.getElementById('next').disabled=done;
+  document.getElementById('all').disabled=done;
+}
+function load(mode,nums,u){
+  Q={mode,nums,u}; step=0;
+  const M=MODES[mode]; MODEL=M.build(nums,u||'cm');
+  modeSel.value=mode; buildFields(mode,nums); if(!M.noUnit) unitSel.value=u||'cm';
+  render();
+}
+
+/* ---------- Inputs ---------- */
+const modeSel=document.getElementById('mode'), kindSel=document.getElementById('kind'), unitSel=document.getElementById('unit');
+modeSel.innerHTML=Object.entries(MODES).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
+kindSel.innerHTML=`<option value="mix">Any type</option>`+Object.entries(MODES).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
+function buildFields(mode,vals){
+  const M=MODES[mode];
+  document.getElementById('fields').innerHTML=M.f.map((f,i)=>`<span class="fld"><small>${f}</small><input data-i="${i}" value="${fx(vals[i]).replace('−','-')}" aria-label="${f}" autocomplete="off" inputmode="decimal"></span>`).join('');
+  document.getElementById('unitBox').hidden=!!M.noUnit;
+  document.getElementById('hintline').textContent=HINT[mode];
+}
+modeSel.onchange=()=>{buildFields(modeSel.value,MODES[modeSel.value].def);document.getElementById('err').textContent='';};
+const parseNum=s=>{s=String(s).trim().replace(/[−–]/g,'-').replace(',','.');return /^-?\d+(\.\d+)?$/.test(s)?+s:NaN;};
+document.getElementById('go').onclick=()=>{
+  const mode=modeSel.value, err=document.getElementById('err');
+  const nums=[...document.querySelectorAll('#fields input')].map(i=>parseNum(i.value));
+  if(nums.some(isNaN)){err.textContent='Type a number in every box.';return;}
+  const e=check(mode,nums); if(e){err.textContent=e;return;}
+  err.textContent=''; load(mode,nums,MODES[mode].noUnit?'':unitSel.value);
+};
+document.getElementById('fields').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('go').click();}});
+
+/* ---------- Make one up ---------- */
+const TRIPLES=[[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[9,12,15],[12,16,20],[20,21,29],[10,24,26],[15,20,25],[1.5,2,2.5],[0.9,1.2,1.5]];
+const dec=a=>a.some(v=>!Number.isInteger(v));
+function makeUp(k){
+  if(k==='mix') k=pick(Object.keys(MODES));
+  const T=pick(TRIPLES), nice=rnd(0,1);
+  let n;
+  if(k==='hyp') n=nice?shuffle(T.slice(0,2)):[rnd(3,12),rnd(3,12)];
+  else if(k==='short'){ if(nice) n=[T[2],T[rnd(0,1)]]; else {const c=rnd(8,15);n=[c,rnd(Math.ceil(c/4),c-2)];} }
+  else if(k==='coord'){ const [p,q]=nice?pick([[3,4],[4,3],[6,8],[8,6],[5,12]]):[rnd(1,7),rnd(1,7)], dx=p*pick([1,-1]), dy=q*pick([1,-1]);
+    const x1=rnd(Math.max(-9,-9-dx),Math.min(9,9-dx)), y1=rnd(Math.max(-9,-9-dy),Math.min(9,9-dy)); n=[x1,y1,x1+dx,y1+dy]; }
+  else if(k==='iso'){ if(nice) n=[T[2],2*T[rnd(0,1)]]; else {const s=rnd(5,14);n=[s,2*rnd(2,s-1)];} }
+  else if(k==='chord'){ if(nice) n=[T[2],2*T[rnd(0,1)]]; else {const r=rnd(5,14);n=[r,rnd(4,2*r-2)];} }
+  else if(k==='chordlen'){ if(nice) n=[T[2],T[rnd(0,1)]]; else {const r=rnd(5,14);n=[r,rnd(2,r-2)];} }
+  else if(k==='conv'){ if(nice) n=shuffle(T); else {const s=[...pick(TRIPLES.slice(0,10))];s[rnd(0,2)]+=pick([-1,1]);n=shuffle(s);} }
+  else n=nice?pick([[2,3,6],[1,4,8],[2,6,9],[4,4,7],[6,6,7],[3,4,12],[6,4,3]]):[rnd(3,12),rnd(2,8),rnd(2,8)];
+  if(check(k,n)) return makeUp(k);
+  return [k,n,MODES[k].noUnit?'':(dec(n)?'m':'cm')];
+}
+document.getElementById('rand').onclick=()=>{
+  let t,g=0; do{t=makeUp(kindSel.value);}while(g++<20 && Q && t[0]===Q.mode && t[1].join()===Q.nums.join());
+  document.getElementById('err').textContent=''; load(...t);
+};
+
+/* ---------- Stepping ---------- */
+document.getElementById('next').onclick=()=>{if(step<maxStep()){step++;render();}};
+document.getElementById('back').onclick=()=>{if(step>0){step--;render();}};
+document.getElementById('all').onclick=()=>{step=maxStep();render();};
+document.getElementById('reset').onclick=()=>{step=0;render();};
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();document.getElementById('next').click();}
+  if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById('back').click();}
+});
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-show]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const v=b.dataset.show;
+  document.getElementById('pAm').hidden=v==='wm'; document.getElementById('pWm').hidden=v==='am';
+  document.getElementById('panels').classList.toggle('one',v!=='both');
+});
+
+/* Start from a link like ...html#q=hyp,6,8,cm  or  #q=coord,-2,5,3,-1  (add "embed" when shown inside the topic page) */
+function fromHash(first){
+  document.body.classList.toggle('embed',/embed/.test(location.hash));
+  const m=location.hash.match(/q=([^&]+)/);
+  if(m){
+    const parts=decodeURIComponent(m[1]).split(','), mode=parts[0];
+    if(MODES[mode]){
+      const u=/^[a-z]+$/.test(parts[parts.length-1])?parts.pop():'cm', nums=parts.slice(1).map(parseNum);
+      if(nums.length===MODES[mode].f.length&&!nums.some(isNaN)&&!check(mode,nums)){load(mode,nums,MODES[mode].noUnit?'':u);return;}
+    }
+  }
+  if(first) load('hyp',[6,8],'cm');
+}
+window.addEventListener('hashchange',()=>fromHash(false));
+fromHash(true);
+/* Tell the topic page how tall this is, so its frame fits without scrolling */
+function sendHeight(){ if(window.parent!==window){ try{ window.parent.postMessage({toolHeight:Math.ceil(document.querySelector('.wrap').getBoundingClientRect().bottom+window.scrollY)},'*'); }catch(e){} } }
+if('ResizeObserver' in window) new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s3/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

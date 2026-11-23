@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area and Perimeter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#DCEDEC; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B; --neg:#B4532A; --neg-soft:#F8E1D6;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.wk{font-family:var(--head);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A9C4C3;margin:1rem .3rem .3rem}
+.wk:first-of-type{margin-top:0}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.95rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem;max-width:65ch}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none;align-items:center}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--head);font-size:1.4rem;font-weight:700;color:var(--deep)}
+.ex .exq.long{font-family:var(--body);font-size:1.05rem;font-weight:700;line-height:1.4}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.2rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem;counter-reset:q}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.2rem;background:#FBFCFC}
+.qs.wordy{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+@media (max-width:560px){.qs.wordy{grid-template-columns:1fr}}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-family:var(--head);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums}
+.qs .q.long{font-family:var(--body);font-size:1.1rem;font-weight:400;line-height:1.4}
+.qs .a{font-family:var(--head);font-size:1.6rem;color:var(--sea);font-weight:700;visibility:hidden}
+.qs .a.long{font-size:1.15rem}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q,#qPanel:fullscreen .qs .a{font-size:2.6rem}
+#qPanel:fullscreen .qs .q.long,#qPanel:fullscreen .qs .a.long{font-size:1.6rem}
+
+/* Scaffolds */
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.nl-scroll{overflow-x:auto;padding-bottom:.25rem}
+svg.nl{display:block;width:100%;min-width:720px;height:auto}
+svg.nl .tick{stroke:var(--ink);stroke-width:1.5}
+svg.nl .lbl{font-family:var(--head);font-size:14px;fill:var(--ink);text-anchor:middle}
+svg.nl .lbl.neg{fill:var(--neg)}
+svg.nl .lbl.zero{font-weight:700;font-size:15px}
+svg.nl .axis{stroke:var(--ink);stroke-width:2}
+svg.nl .hop{fill:none;stroke-width:3;stroke-linecap:round}
+svg.nl .hop.up{stroke:var(--sea)}
+svg.nl .hop.down{stroke:var(--neg)}
+svg.nl .hoplbl{font-family:var(--head);font-weight:700;font-size:15px;text-anchor:middle}
+svg.nl .dot{stroke:#fff;stroke-width:2}
+.nl-q{font-family:var(--head);font-size:2rem;font-weight:700;color:var(--deep)}
+.nl-say{min-height:1.6rem;font-size:1.05rem;margin:.4rem 0 .8rem}
+.nl-say b{color:var(--sea)}
+.nl-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.8rem}
+.nl-row input,.nl-row select{width:5.5rem;padding:.4rem .5rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.05rem}
+.nl-row select{width:auto}
+.own{border-top:1px dashed var(--line);margin-top:1rem;padding-top:.8rem}
+.own p{margin:0;color:var(--muted);font-size:.95rem}
+.tool-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.tool-head .btn{text-decoration:none;white-space:nowrap}
+#toolFrame{display:block;width:100%;height:1000px;border:0;margin-top:.25rem}
+.ord-pool{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+.ord-pool button{min-width:4rem;padding:.55rem .8rem;border-radius:10px;border:2px solid var(--deep);background:var(--paper);font-family:var(--head);font-weight:700;font-size:1.4rem;color:var(--deep);cursor:pointer;box-shadow:0 3px 0 var(--deep)}
+.ord-pool button:disabled{visibility:hidden}
+.ord-done{font-family:var(--head);font-size:1.5rem;font-weight:600;color:var(--deep);min-height:2.2rem;margin-top:.5rem}
+.bd-q{font-family:var(--head);font-size:2rem;font-weight:700;color:var(--deep)}
+.bd-q.long{font-family:var(--body);font-size:1.25rem;line-height:1.45;max-width:60ch}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.3rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer input{width:9rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.signs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;margin-bottom:1rem}
+.sign{border-radius:8px;padding:.6rem .8rem;font-family:var(--head);font-weight:600}
+.sign.p{background:var(--sea-soft);color:var(--deep)}
+.sign.n{background:var(--neg-soft);color:#6E2E12}
+.sign small{display:block;font-family:var(--body);font-weight:400;font-size:.85rem}
+.tt-scroll{overflow-x:auto}
+.tt{border-collapse:collapse;font-family:var(--head);font-variant-numeric:tabular-nums;min-width:600px}
+.tt th,.tt td{width:2.7rem;height:2.3rem;text-align:center;border:1px solid var(--line);font-size:.92rem}
+.tt th{background:var(--deep);color:#fff;font-weight:600}
+.tt td{cursor:pointer}
+.tt td.pos{background:var(--sea-soft)}
+.tt td.neg{background:var(--neg-soft);color:#6E2E12}
+.tt td.zero{background:#EEF1F1;color:var(--muted)}
+.tt td.pick{outline:3px solid var(--sand);outline-offset:-3px;font-weight:700}
+.tt.hide td{color:transparent}
+.tt.hide td.pick{color:var(--deep)}
+.tt-out{font-family:var(--head);font-size:1.4rem;font-weight:600;color:var(--deep);min-height:2.2rem;margin-top:.75rem}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(580px,100%);height:250px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1.15rem,2.6vw,1.7rem);color:var(--deep);line-height:1.35;max-width:28ch;white-space:pre-line}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card p.task{color:var(--ink)}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card details{margin-top:auto;font-size:.95rem}
+.card summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+table.magic{border-collapse:collapse;margin:.3rem 0;font-family:var(--head);font-weight:700;font-size:1.1rem}
+table.magic td{width:2.8rem;height:2.6rem;text-align:center;border:2px solid var(--deep)}
+.pattern{font-family:var(--head);font-variant-numeric:tabular-nums;margin:.2rem 0;line-height:1.6}
+
+/* Word scramble */
+.ws-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-bottom:1rem}
+.ws-top .fc-count{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .9rem;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.tog{display:inline-flex;gap:.4rem;align-items:center;font-size:.95rem;color:var(--muted);cursor:pointer}
+.tog input{width:1.1rem;height:1.1rem;accent-color:var(--sea)}
+.ws-one{text-align:center}
+.ws-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.5rem 0 1rem}
+.ws-tiles .gap{width:1.2rem}
+.ws-tiles span.t{width:2.6rem;height:3rem;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:1.6rem;color:var(--deep);box-shadow:0 3px 0 #C99C25}
+.ws-def{background:var(--sand-soft);border-radius:8px;padding:.6rem .9rem;max-width:52ch;margin:0 auto 1rem;text-align:left}
+.ws-def b{font-family:var(--head);color:var(--deep)}
+.ws-ans{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.ws-ans input{width:min(16rem,100%);padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem;text-transform:uppercase}
+.ws-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;counter-reset:w}
+.ws-list li{counter-increment:w;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;background:#FBFCFC}
+.ws-list li::before{content:counter(w);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem;display:block}
+.ws-list .scr{font-family:var(--head);font-weight:700;font-size:1.45rem;letter-spacing:.12em;color:var(--deep)}
+.ws-list .word{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.15rem;visibility:hidden}
+.ws-list.show .word{visibility:visible}
+.ws-list .d{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+#vocab:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#vocab:fullscreen .ws-list .scr{font-size:2rem}
+
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+
+/* Diagrams */
+svg.fig{display:block;max-width:100%;height:auto;margin:.4rem auto}
+svg.fig .fs{fill:#FCD668;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+svg.fig .fd{stroke:var(--ink);stroke-width:1.8;stroke-dasharray:6 5}
+svg.fig .fr{fill:none;stroke:var(--ink);stroke-width:1.6}
+svg.fig .fdim{stroke:var(--ink);stroke-width:1.6}
+svg.fig .fl{font-family:var(--head);font-size:15px;font-weight:600;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.ex .ex-fig{margin:.3rem 0}
+.bd-q .qfig svg.fig{margin:.6rem 0}
+#qPanel:fullscreen svg.fig{width:auto;height:300px}
+.fc-card.has-fig{height:360px}
+.fc-fig svg.fig{max-height:190px;width:auto}
+.fc-text{max-width:34ch}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S1-t2-area-and-perimeter">Hub</a> › S1 Term 2 › Area and Perimeter</nav>
+</header>
+
+<div class="layout">
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <div id="seqWrap"></div>
+    <div class="whole">
+      <button class="step" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, rich tasks and games</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub"></p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+
+      <!-- Shapes on a grid teaching tool -->
+      <div class="panel scaffold" id="sc-tool">
+        <div class="tool-head">
+          <div><h3>Shapes on a grid</h3>
+            <p class="sub">Type your own numbers or press <b>New question</b>, then press <b>Next step</b> to build the working one step at a time.</p></div>
+          <a class="btn alt" id="toolOpen" href="#" target="_blank" rel="noopener">Open full size ↗</a>
+        </div>
+        <iframe id="toolFrame" title="Area and perimeter teaching tool: shapes on a grid"></iframe>
+      </div>
+
+      <!-- Break it down -->
+      <div class="panel scaffold" id="sc-bd">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time. Remember the units.</p>
+        <div class="bd-q long" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <label for="bdIn">Your answer</label>
+          <input id="bdIn" inputmode="text">
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+    </section>
+
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <section class="block" id="vocab" data-for="vocab" aria-labelledby="ws-title">
+      <div class="block-head"><h2 id="ws-title">Word scramble</h2><p>Unscramble the key words for this topic.</p></div>
+      <div class="panel">
+        <div class="ws-top">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="wsModeOne" aria-pressed="true">One at a time</button>
+            <button id="wsModeAll" aria-pressed="false">Whole list</button>
+          </div>
+          <label class="tog"><input type="checkbox" id="wsDefs"> Show the definitions</label>
+          <span class="fc-count" id="wsCount" aria-live="polite"></span>
+        </div>
+
+        <div class="ws-one" id="wsOne">
+          <div class="ws-tiles" id="wsTiles" aria-label="Scrambled letters"></div>
+          <div class="ws-def" id="wsDef" hidden></div>
+          <div class="ws-ans">
+            <label for="wsIn" class="sr">Your word</label>
+            <input id="wsIn" autocomplete="off" spellcheck="false" placeholder="Type the word">
+            <button class="btn" id="wsCheck">Check</button>
+            <button class="btn alt" id="wsDefBtn">Show the definition</button>
+            <button class="btn alt" id="wsReveal">Reveal</button>
+            <button class="btn alt" id="wsNext">Next word</button>
+          </div>
+          <div class="feedback" id="wsFb" role="status"></div>
+        </div>
+
+        <div id="wsAll" hidden>
+          <div class="controls">
+            <div class="btn-row" style="margin-left:0">
+              <button class="btn" id="wsReshuffle">New scramble</button>
+              <button class="btn alt" id="wsShowAll" aria-pressed="false">Show answers</button>
+              <button class="btn alt" id="wsFull">Full screen</button>
+            </div>
+          </div>
+          <ol class="ws-list" id="wsList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Think hard, explain your reasoning.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Week 4</span><h3>Same perimeter, different area</h3>
+          <p class="task">Draw every rectangle with whole-number sides that has a perimeter of 24 cm. Work out the area of each one.</p>
+          <p>Which rectangle has the biggest area? Which has the smallest? What do you notice?</p>
+          <details><summary>Answer</summary>Length + width = 12. 1 × 11 = 11 cm², 2 × 10 = 20 cm², 3 × 9 = 27 cm², 4 × 8 = 32 cm², 5 × 7 = 35 cm², 6 × 6 = 36 cm². The square (6 cm × 6 cm) has the biggest area; the long thin 1 cm × 11 cm rectangle has the smallest.</details></div>
+        <div class="card"><span class="kind">Week 4</span><h3>Same area, different perimeter</h3>
+          <p class="task">Find every rectangle with whole-number sides that has an area of 36 cm². Work out the perimeter of each one.</p>
+          <p>Which has the shortest perimeter? Why would a farmer care about this when building a pen?</p>
+          <details><summary>Answer</summary>1 × 36 (74 cm), 2 × 18 (40 cm), 3 × 12 (30 cm), 4 × 9 (26 cm), 6 × 6 (24 cm). The square has the shortest perimeter, so it needs the least fencing for the same space.</details></div>
+        <div class="card"><span class="kind">Challenge</span><h3>Cutting a square</h3>
+          <p class="task">A square is cut into two rectangles with one straight cut. The perimeters of the two rectangles are 16 cm and 20 cm.</p>
+          <p>What is the area of the square?</p>
+          <details><summary>Answer</summary>36 cm². The square is 6 cm by 6 cm. It is cut into a 2 cm × 6 cm rectangle (perimeter 16 cm) and a 4 cm × 6 cm rectangle (perimeter 20 cm).</details></div>
+        <div class="card"><span class="kind">Challenge</span><h3>Biggest and smallest area</h3>
+          <p class="task">The length of a rectangle is 3.1 cm (to 1 decimal place). The width is 8.4 cm (to 1 decimal place).</p>
+          <p>What is the biggest possible area of the rectangle? What is the smallest possible area?</p>
+          <details><summary>Answer</summary>The length is between 3.05 cm and 3.15 cm, and the width is between 8.35 cm and 8.45 cm. Smallest area: 3.05 × 8.35 = 25.4675 cm². Biggest area: just under 3.15 × 8.45 = 26.6175 cm².</details></div>
+        <div class="card"><span class="kind">Puzzle</span><h3>Rectangle cut (Naoki area puzzle)</h3>
+          <p class="task">Split each shape along the grid lines into rectangles. Each rectangle must have one of the numbers of squares in the list under the shape. The example on page 1 shows how.</p>
+          <a class="open" href="I%29%20Area%20and%20Perimeter/Rich%20Tasks/Naoki%20area%20puzzle.pdf" target="_blank" rel="noopener">Open the puzzle</a>
+          <details><summary>Answers</summary><a href="I%29%20Area%20and%20Perimeter/Rich%20Tasks/Naoki%20area%20puzzle%20answers.pdf" target="_blank" rel="noopener">Open the answers</a></details></div>
+      </div>
+    </section>
+
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Games and activities</h2><p>Quick practice for the whole class or on your own.</p></div>
+      <div class="cards" id="gameCards"></div>
+    </section>
+
+    <footer>S1 Term 2 · Area and Perimeter · MNU 3-11a, MTH 3-11b</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files
+   ===================================================================== */
+const WEEKS = [
+  {label:"Week 3 · Area", from:1, to:5},
+  {label:"Week 4 · Perimeter", from:6, to:8}
+];
+const STEPS = [
+  {s:"I can find the area of a rectangle.", eg:"e.g. 3 cm by 2 cm: 3 × 2 = 6 cm²"},
+  {s:"I can find the area of a compound shape made from rectangles.", eg:"e.g. an L-shape split into two rectangles"},
+  {s:"I can find the area of a triangle.", eg:"e.g. ½ × 8 × 4 = 16 cm²"},
+  {s:"I can find the area of a compound shape made from rectangles and triangles.", eg:"e.g. a rectangle with a triangle on top"},
+  {s:"I can solve area word problems, including decimals, multiples of 10, 100 and 1000, and mixed units.", eg:"e.g. a rug 4.5 m by 3 m, a poster 1 m by 60 cm"},
+  {s:"I can find the perimeter of a shape.", eg:"e.g. 4 + 3 + 4 + 3 = 14 cm"},
+  {s:"I can find the perimeter of a shape when I need to work out missing sides.", eg:"e.g. a compound shape with two sides not labelled"},
+  {s:"I can solve problems that mix area and perimeter.", eg:"e.g. fencing and grass for a garden"}
+];
+// Scaffold for each step: tool = shapes on a grid teaching tool, bd = break it down
+const SCAFFOLD = {1:"tool",2:"tool",3:"tool",4:"tool",5:"bd",6:"tool",7:"tool",8:"bd"};
+// What the teaching tool shows first on each step (see the note at the bottom of the tool file)
+const TOOL_START = {1:"s=rect&v=3,2&f=area",2:"s=L&v=4,4,2,2&f=area&fx=1",3:"s=tri&v=8,4,0",4:"s=house&v=6,4,7",6:"s=rect&v=4,3&f=perim",7:"s=L&v=5,6,2,4&f=perim&fx=1&fy=1"};
+
+const LINKS = [
+  {steps:[1,5], title:"Corbettmaths: area of a rectangle", text:"Video 45. Watch how to find the area of a rectangle.", url:"https://corbettmaths.com/2013/12/20/area-of-a-rectangle-video-45/"},
+  {steps:[1,5], title:"Corbettmaths: rectangle practice", text:"Practice questions on the area of a rectangle, with answers.", url:"https://corbettmaths.com/2019/08/22/area-of-a-rectangle-practice-questions/"},
+  {steps:[2], title:"Corbettmaths: area of an L-shape", text:"Video 42. Splitting an L-shape into two rectangles.", url:"https://corbettmaths.com/2013/03/26/area-of-an-l-shape/"},
+  {steps:[2,4], title:"Corbettmaths: area of compound shapes", text:"Video 41. Area of shapes made from rectangles and triangles.", url:"https://corbettmaths.com/2012/08/02/area-of-compound-shapes/"},
+  {steps:[2,4], title:"Corbettmaths: compound shapes practice", text:"Practice questions on compound shapes, with answers.", url:"https://corbettmaths.com/2019/08/22/area-of-compound-shapes-practice-questions/"},
+  {steps:[3,4], title:"Corbettmaths: area of a triangle", text:"Video 49. Half × base × height.", url:"https://corbettmaths.com/2013/12/20/area-of-a-triangle-video-49/"},
+  {steps:[3], title:"Corbettmaths: triangle practice", text:"Practice questions on the area of a triangle, with answers.", url:"https://corbettmaths.com/2019/08/22/area-of-a-triangle-practice-questions/"},
+  {steps:[6,7], title:"Corbettmaths", text:"Videos and practice questions. Search the contents for “perimeter” (video 241).", url:"https://corbettmaths.com/contents/"}
+];
+const F = "I) Area and Perimeter/";
+const FILES = [
+  {steps:[1,2,3,6,7], kind:"Pupil notes", title:"Area and perimeter printouts for jotters", path:F+"Printouts for Folders or jotters/Area printouts.pptx"},
+  {steps:[1,6], kind:"PowerPoint", title:"Rectangle area and perimeter demonstration", path:F+"PPT/1 Rectangle Area Demonstration.pptx"},
+  {steps:[3,4], kind:"PowerPoint", title:"Triangle area demonstration", path:F+"PPT/2 Triangle-Area-Demonstration.pptx"},
+  {steps:[2,4,7], kind:"PowerPoint", title:"Compound shapes area and perimeter demonstration", path:F+"PPT/3 Compound-Shapes-Area-Perimeter-Demonstration-1.pptx"},
+  {steps:[1,5,6], kind:"Worksheet", title:"Rectangle area and perimeter 1234", path:F+"Worksheets and Display Questions/1 Area-Perimeter-Rectangle-1234.pptx"},
+  {steps:[1,6], kind:"Worksheet", title:"Rectangle area and perimeter digit puzzle", path:F+"Worksheets and Display Questions/1 Area-Perimeter-Rectangle-Digit-Puzzle.pptx"},
+  {steps:[3], kind:"Worksheet", title:"Triangle area worksheet", path:F+"Worksheets and Display Questions/2 Triangle-Area-Worksheet-A.pptx"},
+  {steps:[2,7], kind:"Worksheet", title:"Rectilinear compound shapes 1234", path:F+"Worksheets and Display Questions/3 Rectilinear-Compound-Shapes-Area-Perimeter-1234.pptx"},
+  {steps:[2], kind:"Worksheet", title:"Compound area of rectangles (scaffolded, with answers)", path:"Compound area of rectangles worksheet MTH 3-11a.pdf"},
+  {steps:[6,7], kind:"Worksheet", title:"Corbettmaths perimeter", path:F+"Worksheets and Display Questions/Corbett maths perimeter.pdf"},
+  {steps:[1,6], kind:"PowerPoint game", title:"Rectangle area and perimeter shootout", path:F+"Games and Activities/1 Area-Perimeter-Rectangle-Shootout.pptx"},
+  {steps:[1,6], kind:"Activity", title:"Rectangle area and perimeter treasure trail", path:F+"Games and Activities/1 Area-Perimeter-Rectangle-Treasure-Trail.pptx"},
+  {steps:[1,6], kind:"Activity", title:"Rectangle area and perimeter 3 stars", path:F+"Games and Activities/1 Area-_-Perimeter-Rectangle-3-Stars (1).pptx"},
+  {steps:[3], kind:"PowerPoint game", title:"Triangle area shootout", path:F+"Games and Activities/2 Triangle-Area-Shootout.pptx"},
+  {steps:[3], kind:"Game", title:"Triangle area bingo", path:F+"Games and Activities/2 Triangle-Area-Bingo-M.pptx"},
+  {steps:[3], kind:"Activity", title:"Triangle area digit puzzle", path:F+"Games and Activities/2 Triangle-Area-Digit-Puzzle.pptx"},
+  {steps:[2,7], kind:"PowerPoint game", title:"Compound shapes shootout", path:F+"Games and Activities/3 Compound-Shapes-Area-Perimeter-Shootout.pptx"},
+  {steps:[2,7], kind:"Game", title:"Compound shapes bingo", path:F+"Games and Activities/3 Compound-Shapes-Area-_-Perimeter-Bingo-OA.pptx"},
+  {steps:[2,7], kind:"Activity", title:"Compound shapes card match", path:F+"Games and Activities/3 Compound-Shapes-Area-Perimeter-Card-Match.pptx"},
+  {steps:[2,7], kind:"Activity", title:"Rectilinear compound shapes activity", path:F+"Games and Activities/3 Rectilinear-Compound-Shapes-Area-Perimeter-Activity-A.pptx"},
+  {steps:[8], kind:"Rich task", title:"Rectangle cut (Naoki area puzzle)", path:F+"Rich Tasks/Naoki area puzzle.pdf"},
+  {steps:[2], kind:"Rich task", title:"Area mazes (Naoki Inaba puzzles)", path:"Naoki area mazes MTH 3-11b.pdf"}
+];
+// Games and activities on the Whole topic view
+const GAMES = [
+  {kind:"Teaching tool", title:"Shapes on a grid", text:"Rectangles, triangles and compound shapes on squared paper, built up one step at a time. Type your own numbers or make up a question. The Area mazes tab has Naoki Inaba-style puzzles to solve step by step.", path:"Area and perimeter teaching tool - shapes on a grid.html", open:"Open tool"},
+  {kind:"PowerPoint game", title:"Rectangle shootout", text:"Area and perimeter of rectangles, as a class game.", path:F+"Games and Activities/1 Area-Perimeter-Rectangle-Shootout.pptx"},
+  {kind:"Activity", title:"Rectangle treasure trail", text:"Area and perimeter of rectangles. Each answer leads to the next question.", path:F+"Games and Activities/1 Area-Perimeter-Rectangle-Treasure-Trail.pptx"},
+  {kind:"Activity", title:"Rectangle 3 stars", text:"Area and perimeter of rectangles at three levels.", path:F+"Games and Activities/1 Area-_-Perimeter-Rectangle-3-Stars (1).pptx"},
+  {kind:"PowerPoint game", title:"Triangle shootout", text:"Area of a triangle, as a class game.", path:F+"Games and Activities/2 Triangle-Area-Shootout.pptx"},
+  {kind:"Game", title:"Triangle bingo", text:"Area of a triangle bingo.", path:F+"Games and Activities/2 Triangle-Area-Bingo-M.pptx"},
+  {kind:"Activity", title:"Triangle digit puzzle", text:"Place the digits to make the triangle areas work.", path:F+"Games and Activities/2 Triangle-Area-Digit-Puzzle.pptx"},
+  {kind:"PowerPoint game", title:"Compound shapes shootout", text:"Area and perimeter of compound shapes, as a class game.", path:F+"Games and Activities/3 Compound-Shapes-Area-Perimeter-Shootout.pptx"},
+  {kind:"Game", title:"Compound shapes bingo", text:"Area and perimeter of compound shapes bingo.", path:F+"Games and Activities/3 Compound-Shapes-Area-_-Perimeter-Bingo-OA.pptx"},
+  {kind:"Activity", title:"Compound shapes card match", text:"Match each compound shape to its area and perimeter.", path:F+"Games and Activities/3 Compound-Shapes-Area-Perimeter-Card-Match.pptx"},
+  {kind:"Activity", title:"Rectilinear compound shapes activity", text:"Area and perimeter of compound shapes made from rectangles.", path:F+"Games and Activities/3 Rectilinear-Compound-Shapes-Area-Perimeter-Activity-A.pptx"}
+];
+
+/* Worked examples. fig = the diagram, tool = what "Show it on the grid" opens in the teaching tool */
+const WE = {
+ 1:[{q:"Find the area of this rectangle.",fig:{k:'rect',L:3,W:2,u:'cm'},steps:["Count the squares in one row: 3.","There are 2 rows of 3.","Quicker: multiply the length and the width. 3 × 2 = 6"],a:"6 cm²",tool:"s=rect&v=3,2&f=area"},
+    {q:"Find the area of this rectangle.",fig:{k:'rect',L:9,W:5,u:'cm'},steps:["Area = length × width","9 × 5 = 45","Area is measured in square centimetres: cm²."],a:"45 cm²",tool:"s=rect&v=9,5&f=area"},
+    {q:"A rectangle has an area of 24 cm². One side is 3 cm. Find the missing side.",steps:["Area = length × width, so 3 × ? = 24.","24 ÷ 3 = 8"],a:"8 cm",note:"To find a missing side, divide the area by the side you know."}],
+ 2:[{q:"Find the area of this compound shape.",fig:{k:'L',W:4,H:4,w2:2,h2:2,fx:1,u:'cm'},steps:["1) Divide the compound shape into rectangles ① and ②.","2) Calculate the missing length: 4 − 2 = 2 cm.","① 2 × 2 = 4, ② 4 × 2 = 8","Add the shape areas: 4 + 8 = 12"],a:"12 cm²",tool:"s=L&v=4,4,2,2&f=area&fx=1"},
+    {q:"Find the area of this compound shape.",fig:{k:'L',W:10,H:8,w2:4,h2:5,u:'cm'},steps:["1) Divide the shape into rectangles ① and ②.","2) Missing length: 8 − 5 = 3 cm.","① 4 × 3 = 12, ② 10 × 5 = 50","Total = 12 + 50 = 62"],a:"62 cm²",note:"You can split it the other way too: 4 × 8 = 32 and 6 × 5 = 30, total 62 cm². Same answer!",tool:"s=L&v=10,8,4,5&f=area"}],
+ 3:[{q:"Find the area of this triangle.",fig:{k:'tri',b:8,h:4,p:0,u:'cm'},steps:["The triangle is half of an 8 × 4 rectangle.","Area of a triangle = ½ × base × height","½ × 8 × 4 = 16"],a:"16 cm²",tool:"s=tri&v=8,4,0"},
+    {q:"Find the area of this triangle.",fig:{k:'tri',b:5,h:6,p:0.4,u:'cm'},steps:["Use the perpendicular height (at 90° to the base): 6 cm.","½ × 5 × 6 = 15"],a:"15 cm²",note:"Multiply then halve: 5 × 6 = 30, then 30 ÷ 2 = 15.",tool:"s=tri&v=5,6,2"},
+    {q:"Find the area of this triangle.",fig:{k:'tri',b:6,h:8,p:0,hyp:10,u:'cm'},steps:["The 10 cm side is not at 90° to the base, so don't use it.","½ × 6 × 8 = 24"],a:"24 cm²",note:"Always use the perpendicular height: the one at 90° to the base."},
+    {q:"A triangle has an area of 24 cm² and a base of 8 cm. Find its height.",steps:["½ × 8 × height = 24","4 × height = 24","height = 24 ÷ 4 = 6"],a:"6 cm"}],
+ 4:[{q:"Find the area of this compound shape.",fig:{k:'house',W:6,H:4,T:7,u:'cm'},steps:["1) Divide it into a rectangle ① and a triangle ②.","2) Height of the triangle: 7 − 4 = 3 cm.","① 6 × 4 = 24, ② ½ × 6 × 3 = 9","Total = 24 + 9 = 33"],a:"33 cm²",tool:"s=house&v=6,4,7"},
+    {q:"Find the area of this compound shape.",fig:{k:'ramp',top:5,bot:8,h:4,u:'cm'},steps:["1) Divide it into a rectangle ① and a right-angled triangle ②.","2) Base of the triangle: 8 − 5 = 3 cm.","① 5 × 4 = 20, ② ½ × 3 × 4 = 6","Total = 20 + 6 = 26"],a:"26 cm²"}],
+ 5:[{q:"A rug is 4.5 m long and 3 m wide. Find its area.",steps:["Area = length × width = 4.5 × 3","Do 45 × 3 = 135.","There is 1 decimal place in the question, so 13.5"],a:"13.5 m²"},
+    {q:"A car park is 200 m long and 30 m wide. Find its area.",steps:["Do 2 × 3 = 6.","There are three zeros in 200 and 30 altogether, so put three zeros on: 6000"],a:"6000 m²"},
+    {q:"A poster is 1 m long and 60 cm wide. Find its area in cm².",steps:["Change to the same units: 1 m = 100 cm.","100 × 60 = 6000"],a:"6000 cm²",note:"Always change to the same units before you multiply."},
+    {q:"Turf costs £4 per m². How much does it cost to turf a lawn 8 m by 6 m?",steps:["Area: 8 × 6 = 48 m²","Cost: 48 × £4 = £192"],a:"£192"}],
+ 6:[{q:"Find the perimeter of this rectangle.",fig:{k:'rect',L:4,W:3,u:'cm',all:true},steps:["Perimeter is the distance around the edge.","Imagine a tiny person walking around the edge: 4 + 3 + 4 + 3","= 14"],a:"14 cm",tool:"s=rect&v=4,3&f=perim"},
+    {q:"Find the perimeter of this rectangle.",fig:{k:'rect',L:6,W:2,u:'cm'},steps:["Opposite sides of a rectangle are equal, so the other sides are 6 cm and 2 cm.","6 + 2 + 6 + 2 = 16"],a:"16 cm",tool:"s=rect&v=6,2&f=perim"},
+    {q:"A rectangle has a perimeter of 30 cm. Its length is 9 cm. Find its width.",steps:["The two lengths: 9 + 9 = 18 cm.","That leaves 30 − 18 = 12 cm for the two widths.","12 ÷ 2 = 6"],a:"6 cm"},
+    {q:"A regular hexagon has sides of 5 cm. Find its perimeter.",steps:["A hexagon has 6 sides. Regular means they are all the same length.","6 × 5 = 30"],a:"30 cm"}],
+ 7:[{q:"Find the perimeter of this compound shape.",fig:{k:'L',W:4,H:4,w2:2,h2:2,fx:1,u:'cm'},steps:["Calculate and label the missing lengths: 4 − 2 = 2 cm and 4 − 2 = 2 cm.","‘Walk’ around the outside: 4 + 2 + 2 + 2 + 2 + 4","= 16"],a:"16 cm",tool:"s=L&v=4,4,2,2&f=perim&fx=1"},
+    {q:"Find the perimeter of this compound shape.",fig:{k:'L',W:5,H:6,w2:2,h2:4,fx:1,fy:1,u:'cm'},steps:["Missing lengths: 6 − 4 = 2 cm and 5 − 2 = 3 cm.","‘Walk’ around the outside: 5 + 6 + 2 + 2 + 3 + 4","= 22"],a:"22 cm",note:"Check: an L-shape has the same perimeter as the rectangle around it: 5 + 6 + 5 + 6 = 22 cm.",tool:"s=L&v=5,6,2,4&f=perim&fx=1&fy=1"}],
+ 8:[{q:"How many rectangles with whole-number sides have a perimeter of 24 cm? Which has the biggest area?",steps:["Length + width = 12 (half of 24).","1 × 11, 2 × 10, 3 × 9, 4 × 8, 5 × 7, 6 × 6","Areas: 11, 20, 27, 32, 35 and 36 cm²"],a:"6 rectangles. The 6 cm × 6 cm square has the biggest area: 36 cm²"},
+    {q:"A garden is 12 m long and 8 m wide. How much fencing goes all the way round it? What area of grass is needed to cover it?",steps:["Fencing goes around the edge, so find the perimeter: 12 + 8 + 12 + 8 = 40 m","Grass covers the surface, so find the area: 12 × 8 = 96 m²"],a:"40 m of fencing and 96 m² of grass"},
+    {q:"A square has a perimeter of 28 cm. Find its area.",steps:["A square has 4 equal sides: 28 ÷ 4 = 7 cm.","Area = 7 × 7 = 49"],a:"49 cm²"}]
+};
+
+const RULES = [
+  {q:"Area of a rectangle",a:"length × width\n5 cm by 3 cm: 5 × 3 = 15 cm²"},
+  {q:"Area of a square",a:"side × side\n4 cm square: 4 × 4 = 16 cm²"},
+  {q:"Area of a triangle",a:"½ × base × height\n½ × 8 × 4 = 16 cm²"},
+  {q:"Which height do you use for a triangle?",a:"The perpendicular height:\nat 90° to the base"},
+  {q:"What is perimeter?",a:"The distance around the outside.\nAdd up all the sides."},
+  {q:"Perimeter of a rectangle",a:"length + width + length + width\n4 + 3 + 4 + 3 = 14 cm"},
+  {q:"Units of area",a:"Square units:\nmm², cm², m², km²"},
+  {q:"Units of perimeter",a:"Length units:\nmm, cm, m, km"},
+  {q:"Area of a compound shape",a:"Split it into rectangles and triangles,\nthen add the areas."},
+  {q:"Find a missing side from the area",a:"area ÷ the side you know\n24 cm² ÷ 3 cm = 8 cm"},
+  {q:"Missing length on a compound shape",a:"Subtract:\nwhole length − the part you know"},
+  {q:"1 m = ? cm",a:"100 cm"}
+];
+const WORDS = [
+  {q:"Area",a:"The amount of flat surface a shape covers. It is measured in square units, e.g. cm²."},
+  {q:"Perimeter",a:"The distance all the way around the outside edge of a shape."},
+  {q:"Length",a:"How long something is. On a rectangle, usually the longer side."},
+  {q:"Width",a:"How wide something is. On a rectangle, usually the shorter side."},
+  {q:"Base",a:"The side of a triangle that you measure the height from."},
+  {q:"Height",a:"The distance from the base to the top, measured at 90° to the base."},
+  {q:"Perpendicular",a:"At right angles (90°) to another line."},
+  {q:"Right angle",a:"An angle of 90°. It is shown with a small square."},
+  {q:"Compound shape",a:"A shape made from two or more simple shapes, e.g. rectangles and triangles. Also called a composite shape."},
+  {q:"Formula",a:"A rule written in words or letters, e.g. Area = length × width."},
+  {q:"Square centimetre",a:"The area of a square 1 cm by 1 cm. Written cm²."},
+  {q:"Square metre",a:"The area of a square 1 m by 1 m. Written m²."},
+  {q:"Rectangle",a:"A four-sided shape with four right angles. Opposite sides are equal."},
+  {q:"Triangle",a:"A flat shape with three straight sides."}
+];
+
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const r2=x=>Math.round(x*100)/100;
+const F2=x=>String(r2(x));                                         // 13.5
+const big=x=>{x=r2(x);return Math.abs(x)>=10000?x.toLocaleString('en-GB'):String(x);};  // 12,000
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SQ='²';
+const NAMES=['Ewan','Kirsty','Calum','Iona','Finlay','Eilidh','Mairi','Ruaridh'];
+
+/* ---------- Diagrams (drawn to scale) ---------- */
+function inside(pt,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];
+  if(((yi>pt[1])!==(yj>pt[1]))&&(pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi))c=!c;}return c;}
+function figSVG(f){
+  const u=f.u||'cm', L=v=>`${F2(v)} ${u}`;
+  let pts, w, h, labs=[], dash=[], marks=[], dims=[];   // labs: [a,b,text] on the outside of edge a→b
+  if(f.k==='rect'){
+    w=f.L;h=f.W;pts=[[0,0],[w,0],[w,h],[0,h]];
+    labs.push([pts[2],pts[3],L(f.L)],[pts[3],pts[0],L(f.W)]);
+    if(f.all) labs.push([pts[0],pts[1],L(f.L)],[pts[1],pts[2],L(f.W)]);
+  } else if(f.k==='sq'){
+    w=h=f.a;pts=[[0,0],[w,0],[w,h],[0,h]];labs.push([pts[2],pts[3],L(f.a)]);
+  } else if(f.k==='tri'){
+    w=f.b;h=f.h;const px=f.p*f.b;pts=[[0,h],[w,h],[px,0]];
+    labs.push([pts[0],pts[1],L(f.b)]);
+    if(f.p===0){labs.push([pts[2],pts[0],L(f.h)]); if(f.hyp) labs.push([pts[1],pts[2],L(f.hyp)]);}
+    else {dash.push([[px,0],[px,h]]);dims.push({right:true,px,h,t:L(f.h)});}
+    marks.push({x:px,y:h,dir:f.p<1?1:-1});
+  } else if(f.k==='L'){
+    const {W,H,w2,h2}=f, m=H-h2;
+    const T=p=>[f.fx?W-p[0]:p[0], f.fy?H-p[1]:p[1]];
+    w=W;h=H;pts=[[0,0],[w2,0],[w2,m],[W,m],[W,H],[0,H]].map(T);
+    labs.push([T([0,H]),T([0,0]),L(H)],[T([0,0]),T([w2,0]),L(w2)],[T([W,m]),T([W,H]),L(h2)],[T([W,H]),T([0,H]),L(W)]);
+  } else if(f.k==='house'){
+    const {W,H,T}=f,t=T-H; w=W;h=T;pts=[[0,T],[0,t],[W/2,0],[W,t],[W,T]];
+    labs.push([pts[3],pts[4],L(H)],[pts[4],pts[0],L(W)]);
+    dims.push({vx:-0.0,y1:0,y2:T,t:L(T)});
+  } else if(f.k==='ramp'){
+    const {top,bot}=f; w=bot;h=f.h;pts=[[0,0],[top,0],[bot,h],[0,h]];
+    labs.push([pts[0],pts[1],L(top)],[pts[2],pts[3],L(bot)],[pts[3],pts[0],L(f.h)]);
+    marks.push({x:0,y:h,dir:1});
+  }
+  const sc=Math.min(190/w,125/h,30), m=58;
+  const padL=dims.some(d=>d.y1!==undefined)?40:0, VW=w*sc+2*m+padL+(dims.some(d=>d.right)?40:0), VH=h*sc+2*m, X=x=>m+padL+x*sc, Y=y=>m+y*sc;
+  let s=`<svg class="fig" width="${VW.toFixed(0)}" viewBox="0 0 ${VW.toFixed(1)} ${VH.toFixed(1)}" role="img" aria-label="Diagram">`;
+  s+=`<polygon class="fs" points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+  dash.forEach(([a,b])=>{s+=`<line class="fd" x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}"/>`;});
+  marks.forEach(k=>{const r=9;s+=`<polyline class="fr" points="${X(k.x)+k.dir*r},${Y(k.y)} ${X(k.x)+k.dir*r},${Y(k.y)-r} ${X(k.x)},${Y(k.y)-r}"/>`;});
+  labs.forEach(([a,b,t])=>{
+    const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
+    let nx=dy/len,ny=-dx/len; if(inside([mx+nx*.01,my+ny*.01],pts)){nx=-nx;ny=-ny;}
+    const tw=t.length*8.2, off=Math.abs(nx)*(tw/2+7)+Math.abs(ny)*13;
+    s+=`<text class="fl" x="${(X(mx)+nx*off).toFixed(1)}" y="${(Y(my)+ny*off).toFixed(1)}">${t}</text>`;
+  });
+  dims.forEach(d=>{
+    if(d.y1!==undefined){const x0=X(0)-26;
+      s+=`<line class="fdim" x1="${x0}" x2="${x0}" y1="${Y(d.y1)}" y2="${Y(d.y2)}"/><line class="fdim" x1="${x0-5}" x2="${x0+5}" y1="${Y(d.y1)}" y2="${Y(d.y1)}"/><line class="fdim" x1="${x0-5}" x2="${x0+5}" y1="${Y(d.y2)}" y2="${Y(d.y2)}"/>`;
+      s+=`<text class="fl" x="${x0-8-d.t.length*4.3}" y="${Y((d.y1+d.y2)/2)}">${d.t}</text>`;}
+    else if(d.right){const x0=X(w)+22;
+      s+=`<line class="fd" x1="${X(d.px)}" x2="${x0}" y1="${Y(0)}" y2="${Y(0)}" style="stroke-width:1.2"/>`;
+      s+=`<line class="fdim" x1="${x0}" x2="${x0}" y1="${Y(0)}" y2="${Y(d.h)}"/><line class="fdim" x1="${x0-5}" x2="${x0+5}" y1="${Y(0)}" y2="${Y(0)}"/><line class="fdim" x1="${x0-5}" x2="${x0+5}" y1="${Y(d.h)}" y2="${Y(d.h)}"/>`;
+      s+=`<text class="fl" x="${x0+8+d.t.length*4.3}" y="${Y(d.h/2)}">${d.t}</text>`;}
+  });
+  return s+'</svg>';
+}
+
+/* ---------- Question generators: {q, a (with units), n (number, or list of numbers, for checking), steps (hints), fig} ---------- */
+const GEN = {
+ 1:()=>{
+   const t=rnd(0,4), u=pick(['cm','cm','m']);
+   if(t<=2){let L=rnd(2,15),W=rnd(2,12);if(L===W)L++;if(W>L)[L,W]=[W,L];
+     return {q:`Find the area of this rectangle.`,fig:{k:'rect',L,W,u},a:`${L*W} ${u}${SQ}`,n:L*W,
+       steps:[`Area = length × width.`,`${L} × ${W} = ${L*W}`,`Area is in square units: ${u}${SQ}.`]};}
+   if(t===3){const a=rnd(2,12);
+     return {q:`A square has sides of ${a} ${u}. Find its area.`,a:`${a*a} ${u}${SQ}`,n:a*a,
+       steps:[`All the sides of a square are the same, so area = ${a} × ${a}.`,`${a} × ${a} = ${a*a}`]};}
+   const W=rnd(2,9),L=rnd(W+1,12),A=L*W;
+   return {q:`A rectangle has an area of ${A} ${u}${SQ}. Its width is ${W} ${u}. Find its length.`,a:`${L} ${u}`,n:L,
+     steps:[`Area = length × width, so ? × ${W} = ${A}.`,`Length = area ÷ width: ${A} ÷ ${W} = ${L}`]};
+ },
+ 2:()=>{
+   const u=pick(['cm','cm','m']),W=rnd(4,12),H=rnd(4,10),w2=rnd(1,W-2),h2=rnd(1,H-2),m=H-h2,A1=w2*m,A2=W*h2,A=A1+A2;
+   return {q:`Find the area of this compound shape.`,fig:{k:'L',W,H,w2,h2,fx:rnd(0,1),fy:rnd(0,1),u},a:`${A} ${u}${SQ}`,n:A,
+     steps:[`Divide the shape into two rectangles, ① and ②.`,`Find the missing length: ${H} − ${h2} = ${m} ${u}.`,`① ${w2} × ${m} = ${A1}   ② ${W} × ${h2} = ${A2}`,`Add the areas: ${A1} + ${A2} = ${A}`]};
+ },
+ 3:()=>{
+   const t=rnd(0,4), u=pick(['cm','cm','m']);
+   if(t===0){const [x,y,z]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15],[12,16,20]]);const sw=rnd(0,1),b=sw?y:x,h=sw?x:y,A=b*h/2;
+     return {q:`Find the area of this triangle.`,fig:{k:'tri',b,h,p:0,hyp:z,u},a:`${F2(A)} ${u}${SQ}`,n:A,
+       steps:[`The ${z} ${u} side is not at 90° to the base, so don't use it.`,`Area = ½ × base × height = ½ × ${b} × ${h}`,`= ${F2(A)}`]};}
+   if(t<=2){const b=rnd(2,14),h=rnd(2,12),A=b*h/2,p=pick([0,0.3,0.4,0.5,0.6,0.7]);
+     return {q:`Find the area of this triangle.`,fig:{k:'tri',b,h,p,u},a:`${F2(A)} ${u}${SQ}`,n:A,
+       steps:[`Area = ½ × base × height.`,`${b} × ${h} = ${b*h}`,`Half of ${b*h} is ${F2(A)}.`]};}
+   if(t===3){const b=rnd(2,15),h=rnd(2,12),A=b*h/2;
+     return {q:`A triangle has a base of ${b} ${u} and a perpendicular height of ${h} ${u}. Find its area.`,a:`${F2(A)} ${u}${SQ}`,n:A,
+       steps:[`Area = ½ × base × height.`,`${b} × ${h} = ${b*h}`,`${b*h} ÷ 2 = ${F2(A)}`]};}
+   const b=2*rnd(1,7),h=rnd(2,12),A=b*h/2;
+   return {q:`A triangle has an area of ${A} ${u}${SQ} and a base of ${b} ${u}. Find its perpendicular height.`,a:`${h} ${u}`,n:h,
+     steps:[`½ × ${b} × height = ${A}`,`${b/2} × height = ${A}`,`height = ${A} ÷ ${b/2} = ${h}`]};
+ },
+ 4:()=>{
+   const u=pick(['cm','cm','m']);
+   if(rnd(0,1)===0){const W=2*rnd(2,6),H=rnd(2,8),t=rnd(1,6),T=H+t,A1=W*H,A2=W*t/2,A=A1+A2;
+     return {q:`Find the area of this compound shape.`,fig:{k:'house',W,H,T,u},a:`${F2(A)} ${u}${SQ}`,n:A,
+       steps:[`Divide it into a rectangle ① and a triangle ②.`,`Height of the triangle: ${T} − ${H} = ${t} ${u}.`,`① ${W} × ${H} = ${A1}   ② ½ × ${W} × ${t} = ${F2(A2)}`,`Add the areas: ${A1} + ${F2(A2)} = ${F2(A)}`]};}
+   const top=rnd(2,10),e=rnd(2,8),h=rnd(2,8),bot=top+e,A1=top*h,A2=e*h/2,A=A1+A2;
+   return {q:`Find the area of this compound shape.`,fig:{k:'ramp',top,bot,h,u},a:`${F2(A)} ${u}${SQ}`,n:A,
+     steps:[`Divide it into a rectangle ① and a right-angled triangle ②.`,`Base of the triangle: ${bot} − ${top} = ${e} ${u}.`,`① ${top} × ${h} = ${A1}   ② ½ × ${e} × ${h} = ${F2(A2)}`,`Add the areas: ${A1} + ${F2(A2)} = ${F2(A)}`]};
+ },
+ 5:()=>{
+   const t=rnd(0,5);
+   if(t===0){const L=rnd(2,9)+0.5,W=rnd(1,6),A=L*W,th=pick(['rug','table top','window','flower bed']);
+     return {q:`A ${th} is ${L} m long and ${W} m wide. Find its area.`,a:`${F2(A)} m${SQ}`,n:r2(A),
+       steps:[`Area = length × width = ${L} × ${W}`,`Do ${L*10} × ${W} = ${L*10*W}.`,`There is 1 decimal place in the question, so ${F2(A)}.`]};}
+   if(t===1){const L=rnd(11,49)/10,W=rnd(2,5),A=L*W;
+     return {q:`A rectangular tile is ${L} cm long and ${W} cm wide. Find its area.`,a:`${F2(A)} cm${SQ}`,n:r2(A),
+       steps:[`Area = length × width = ${L} × ${W}`,`Do ${Math.round(L*10)} × ${W} = ${Math.round(L*10)*W}.`,`1 decimal place, so ${F2(A)}.`]};}
+   if(t===2){const a=rnd(2,9),b=rnd(2,9),ma=pick([10,100]),mb=pick([10,100]),L=a*ma,W=b*mb,A=L*W,th=pick(['field','car park','beach','forest']);
+     const z=String(ma).length-1+String(mb).length-1;
+     return {q:`A ${th} is ${big(L)} m long and ${big(W)} m wide. Find its area.`,a:`${big(A)} m${SQ}`,n:A,
+       steps:[`Do ${a} × ${b} = ${a*b}.`,`There ${z===1?'is 1 zero':'are '+z+' zeros'} in ${big(L)} and ${big(W)} altogether, so put ${z===1?'it':'them'} on the end.`,`${big(L)} × ${big(W)} = ${big(A)}`]};}
+   if(t===3){const Lm=rnd(1,4),W=10*rnd(2,9),L=100*Lm,A=L*W,th=pick(['poster','table top','banner','noticeboard']);
+     return {q:`A ${th} is ${Lm} m long and ${W} cm wide. Find its area in cm${SQ}.`,a:`${big(A)} cm${SQ}`,n:A,
+       steps:[`Change to the same units: ${Lm} m = ${L} cm.`,`Area = ${L} × ${W}`,`= ${big(A)}`]};}
+   if(t===4){const L=rnd(4,15),W=rnd(3,10),c=pick([2,3,4,5,6]),A=L*W,cost=A*c,nm=pick(NAMES);
+     return {q:`Turf costs £${c} per m${SQ}. ${nm} wants to turf a lawn ${L} m long and ${W} m wide. How much will it cost?`,a:`£${cost}`,n:cost,
+       steps:[`First find the area: ${L} × ${W} = ${A} m${SQ}.`,`Each m${SQ} costs £${c}, so multiply: ${A} × ${c}`,`= £${cost}`]};}
+   const L=rnd(3,8),H=rnd(2,4),c=pick([5,10,12]),A=L*H,tins=Math.ceil(A/c);
+   return {q:`A wall is ${L} m long and ${H} m high. One tin of paint covers ${c} m${SQ}. How many tins are needed to paint the wall?`,a:`${tins} tins`,n:tins,
+     steps:[`Area of the wall: ${L} × ${H} = ${A} m${SQ}.`,`Tins: ${A} ÷ ${c} = ${F2(A/c)}.`,A%c===0?`That is exactly ${tins} tins.`:`You can't buy part of a tin, so round up to ${tins} tins.`]};
+ },
+ 6:()=>{
+   const t=rnd(0,5), u=pick(['cm','cm','m']);
+   if(t<=1){let L=rnd(2,15),W=rnd(1,10);if(W>=L)L=W+rnd(1,4);const P=2*(L+W);
+     return {q:`Find the perimeter of this rectangle.`,fig:{k:'rect',L,W,u},a:`${P} ${u}`,n:P,
+       steps:[`Opposite sides of a rectangle are equal.`,`Walk around the edge: ${L} + ${W} + ${L} + ${W}`,`= ${P}`]};}
+   if(t===2){const a=rnd(2,15);
+     return {q:`A square has sides of ${a} ${u}. Find its perimeter.`,a:`${4*a} ${u}`,n:4*a,
+       steps:[`A square has 4 equal sides.`,`${a} + ${a} + ${a} + ${a} = 4 × ${a}`,`= ${4*a}`]};}
+   if(t===3){let a,b,c;do{a=rnd(3,15);b=rnd(3,15);c=rnd(3,15);}while(a+b<=c||a+c<=b||b+c<=a);const P=a+b+c;
+     return {q:`A triangle has sides of ${a} ${u}, ${b} ${u} and ${c} ${u}. Find its perimeter.`,a:`${P} ${u}`,n:P,
+       steps:[`Perimeter: add up all the sides.`,`${a} + ${b} + ${c} = ${P}`]};}
+   if(t===4){const [nm,k]=pick([['pentagon',5],['hexagon',6],['octagon',8]]),s=rnd(2,12);
+     return {q:`A regular ${nm} has sides of ${s} ${u}. Find its perimeter.`,a:`${k*s} ${u}`,n:k*s,
+       steps:[`A ${nm} has ${k} sides. Regular means they are all the same length.`,`${k} × ${s} = ${k*s}`]};}
+   const W=rnd(2,9),L=rnd(W+1,15),P=2*(L+W);
+   return {q:`A rectangle has a perimeter of ${P} ${u}. Its length is ${L} ${u}. Find its width.`,a:`${W} ${u}`,n:W,
+     steps:[`The two lengths: ${L} + ${L} = ${2*L} ${u}.`,`That leaves ${P} − ${2*L} = ${2*W} ${u} for the two widths.`,`${2*W} ÷ 2 = ${W}`]};
+ },
+ 7:()=>{
+   const u=pick(['cm','cm','m']),W=rnd(4,14),H=rnd(4,10),w2=rnd(1,W-2),h2=rnd(1,H-2),m=H-h2,n=W-w2,P=2*(W+H);
+   return {q:`Find the perimeter of this compound shape.`,fig:{k:'L',W,H,w2,h2,fx:rnd(0,1),fy:rnd(0,1),u},a:`${P} ${u}`,n:P,
+     steps:[`Find the two missing lengths: ${H} − ${h2} = ${m} ${u} and ${W} − ${w2} = ${n} ${u}.`,`‘Walk’ around the outside: ${H} + ${w2} + ${m} + ${n} + ${h2} + ${W}`,`= ${P}`]};
+ },
+ 8:()=>{
+   const t=rnd(0,5);
+   if(t===0){const a=rnd(2,12);
+     return {q:`A square has a perimeter of ${4*a} cm. Find its area.`,a:`${a*a} cm${SQ}`,n:a*a,
+       steps:[`A square has 4 equal sides: ${4*a} ÷ 4 = ${a} cm.`,`Area = ${a} × ${a}`,`= ${a*a}`]};}
+   if(t===1){const a=rnd(2,12);
+     return {q:`A square has an area of ${a*a} cm${SQ}. Find its perimeter.`,a:`${4*a} cm`,n:4*a,
+       steps:[`Which number times itself makes ${a*a}? ${a} × ${a} = ${a*a}, so each side is ${a} cm.`,`Perimeter = 4 × ${a}`,`= ${4*a}`]};}
+   if(t===2){const L=rnd(5,20),W=rnd(3,L-1),P=2*(L+W),A=L*W,th=pick(['garden','paddock','pitch']);
+     return {q:`A ${th} is ${L} m long and ${W} m wide. How much fencing goes all the way round it, and what area of grass covers it?`,a:`${P} m of fencing, ${A} m${SQ} of grass`,n:[P,A],
+       steps:[`Fencing goes around the edge: that's the perimeter.`,`${L} + ${W} + ${L} + ${W} = ${P} m`,`Grass covers the surface: that's the area. ${L} × ${W} = ${A} m${SQ}`]};}
+   if(t===3){const W=rnd(2,9),L=rnd(W+1,12),A=L*W,P=2*(L+W);
+     return {q:`A rectangle has an area of ${A} cm${SQ} and a perimeter of ${P} cm. Find its length and width.`,a:`${L} cm and ${W} cm`,n:[L,W],
+       steps:[`Half the perimeter is length + width: ${P} ÷ 2 = ${L+W}.`,`Look for two numbers that add to ${L+W} and multiply to ${A}.`,`${L} + ${W} = ${L+W} and ${L} × ${W} = ${A}`]};}
+   if(t===4){const W=rnd(2,9),L=rnd(W+1,14),P=2*(L+W),A=L*W;
+     return {q:`A rectangle has a perimeter of ${P} cm. Its length is ${L} cm. Find its area.`,a:`${A} cm${SQ}`,n:A,
+       steps:[`Two lengths: ${L} + ${L} = ${2*L}, so the two widths are ${P} − ${2*L} = ${2*W}.`,`Width = ${2*W} ÷ 2 = ${W} cm.`,`Area = ${L} × ${W} = ${A}`]};}
+   let L,W;do{W=rnd(1,8);L=rnd(W+2,14);}while((L+W)%2);const s=(L+W)/2;
+   return {q:`A rectangle is ${L} cm by ${W} cm. A square has the same perimeter. Find the area of the square.`,a:`${s*s} cm${SQ}`,n:s*s,
+     steps:[`Perimeter of the rectangle: ${L} + ${W} + ${L} + ${W} = ${2*(L+W)} cm.`,`Each side of the square: ${2*(L+W)} ÷ 4 = ${s} cm.`,`Area of the square: ${s} × ${s} = ${s*s}`]};
+ }
+};
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();const key=g.q+JSON.stringify(g.fig||'');if(seen.has(key))continue;seen.add(key);out.push({...g,st});}
+  return out;
+}
+
+/* ---------- Sidebar ---------- */
+const seqWrap=document.getElementById('seqWrap');
+seqWrap.innerHTML=WEEKS.map(w=>`<p class="wk">${esc(w.label)}</p><ol class="steps" start="${w.from}">`+
+  STEPS.slice(w.from-1,w.to).map((st,k)=>{const n=w.from+k;return `<li><button class="step" data-view="${n}"><span class="num">${n}</span>
+    <span class="txt">${esc(st.s)}${st.eg?`<span class="eg">${esc(st.eg)}</span>`:''}</span></button></li>`;}).join('')+'</ol>').join('');
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';
+const qSel=new Set(STEPS.map((_,i)=>i+1));
+const VOCAB_STEPS=[1,3,6];
+function showView(v){
+  view=v;
+  const isStep=v!=='all';
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===String(v))));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = s.dataset.for==='vocab' ? !(v==='all'||v===1) : (s.dataset.for==='step')!==isStep);
+  const jumps=isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],...(v===1?[['vocab','Word scramble']]:[]),['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['vocab','Word scramble'],['tasks','Rich tasks'],['games','Games']];
+  document.getElementById('jump').innerHTML=jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('')+
+    (isStep?`<li class="stepnav">${v>1?`<button class="btn alt" data-go="${v-1}">← Step ${v-1}</button>`:''}${v<STEPS.length?`<button class="btn" data-go="${v+1}">Step ${v+1} →</button>`:''}</li>`:'');
+  const kicker=document.getElementById('kicker'),title=document.getElementById('title'),heroEg=document.getElementById('heroEg');
+  if(isStep){
+    const wk=WEEKS.find(w=>v>=w.from&&v<=w.to);
+    kicker.textContent=`Step ${v} of ${STEPS.length} · ${wk.label}`;
+    title.textContent=STEPS[v-1].s; heroEg.textContent=STEPS[v-1].eg||'';
+    renderExamples(v); renderScaffold(v); renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=`New questions for step ${v} every time.`;
+  } else {
+    kicker.textContent='S1 Term 2 · Weeks 3–4';
+    title.textContent='Area and Perimeter';
+    heroEg.textContent='Finding the area of rectangles, triangles and compound shapes, the perimeter of shapes, and solving problems with area and perimeter. Always give the units: cm, m, cm², m².';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include.';
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g) location.hash='step-'+g.dataset.go;
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d+)$/);
+  const v=m&&+m[1]>=1&&+m[1]<=STEPS.length?+m[1]:'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples ---------- */
+function renderExamples(n){
+  document.getElementById('exs').innerHTML=(WE[n]||[]).map((ex,i)=>`
+    <div class="ex">
+      <div class="exq long">${ex.q}</div>
+      ${ex.fig?`<div class="ex-fig">${figSVG(ex.fig)}</div>`:''}
+      <ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      <div class="exa">Answer: ${ex.a}</div>
+      ${ex.note?`<div class="note">${ex.note}</div>`:''}
+      ${ex.tool&&SCAFFOLD[n]==='tool'?`<button class="btn alt try" data-ex="${i}">Show it on the grid</button>`:''}
+    </div>`).join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ex]'); if(!t) return;
+  const ex=WE[view][+t.dataset.ex]; toolLoad(ex.tool); document.getElementById('sc-tool').scrollIntoView();
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'),qsEl=document.getElementById('qs');
+STEPS.forEach((_,i)=>{const n=i+1,b=document.createElement('button');
+  b.className='chip';b.textContent=n;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${n}`);
+  b.onclick=()=>{qSel.has(n)?qSel.delete(n):qSel.add(n);b.setAttribute('aria-pressed',qSel.has(n));newChecks();};
+  chips.appendChild(b);});
+function newChecks(){
+  const steps=view==='all'?[...qSel]:[view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  qsEl.classList.toggle('wordy',out.some(g=>g.q.length>70));
+  qsEl.innerHTML=out.map(g=>`<li><span class="q long">${esc(g.q)}</span>${g.fig?`<span class="qfig">${figSVG(g.fig)}</span>`:''}<span class="a long">${esc(g.a)}</span>${view==='all'?`<span class="from">Step ${g.st}</span>`:''}</li>`).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(n){
+  const k=SCAFFOLD[n];
+  ['tool','bd'].forEach(id=>document.getElementById('sc-'+id).hidden=k!==id);
+  if(k==='tool') toolLoad(TOOL_START[n]);
+  if(k==='bd') newBD();
+}
+
+/* Shapes on a grid teaching tool (separate file, shown in a frame) */
+const TOOL='Area and perimeter teaching tool - shapes on a grid.html';
+const toolFrame=document.getElementById('toolFrame');
+function toolLoad(h){
+  document.getElementById('toolOpen').href=encodeURI(TOOL)+'#'+h;
+  toolFrame.src=encodeURI(TOOL)+'#embed&'+h;   // only the # part changes after the first load, so the tool updates without reloading
+}
+window.addEventListener('message',e=>{ if(e.data && e.data.toolHeight) toolFrame.style.height=(e.data.toolHeight+4)+'px'; });
+
+/* Break it down */
+let bd=null,shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIn=document.getElementById('bdIn'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  bd=GEN[view==='all'?pick([5,8]):view](); shown=0;
+  bdQ.innerHTML=esc(bd.q)+(bd.fig?`<div class="qfig">${figSVG(bd.fig)}</div>`:'');
+  bdSteps.innerHTML=''; bdIn.value=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+  bdIn.placeholder=Array.isArray(bd.n)?'e.g. 40 and 96':'';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.textContent=bd.steps[shown++];bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+/* Pull the numbers out of an answer, ignoring units like cm², m2, £ */
+function answerNumbers(s){
+  s=String(s).replace(/[−–]/g,'-').replace(/(mm|cm|km|m)\s*(\^\s*2|²|2(?![\d.]))/gi,' ').replace(/(\d),(?=\d{3}\b)/g,'$1');
+  return (s.match(/\d+(\.\d+)?/g)||[]).map(Number);
+}
+function answerOK(input,n){
+  const got=answerNumbers(input), want=Array.isArray(n)?n:[n];
+  if(got.length!==want.length) return false;
+  const a=[...got].sort((p,q)=>p-q), b=[...want].sort((p,q)=>p-q);
+  return a.every((x,i)=>Math.abs(x-b[i])<1e-9);
+}
+document.getElementById('bdCheck').onclick=()=>{
+  if(!bdIn.value.trim()){bdFb.textContent='Type your answer first.';bdFb.className='feedback no';return;}
+  const ok=answerOK(bdIn.value,bd.n);
+  bdFb.textContent=ok?`Correct: ${bd.a}`:(Array.isArray(bd.n)?`Not yet. You need ${bd.n.length} answers. Show a hint if you're stuck.`:'Not yet. Check your working, or show a hint.');
+  bdFb.className='feedback '+(ok?'ok':'no');
+};
+bdIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+const fileHref=p=>esc(encodeURI(p).replace(/\(/g,'%28').replace(/\)/g,'%29'));
+function renderLinks(n){
+  const web=LINKS.filter(l=>l.steps.includes(n)).map(l=>`<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open website</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(n)).map(f=>`<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${fileHref(f.path)}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+`<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+document.getElementById('gameCards').innerHTML=GAMES.map(g=>`<div class="card"><span class="kind">${esc(g.kind)}</span><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p><a class="open" href="${fileHref(g.path)}" target="_blank" rel="noopener">${g.open||'Open file'}</a></div>`).join('')+
+  `<div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>`;
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+function buildDeckMenu(v){
+  const opts=v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['rules','Formulas and rules'],['words','Key words']]
+    : [['step',`Step ${v} questions`],['rules','Formulas and rules'],...(VOCAB_STEPS.includes(v)?[['words','Key words']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='rules') return shuffle(RULES);
+  if(type==='words') return shuffle(WORDS);
+  const steps=type==='step'?[view]:STEPS.map((_,i)=>i+1);
+  return makeQs(steps,12).map(g=>({q:g.q,a:g.a,fig:g.fig}));
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i]; fcSetFlip(false);
+  fcCard.classList.toggle('has-fig',!!c.fig);
+  fcFront.innerHTML=esc(c.q)+(c.fig?`<div class="fc-fig">${figSVG(c.fig)}</div>`:'');
+  setTimeout(()=>{fcBack.textContent=c.a;},250);
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+(left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){if(!fc.flipped)return;knew?fc.known++:fc.again.push(fc.deck[fc.i]);fc.i++;fcShow();}
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true); fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Word scramble (uses WORDS) ---------- */
+const wsDefs=document.getElementById('wsDefs'),wsTiles=document.getElementById('wsTiles'),wsDef=document.getElementById('wsDef'),
+      wsIn=document.getElementById('wsIn'),wsFb=document.getElementById('wsFb'),wsCount=document.getElementById('wsCount'),
+      wsDefBtn=document.getElementById('wsDefBtn'),wsList=document.getElementById('wsList');
+function scramble(word){
+  // scramble each word separately, keep spaces; make sure it changes
+  return word.toUpperCase().split(' ').map(w=>{
+    if(w.length<2) return w; let s,g=0; do{s=shuffle([...w]).join('');}while(s===w&&g++<50); return s;}).join(' ');
+}
+let ws={order:[],i:0,solved:0,defOn:false};
+function wsStart(){ws={order:shuffle(WORDS),i:0,solved:0,defOn:false};wsShow();wsBuildList();}
+function wsShow(){
+  const w=ws.order[ws.i];
+  wsTiles.innerHTML=scramble(w.q).split('').map(c=>c===' '?'<span class="gap"></span>':`<span class="t">${esc(c)}</span>`).join('');
+  wsDef.innerHTML=`<b>Definition:</b> ${esc(w.a)}`;
+  ws.defOn=wsDefs.checked; wsDefSync();
+  wsIn.value=''; wsFb.textContent=''; wsFb.className='feedback';
+  wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+}
+function wsDefSync(){wsDef.hidden=!ws.defOn;wsDefBtn.textContent=ws.defOn?'Hide the definition':'Show the definition';}
+const norm=s=>s.toUpperCase().replace(/[^A-Z]/g,'');
+document.getElementById('wsCheck').onclick=()=>{
+  const w=ws.order[ws.i];
+  if(!wsIn.value.trim()){wsFb.textContent='Type your word first.';wsFb.className='feedback no';return;}
+  if(norm(wsIn.value)===norm(w.q)){
+    if(!wsFb.classList.contains('ok')) ws.solved++;
+    wsFb.textContent=`Correct: ${w.q.toUpperCase()}`;wsFb.className='feedback ok';
+    ws.defOn=true;wsDefSync();
+    wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+  } else {wsFb.textContent='Not yet. Try the definition for a clue.';wsFb.className='feedback no';}
+};
+wsIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('wsCheck').click();});
+wsDefBtn.onclick=()=>{ws.defOn=!ws.defOn;wsDefSync();};
+document.getElementById('wsReveal').onclick=()=>{const w=ws.order[ws.i];wsFb.textContent=`The word is ${w.q.toUpperCase()}`;wsFb.className='feedback';ws.defOn=true;wsDefSync();};
+document.getElementById('wsNext').onclick=()=>{ws.i=(ws.i+1)%ws.order.length;if(ws.i===0){ws.order=shuffle(WORDS);ws.solved=0;}wsShow();};
+
+function wsBuildList(){
+  wsList.innerHTML=shuffle(WORDS).map(w=>`<li><div class="scr">${esc(scramble(w.q))}</div><div class="word">${esc(w.q.toUpperCase())}</div>${wsDefs.checked?`<div class="d">${esc(w.a)}</div>`:''}</li>`).join('');
+}
+wsDefs.onchange=()=>{ws.defOn=wsDefs.checked;wsDefSync();
+  wsList.querySelectorAll('li').forEach(li=>{const word=li.querySelector('.word').textContent,w=WORDS.find(x=>x.q.toUpperCase()===word);
+    let d=li.querySelector('.d'); if(wsDefs.checked&&!d){d=document.createElement('div');d.className='d';d.textContent=w.a;li.appendChild(d);} if(!wsDefs.checked&&d) d.remove();});};
+const modeOne=document.getElementById('wsModeOne'),modeAll=document.getElementById('wsModeAll');
+function wsMode(all){modeOne.setAttribute('aria-pressed',!all);modeAll.setAttribute('aria-pressed',all);
+  document.getElementById('wsOne').hidden=all;document.getElementById('wsAll').hidden=!all;wsCount.hidden=all;}
+modeOne.onclick=()=>wsMode(false); modeAll.onclick=()=>wsMode(true);
+document.getElementById('wsReshuffle').onclick=wsBuildList;
+const wsShowAll=document.getElementById('wsShowAll');
+wsShowAll.onclick=()=>{const on=wsList.classList.toggle('show');wsShowAll.setAttribute('aria-pressed',on);wsShowAll.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('wsFull').onclick=()=>{const el=document.getElementById('vocab');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+wsStart();
+
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s1/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

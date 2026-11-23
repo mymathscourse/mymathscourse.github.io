@@ -1,0 +1,1831 @@
+<!doctype html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Differentiation explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b2733; --muted: #5b6977; --paper: #f4f6f8; --panel: #ffffff; --line: #d8dfe6;
+    --accent: #2d6a8f; --accent-soft: #e3eef5; --btn: #ffffff; --on: #1b2733; --on-text: #ffffff;
+    --f: #2d70b3; --d: #6042a6; --tan: #7a7a7a; --hi: #e07a00; --sp: #c2185b;
+    --up: #2b7a3a; --down: #b83c38; --flat: #5b6977;
+    --up-bg: #e3f2e6; --down-bg: #f8e3e2; --flat-bg: #eceff2;
+    --answer-bg: #fff8dc; --answer-line: #e3c766;
+    --grid: #e9ecf0; --axis: #5b6573; --band: rgba(45, 106, 143, .08);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e4ebf1; --muted: #9fadba; --paper: #121a21; --panel: #1a242d; --line: #2f3d49;
+      --accent: #7fb6d8; --accent-soft: #1f3342; --btn: #1d2731; --on: #e4ebf1; --on-text: #121a21;
+      --f: #6fa8e0; --d: #b39ce8; --tan: #9aa5b0; --hi: #ffa64d; --sp: #f06292;
+      --up: #7fd08d; --down: #f0918d; --flat: #b3bfcb;
+      --up-bg: #1b3322; --down-bg: #3a1f1e; --flat-bg: #232d37;
+      --answer-bg: #2f2a14; --answer-line: #8a7630;
+      --grid: #24303b; --axis: #8d9aa7; --band: rgba(127, 182, 216, .1);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px;
+  }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 12px 16px 32px; }
+  .back { color: var(--accent); font-size: 15px; }
+  h1 { font-size: 1.5rem; margin: 4px 0 10px; }
+  .keys { font-size: 13px; color: var(--muted); margin-left: auto; }
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+  .tabs button {
+    font: inherit; font-size: 15px; padding: 7px 12px; border-radius: 8px 8px 0 0; border: 1px solid var(--line);
+    border-bottom: 3px solid var(--line); background: var(--btn); color: var(--muted); cursor: pointer;
+  }
+  .tabs button[aria-selected=true] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+  .tabs button .k { font-size: 12px; opacity: .7; margin-right: 4px; }
+  .tabs button.new::after { content: "new"; font-size: 11px; font-weight: 700; color: var(--sp); margin-left: 5px; vertical-align: 1px; }
+  .seq { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-bottom: 10px; }
+  button.btn, select, input.n {
+    font: inherit; font-size: 15px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 7px;
+    background: var(--btn); color: var(--ink);
+  }
+  button.btn, select { cursor: pointer; }
+  button.btn:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { button.primary { color: #121a21; } }
+  button[aria-pressed=true] { background: var(--on); color: var(--on-text); border-color: var(--on); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  input.n { width: 4.6em; text-align: center; padding: 5px 4px; font-size: 17px; }
+  input.n.w { width: 16em; text-align: left; padding: 5px 8px; }
+  input.n.bad { border-color: var(--down); outline: 2px solid var(--down); }
+  .eqin { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 19px; }
+  .err { color: var(--down); font-size: 14px; }
+  .hint { font-size: 13px; color: var(--muted); }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); gap: 12px; align-items: start; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  svg.g { width: 100%; height: auto; display: block; touch-action: none; cursor: ew-resize; }
+  svg.g + svg.g { border-top: 2px solid var(--line); margin-top: 4px; }
+  .glab { font-size: 13px; color: var(--muted); margin: 2px 0; }
+  .mover { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; font-size: 15px; }
+  .mover input[type=range] { width: min(260px, 40vw); accent-color: var(--accent); vertical-align: middle; }
+  .status b { padding: 1px 7px; border-radius: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .legend span::before {
+    content: ""; display: inline-block; width: 18px; height: 4px; border-radius: 2px; margin-right: 6px;
+    vertical-align: middle; background: var(--c);
+  }
+  .checks label { font-size: 14px; display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+
+  /* working */
+  .stepbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .stepbar .btn { font-size: 14px; padding: 5px 10px; }
+  .step { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .step .num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  @media (prefers-color-scheme: dark) { .step .num { color: #121a21; } }
+  .step .st { font-weight: 700; margin-bottom: 2px; }
+  .step.hid { cursor: pointer; }
+  .step.hid .num { background: var(--line); color: var(--muted); }
+  .step.hid .st { color: var(--muted); font-weight: 400; }
+  .step.hid .st::after { content: " – click to reveal"; font-size: 13px; }
+  .mm { font-family: "Cambria Math", "STIX Two Math", "Times New Roman", Times, serif; font-size: 20px; line-height: 1.7; }
+  .mm i, .eqin i { font-style: italic; }
+  .why { font-size: 14px; color: var(--muted); margin: 2px 0 4px; }
+  .answer { margin-top: 6px; padding: 8px 12px; border-radius: 6px; background: var(--answer-bg); border: 1px solid var(--answer-line); }
+  .tag { padding: 1px 7px; border-radius: 4px; font-family: "Atkinson Hyperlegible", system-ui, sans-serif; font-size: 15px; }
+  .up { color: var(--up); background: var(--up-bg); }
+  .down { color: var(--down); background: var(--down-bg); }
+  .flat { color: var(--flat); background: var(--flat-bg); }
+  .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .82em; line-height: 1.1; margin: 0 2px; }
+  .fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
+  sup .fr { font-size: .75em; }
+  sup { font-size: .7em; }
+  .ov { border-top: 1.5px solid currentColor; padding: 0 1px; }
+
+  table.nt { border-collapse: collapse; margin: 6px 0; font-size: 18px; }
+  table.nt th, table.nt td { border: 1px solid var(--line); padding: 3px 9px; text-align: center; min-width: 40px; }
+  table.nt th:first-child, table.nt td:first-child { text-align: left; background: var(--paper); }
+  table.nt td.p { color: var(--up); font-weight: 700; } table.nt td.m { color: var(--down); font-weight: 700; }
+  table.nt td.root, table.nt th.root { background: var(--flat-bg); }
+  svg.sl { width: 30px; height: 20px; vertical-align: middle; }
+  svg.sl line { stroke-width: 3; stroke-linecap: round; }
+  .nl { width: 100%; height: auto; margin-top: 8px; display: block; }
+  .nl text { font-family: inherit; font-size: 15px; fill: var(--ink); }
+
+  /* graph svg */
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .ax { stroke: var(--axis); stroke-width: 1.6; }
+  svg .tk { font-size: 13px; fill: var(--muted); font-family: "Atkinson Hyperlegible", system-ui, sans-serif; }
+  svg .cf { stroke: var(--f); stroke-width: 3.5; fill: none; }
+  svg .cfaint { stroke: var(--f); stroke-width: 2.5; fill: none; opacity: .3; }
+  svg .cd { stroke: var(--d); stroke-width: 3.5; fill: none; }
+  svg .cg { stroke: var(--up); stroke-width: 3; fill: none; }
+  svg .cup { stroke: var(--up); stroke-width: 5; fill: none; }
+  svg .cdown { stroke: var(--down); stroke-width: 5; fill: none; }
+  svg .ct { stroke: var(--tan); stroke-width: 2; stroke-dasharray: 8 6; fill: none; }
+  svg .cl { stroke: var(--hi); stroke-width: 2.5; fill: none; }
+  svg .cline { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 3 5; fill: none; }
+  svg .vl { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 5; }
+  svg .fup { fill: var(--up); opacity: .18; } svg .fdown { fill: var(--down); opacity: .18; }
+  svg .band { fill: var(--band); }
+  svg .pt { fill: var(--ink); }
+  svg .pf { fill: var(--f); stroke: var(--panel); stroke-width: 2; }
+  svg .pd { fill: var(--down); stroke: var(--panel); stroke-width: 2; }
+  svg .ptr { fill: var(--down); }
+  svg .psp { fill: var(--sp); stroke: var(--panel); stroke-width: 2; }
+  svg .phi { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+  svg .pup { fill: var(--up); stroke: var(--panel); stroke-width: 2; }
+  svg .pdn { fill: var(--down); stroke: var(--panel); stroke-width: 2; }
+  svg .pop { fill: var(--panel); stroke: var(--ink); stroke-width: 2.5; }
+  svg .lab {
+    font-size: 15px; font-weight: 700; paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; fill: var(--ink);
+  }
+  svg .lab.f { fill: var(--f); } svg .lab.d { fill: var(--d); } svg .lab.r { fill: var(--down); }
+  svg .lab.sp { fill: var(--sp); } svg .lab.hi { fill: var(--hi); } svg .lab.u { fill: var(--up); }
+  svg .arrow { fill: var(--f); }
+
+  @media (max-width: 960px) { .cols { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="../../index.html#differentiation">← Back to hub</a>
+    <span class="keys">Keys: 1–9, 0 switch tab · W next step · B back a step · P play · N next example</span>
+  </div>
+  <h1>Differentiation explorer</h1>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <p class="seq" id="seq"></p>
+  <div id="panes"></div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+// ===================== Fractions and formatting =====================
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const lcm = (a, b) => a / gcd(a, b) * b;
+function fr(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return { n: n / g, d: d / g }; }
+const fadd = (x, y) => fr(x.n * y.d + y.n * x.d, x.d * y.d);
+const fsub = (x, y) => fr(x.n * y.d - y.n * x.d, x.d * y.d);
+const fmul = (x, y) => fr(x.n * y.n, x.d * y.d);
+const fdiv = (x, y) => fr(x.n * y.d, x.d * y.n);
+const fneg = x => fr(-x.n, x.d);
+const fval = x => x.n / x.d;
+const isZ = x => x.n === 0;
+const isOne = x => x.n === 1 && x.d === 1;
+const fabs = x => fr(Math.abs(x.n), x.d);
+
+const fmtInt = v => (v < 0 ? '−' : '') + Math.abs(v);
+const fracText = f => fmtInt(f.n) + (f.d > 1 ? '/' + f.d : '');
+const stack = (n, d) => '<span class="fr"><span>' + n + '</span><span>' + d + '</span></span>';
+const fracH = f => f.d === 1 ? fmtInt(f.n) : (f.n < 0 ? '−' : '') + stack(Math.abs(f.n), f.d);
+function fmt(v, dp = 3) {
+  if (!isFinite(v)) return '–';
+  const r = Math.round(v * 10 ** dp) / 10 ** dp;
+  return (r < 0 ? '−' : '') + String(Math.abs(r));
+}
+const X = '<i>x</i>';
+const sup = p => {
+  if (typeof p === 'number') p = fr(p);
+  return '<sup>' + (p.n < 0 ? '−' : '') + (p.d === 1 ? Math.abs(p.n) : stack(Math.abs(p.n), p.d)) + '</sup>';
+};
+const ov = s => '<span class="ov">' + s + '</span>';
+const sqrtH = s => '√' + ov(s);
+const signed = (f, first) => first ? fracH(f) : (f.n < 0 ? ' − ' : ' + ') + fracH(fabs(f));
+// coefficient in front of something: 1 → '', −1 → '−'
+const coefH = c => isOne(c) ? '' : (c.n === -1 && c.d === 1) ? '−' : fracH(c);
+
+function parseNum(s) {
+  s = String(s).replace(/[−–]/g, '-').replace(/\s+/g, '');
+  if (s === '' || s === '+') return fr(0);
+  const m = s.match(/^([+-]?)(\d*\.?\d+)(?:\/(\d*\.?\d+))?$/);
+  if (!m) return null;
+  const dec = t => { const k = (t.split('.')[1] || '').length; return fr(Math.round(parseFloat(t) * 10 ** k), 10 ** k); };
+  let f = dec(m[2]);
+  if (m[1] === '-') f = fneg(f);
+  if (m[3]) { const q = dec(m[3]); if (q.n === 0) return null; f = fdiv(f, q); }
+  return f;
+}
+// A number that may be a multiple of π: { f, pi }
+function parseAngle(s) {
+  s = String(s).replace(/[−–]/g, '-').replace(/\s+/g, '').replace(/pi/gi, 'π');
+  const m = s.match(/^([+-]?)(\d*)π(?:\/(\d+))?$/);
+  if (m) {
+    let f = fr(m[2] ? Number(m[2]) : 1, m[3] ? Number(m[3]) : 1);
+    if (m[1] === '-') f = fneg(f);
+    return { f, pi: true };
+  }
+  const f = parseNum(s);
+  return f ? { f, pi: false } : null;
+}
+const angVal = A => fval(A.f) * (A.pi ? Math.PI : 1);
+function angH(A) {
+  if (!A.pi) return fracH(A.f);
+  if (isZ(A.f)) return '0';
+  const n = Math.abs(A.f.n), top = (n === 1 ? '' : n) + 'π';
+  return (A.f.n < 0 ? '−' : '') + (A.f.d === 1 ? top : stack(top, A.f.d));
+}
+const angText = A => !A.pi ? fracText(A.f) : (A.f.n < 0 ? '−' : '') + (Math.abs(A.f.n) === 1 ? '' : Math.abs(A.f.n)) + 'π' + (A.f.d > 1 ? '/' + A.f.d : '');
+
+// ===================== Terms: c·x^p, c·sin(bx), c·cos(bx) =====================
+function powR(x, p) { // real power, handling odd roots of negatives
+  if (x < 0) { if (p.d % 2 === 0) return NaN; return (p.n % 2 ? -1 : 1) * Math.abs(x) ** fval(p); }
+  return x ** fval(p);
+}
+function evalTerm(t, x) {
+  if (t.t === 'pow') return fval(t.c) * (t.p.n === 0 ? 1 : powR(x, t.p));
+  const v = fval(t.b) * x;
+  return fval(t.c) * (t.t === 'sin' ? Math.sin(v) : Math.cos(v));
+}
+const evalTerms = (ts, x) => ts.reduce((s, t) => s + evalTerm(t, x), 0);
+function dTerm(t) {
+  if (t.t === 'pow') return t.p.n === 0 ? null : { t: 'pow', c: fmul(t.c, t.p), p: fsub(t.p, fr(1)) };
+  if (t.t === 'sin') return { t: 'cos', c: fmul(t.c, t.b), b: t.b };
+  return { t: 'sin', c: fneg(fmul(t.c, t.b)), b: t.b };
+}
+const dTerms = ts => ts.map(dTerm).filter(t => t && !isZ(t.c));
+
+function powBody(q, xv, xb) { // x^q (q > 0) in tidy form
+  if (q.d === 1) return xv + (q.n === 1 ? '' : sup(q));
+  if (q.d === 2 && q.n === 1) return sqrtH(xb);
+  if (q.d === 3 && q.n === 1) return '∛' + ov(xb);
+  if (q.d === 3 && q.n === 2) return '∛' + ov(xv + '<sup>2</sup>');
+  return xv + sup(q);
+}
+// style: 'index' (x^-2, x^1/2) or 'nice' (1/x², √x). sub: html of a value replacing x.
+function termParts(t, style, sub) {
+  const xv = sub ? '(' + sub + ')' : X, xb = sub || X;
+  const neg = t.c.n < 0, m = fabs(t.c), cs = isOne(m) ? '' : fracH(m);
+  if (t.t !== 'pow') {
+    const bx = isOne(t.b) ? (sub || X) : fracH(t.b) + xv;
+    return { neg, body: cs + t.t + (sub ? '(' + bx + ')' : ' ' + bx) };
+  }
+  const p = t.p;
+  if (p.n === 0) return { neg, body: fracH(m) };
+  if (style === 'nice' && p.n < 0) {
+    const q = fr(-p.n, p.d);
+    return { neg, body: stack(m.n, (m.d === 1 ? '' : m.d) + powBody(q, xv, xb)) };
+  }
+  if (style === 'nice') return { neg, body: cs + powBody(p, xv, xb) };
+  return { neg, body: cs + xv + (isOne(p) ? '' : sup(p)) };
+}
+function sumH(ts, style = 'index', sub = null) {
+  let out = '';
+  ts.filter(t => !isZ(t.c)).forEach(t => {
+    const { neg, body } = termParts(t, style, sub);
+    out += out === '' ? (neg ? '−' : '') + body : (neg ? ' − ' : ' + ') + body;
+  });
+  return out || '0';
+}
+// the "multiply by the power" line: 6 × ½x^−½
+function rawDiffH(ts) {
+  let out = '';
+  ts.forEach(t => {
+    let piece;
+    if (t.t === 'pow') {
+      if (t.p.n === 0) return;
+      const np = fsub(t.p, fr(1));
+      piece = fracH(fabs(t.c)) + ' × ' + (t.p.n < 0 ? '(' + fracH(t.p) + ')' : fracH(t.p)) + (np.n === 0 ? '' : X + (isOne(np) ? '' : sup(np)));
+    } else {
+      const bx = (isOne(t.b) ? '' : fracH(t.b)) + X;
+      piece = fracH(fabs(t.c)) + ' × ' + fracH(t.b) + (t.t === 'sin' ? ' cos ' : ' × (−sin ') + bx + (t.t === 'sin' ? '' : ')');
+    }
+    const neg = t.c.n < 0;
+    out += out === '' ? (neg ? '−' : '') + piece : (neg ? ' − ' : ' + ') + piece;
+  });
+  return out || '0';
+}
+
+// exact real power of a fraction, or null
+function exactPow(a, p) {
+  if (a.n === 0) return p.n > 0 ? fr(0) : p.n === 0 ? fr(1) : null;
+  const rt = (v, k) => {
+    if (v < 0) { if (k % 2 === 0) return null; const r = rt(-v, k); return r === null ? null : -r; }
+    const r = Math.round(v ** (1 / k)); return r ** k === v ? r : null;
+  };
+  const nr = rt(a.n, p.d), dr = rt(a.d, p.d);
+  if (nr === null || dr === null) return null;
+  const e = Math.abs(p.n), num = nr ** e, den = dr ** e;
+  if (!Number.isSafeInteger(num) || !Number.isSafeInteger(den)) return null;
+  return p.n >= 0 ? fr(num, den) : fr(den, num);
+}
+// exact sin(qπ): {c: frac, s: 1|2|3} meaning c√s, or null
+function exactSin(q) {
+  const k12 = q.n * 12 / q.d;
+  if (!Number.isInteger(k12)) return null;
+  const k = ((k12 % 24) + 24) % 24, deg = k * 15;
+  let ref = deg % 180; if (ref > 90) ref = 180 - ref;
+  const base = { 0: [0, 1, 1], 30: [1, 2, 1], 45: [1, 2, 2], 60: [1, 2, 3], 90: [1, 1, 1] }[ref];
+  if (!base) return null;
+  return { c: fr(deg > 180 ? -base[0] : base[0], base[1]), s: base[2] };
+}
+const exactCos = q => exactSin(fadd(q, fr(1, 2)));
+// exact values are {1: frac, 2: frac, 3: frac} (rational part, √2 part, √3 part)
+function exactEval(ts, A) {
+  const E = { 1: fr(0), 2: fr(0), 3: fr(0) };
+  for (const t of ts) {
+    if (t.t === 'pow') {
+      if (A.pi && t.p.n !== 0) return null;
+      const v = t.p.n === 0 ? fr(1) : exactPow(A.f, t.p);
+      if (!v) return null;
+      E[1] = fadd(E[1], fmul(t.c, v));
+    } else {
+      if (!A.pi && !isZ(A.f)) return null;
+      const q = fmul(t.b, A.f);
+      const v = t.t === 'sin' ? exactSin(q) : exactCos(q);
+      if (!v) return null;
+      E[v.s] = fadd(E[v.s], fmul(t.c, v.c));
+    }
+  }
+  return E;
+}
+function exactH(E) {
+  let out = '';
+  [1, 2, 3].forEach(s => {
+    const c = E[s]; if (isZ(c)) return;
+    let body;
+    const m = fabs(c);
+    if (s === 1) body = fracH(m);
+    else body = m.d === 1 ? (m.n === 1 ? '' : m.n) + '√' + s : stack((m.n === 1 ? '' : m.n) + '√' + s, m.d);
+    out += out === '' ? (c.n < 0 ? '−' : '') + body : (c.n < 0 ? ' − ' : ' + ') + body;
+  });
+  return out || '0';
+}
+const exactNum = E => fval(E[1]) + fval(E[2]) * Math.SQRT2 + fval(E[3]) * Math.sqrt(3);
+const exactIsRational = E => isZ(E[2]) && isZ(E[3]);
+
+// typed expression: sum of terms like 3x^2, 4/x^3, 6sqrt(x), 2/sqrt(x), 1/(2x^4), 5sin(3x)
+function parseExpr(src) {
+  let s = String(src).replace(/[−–]/g, '-').replace(/\s+/g, '').replace(/[*×]/g, '').replace(/√/g, 'sqrt')
+    .replace(/²/g, '^2').replace(/³/g, '^3').replace(/⁴/g, '^4').toLowerCase().replace(/^(y|f\(x\))=/, '');
+  if (!s) return null;
+  const parts = []; let depth = 0, cur = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if ((ch === '+' || ch === '-') && depth === 0 && i > 0 && !'^/('.includes(s[i - 1])) { parts.push(cur); cur = ch; }
+    else cur += ch;
+  }
+  parts.push(cur);
+  const out = [];
+  for (const p of parts) { const t = parseTerm(p); if (!t) return null; out.push(t); }
+  // combine like terms
+  const res = [];
+  out.forEach(t => {
+    const same = res.find(r => r.t === t.t && (t.t === 'pow' ? r.p.n === t.p.n && r.p.d === t.p.d : r.b.n === t.b.n && r.b.d === t.b.d));
+    if (same) same.c = fadd(same.c, t.c); else res.push(t);
+  });
+  res.sort((a, b) => (a.t === 'pow' ? 0 : 1) - (b.t === 'pow' ? 0 : 1) || (a.t === 'pow' ? fval(b.p) - fval(a.p) : 0));
+  return res.filter(t => !isZ(t.c));
+}
+function parseTerm(t) {
+  let sign = 1;
+  if (t[0] === '+') t = t.slice(1); else if (t[0] === '-') { sign = -1; t = t.slice(1); }
+  if (!t) return null;
+  const N = '(\\d*\\.?\\d+(?:\\/\\d*\\.?\\d+)?)', I = '(\\d*\\.?\\d+)', P = '(?:\\^\\(?(-?\\d+(?:\\/\\d+)?)\\)?)?';
+  const C = x => x ? parseNum(x) : fr(1);
+  const sg = c => sign < 0 ? fneg(c) : c;
+  const pw = x => x ? parseNum(x) : fr(1);
+  let m;
+  if ((m = t.match(new RegExp('^' + N + '$')))) return { t: 'pow', c: sg(C(m[1])), p: fr(0) };
+  if ((m = t.match(new RegExp('^' + N + '?x' + P + '$')))) return { t: 'pow', c: sg(C(m[1])), p: pw(m[2]) };
+  if ((m = t.match(new RegExp('^' + I + '?\\/x' + P + '$')))) return { t: 'pow', c: sg(C(m[1])), p: fneg(pw(m[2])) };
+  if ((m = t.match(new RegExp('^' + I + '?\\/\\(' + I + 'x' + P + '\\)$')))) return { t: 'pow', c: sg(fdiv(C(m[1]), C(m[2]))), p: fneg(pw(m[3])) };
+  if ((m = t.match(new RegExp('^' + N + '?sqrt\\(?x\\)?$')))) return { t: 'pow', c: sg(C(m[1])), p: fr(1, 2) };
+  if ((m = t.match(new RegExp('^' + I + '?\\/sqrt\\(?x\\)?$')))) return { t: 'pow', c: sg(C(m[1])), p: fr(-1, 2) };
+  if ((m = t.match(new RegExp('^' + N + '?(sin|cos)\\(?' + N + '?x\\)?$')))) return { t: m[2], c: sg(C(m[1])), b: C(m[3]) };
+  return null;
+}
+
+// ===================== Polynomials (coefficient arrays, highest power first) =====================
+const P2T = co => co.map((c, i) => ({ t: 'pow', c, p: fr(co.length - 1 - i) }));
+const polyH = (co, sub) => sumH(P2T(co), 'index', sub);
+const pevalF = (co, x) => co.reduce((s, c) => fadd(fmul(s, x), c), fr(0));
+const peval = (co, x) => co.reduce((s, c) => s * x + fval(c), 0);
+const pderiv = co => co.length < 2 ? [fr(0)] : co.slice(0, -1).map((c, i) => fmul(c, fr(co.length - 1 - i)));
+const ptrim = co => { let i = 0; while (i < co.length - 1 && isZ(co[i])) i++; return co.slice(i); };
+const SUPT = { 2: '²', 3: '³', 4: '⁴' };
+function polyText(co) {
+  const deg = co.length - 1; let out = '';
+  co.forEach((c, i) => {
+    const p = deg - i; if (c.n === 0) return;
+    const an = Math.abs(c.n);
+    const cs = an === 1 && c.d === 1 && p > 0 ? '' : c.d === 1 ? String(an) : '(' + an + '/' + c.d + ')';
+    const xp = p === 0 ? '' : p === 1 ? 'x' : 'x' + SUPT[p];
+    out += out === '' ? (c.n < 0 ? '−' : '') + cs + xp : (c.n < 0 ? ' − ' : ' + ') + cs + xp;
+  });
+  return out || '0';
+}
+
+function quadRoots(A, B, C) { // integer coefficients
+  const D = B * B - 4 * A * C;
+  if (D < 0) return { kind: 'none', roots: [], D };
+  const mk = r => ({ v: fval(r), rat: r, html: fracH(r), text: fracText(r) });
+  if (D === 0) return { kind: 'rational', roots: [mk(fr(-B, 2 * A))], D };
+  let k = 1, m = D;
+  for (let i = Math.floor(Math.sqrt(D)); i >= 2; i--) if (D % (i * i) === 0) { k = i; m = D / (i * i); break; }
+  if (m === 1) return { kind: 'rational', roots: [fr(-B - k, 2 * A), fr(-B + k, 2 * A)].sort((x, y) => fval(x) - fval(y)).map(mk), D };
+  let p = -B, q = k, r = 2 * A;
+  if (r < 0) { p = -p; r = -r; }
+  const g = gcd(gcd(p, q), r); p /= g; q /= g; r /= g;
+  const sq = (q === 1 ? '' : q) + '√' + m;
+  const num = s => p === 0 ? (s < 0 ? '−' : '') + sq : fmtInt(p) + (s < 0 ? ' − ' : ' + ') + sq;
+  const roots = [-1, 1].map(s => ({
+    v: (p + s * q * Math.sqrt(m)) / r,
+    html: r === 1 ? num(s) : stack(num(s), r),
+    text: r === 1 ? num(s) : '(' + num(s) + ')/' + r
+  }));
+  return { kind: 'surd', roots, D };
+}
+function numRoots(fn, B) {
+  const out = [], N = 4000;
+  let x0 = -B, y0 = fn(x0);
+  for (let i = 1; i <= N; i++) {
+    const x1 = -B + 2 * B * i / N, y1 = fn(x1);
+    if (y0 === 0) out.push(x0);
+    else if (y0 * y1 < 0) {
+      let a = x0, b = x1;
+      for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (fn(a) * fn(m) <= 0) b = m; else a = m; }
+      out.push((a + b) / 2);
+    }
+    x0 = x1; y0 = y1;
+  }
+  return out;
+}
+// Factorise over the rationals as far as possible and find the real roots
+function analysePoly(co0) {
+  const co = ptrim(co0), deg = co.length - 1;
+  const R = { co, deg, factors: [], rest: [], restKind: '', roots: [], lead: co[0] };
+  if (deg <= 0) { R.factorH = fracH(co[0]); return R; }
+  const Ld = co.map(c => c.d).reduce(lcm, 1);
+  const ints = co.map(c => c.n * Ld / c.d);
+  let g = ints.reduce((a, b) => gcd(a, b)); if (ints[0] < 0) g = -g;
+  let prim = ints.map(v => v / g);
+  R.lead = fr(g, Ld); R.prim = prim.map(v => fr(v));
+  let k = 0; while (prim[prim.length - 1] === 0) { prim.pop(); k++; }
+  if (k) R.factors.push({ p: 0, q: 1, mult: k });
+  R.nonXdeg = prim.length - 1;
+  const divs = n => { n = Math.abs(n); const o = []; for (let i = 1; i <= n; i++) if (n % i === 0) o.push(i); return o; };
+  let found = true;
+  while (prim.length > 1 && found) {
+    found = false;
+    const n = prim.length - 1;
+    outer: for (const q of divs(prim[0])) for (const p0 of divs(prim[n])) for (const s of [1, -1]) {
+      if (gcd(p0, q) !== 1) continue;
+      const p = s * p0; let v = 0;
+      prim.forEach((a, i) => { v += a * p ** (n - i) * q ** i; });
+      if (v !== 0) continue;
+      const b = []; let prev = 0;
+      for (let i = 0; i < n; i++) { const bi = (prim[i] + p * prev) / q; b.push(bi); prev = bi; }
+      prim = b;
+      const ex = R.factors.find(f => f.p === p && f.q === q);
+      if (ex) ex.mult++; else R.factors.push({ p, q, mult: 1, theorem: n >= 3 });
+      found = true; break outer;
+    }
+  }
+  if (prim.length === 1) { R.lead = fmul(R.lead, fr(prim[0])); prim = []; }
+  else if (prim[0] < 0) { prim = prim.map(v => -v); R.lead = fneg(R.lead); }
+  R.rest = prim;
+  const roots = R.factors.map(f => { const r = fr(f.p, f.q); return { v: fval(r), rat: r, html: fracH(r), text: fracText(r), mult: f.mult }; });
+  if (prim.length === 3) {
+    const q = quadRoots(prim[0], prim[1], prim[2]);
+    R.restKind = q.kind; R.restD = q.D;
+    q.roots.forEach(r => roots.push({ ...r, mult: 1 }));
+  } else if (prim.length > 3) {
+    R.restKind = 'num';
+    const B = 1 + Math.max(...prim.slice(1).map(a => Math.abs(a / prim[0])));
+    numRoots(x => prim.reduce((s, a) => s * x + a, 0), B).forEach(v => roots.push({ v, html: fmt(v, 2), text: fmt(v, 2), approx: true, mult: 1 }));
+  }
+  R.roots = roots.sort((a, b) => a.v - b.v);
+  const fs = R.factors.slice().sort((a, b) => a.p === 0 ? -1 : b.p === 0 ? 1 : a.p / a.q - b.p / b.q);
+  R.factorRows = fs.map(f => {
+    const base = f.p === 0 ? X : '(' + (f.q === 1 ? '' : f.q) + X + (f.p > 0 ? ' − ' : ' + ') + Math.abs(f.p) + ')';
+    return { h: base + (f.mult > 1 ? sup(f.mult) : ''), fn: x => (f.q * x - f.p) ** f.mult };
+  });
+  if (R.rest.length) {
+    const rest = R.rest;
+    R.factorRows.push({ h: '(' + polyH(rest.map(v => fr(v))) + ')', fn: x => rest.reduce((s, a) => s * x + a, 0) });
+  }
+  R.factorH = R.factorRows.length ? coefH(R.lead) + R.factorRows.map(r => r.h).join('') : fracH(R.lead);
+  return R;
+}
+const rootsOr = (rs, v = X) => rs.map(r => v + (r.approx ? ' ≈ ' : ' = ') + r.html).join('&ensp;or&ensp;');
+
+// Lines of working for solving co = 0
+function solveLines(co, an = analysePoly(co)) {
+  const L = [], why = [], deg = an.deg;
+  L.push(polyH(an.co) + ' = 0');
+  if (deg <= 0) { L.push(isZ(an.co[0]) ? 'true for every ' + X : 'no solutions'); return { L, an }; }
+  if (deg === 1) { L.push(X + ' = ' + an.roots[0].html); return { L, an }; }
+  const rowsH = an.factorRows.map(r => r.h).join('');
+  const absLead = fabs(an.lead);
+  if (!isOne(absLead) && an.factorRows.length > 1 || !isOne(absLead) && an.factors.length) {
+    L.push(coefH(an.lead) + '(' + polyH(an.prim.map(v => an.lead.n < 0 ? fneg(v) : v)) + ') = 0');
+  }
+  if (an.factors.length) {
+    L.push(an.factorH + ' = 0');
+    an.factors.filter(f => f.theorem && f.p !== 0).forEach(f =>
+      why.push('Factor theorem: ' + X + ' = ' + fracH(fr(f.p, f.q)) + ' makes it zero, so ' +
+        '(' + (f.q === 1 ? '' : f.q) + X + (f.p > 0 ? ' − ' : ' + ') + Math.abs(f.p) + ') is a factor.'));
+  }
+  if (an.restKind === 'surd') {
+    why.push('(' + polyH(an.rest.map(v => fr(v))) + ') doesn’t factorise, so use the quadratic formula on it.');
+  } else if (an.restKind === 'none') {
+    const [a, b, c] = an.rest;
+    why.push('(' + polyH(an.rest.map(v => fr(v))) + ') has no real roots: b² − 4ac = ' + fmtInt(b * b - 4 * a * c) + ' &lt; 0.');
+  } else if (an.restKind === 'num') {
+    why.push('This doesn’t factorise, so the roots are found numerically (to 2 d.p.).');
+  }
+  if (an.roots.length) {
+    const rs = an.roots.map(r => r.approx ? X + ' ≈ ' + r.html : X + ' = ' + r.html + (r.mult === 2 ? ' (repeated)' : ''));
+    L.push(rs.join('&ensp;or&ensp;'));
+  } else L.push('no real solutions');
+  void rowsH;
+  return { L, why, an };
+}
+const linesH = (L, why = []) => '<div class="mm">' + L.join('<br>') + '</div>' + why.map(w => '<p class="why">' + w + '</p>').join('');
+
+// test values either side of the roots
+function testPoints(rv) {
+  if (!rv.length) return [0];
+  const nice = (lo, hi) => {
+    if (lo < 0 && hi > 0) return 0;
+    const mid = (lo + hi) / 2; let best = null;
+    for (let k = Math.floor(lo) + 1; k < hi; k++) if (k > lo + 1e-9 && (best === null || Math.abs(k - mid) < Math.abs(best - mid))) best = k;
+    if (best !== null) return best;
+    const h = Math.floor(lo * 2) / 2 + 0.5; if (h > lo + 1e-9 && h < hi - 1e-9) return h;
+    return Math.round(mid * 100) / 100;
+  };
+  const first = rv[0], last = rv[rv.length - 1];
+  const out = [Math.abs(first - Math.round(first)) < 1e-9 ? Math.round(first) - 1 : Math.floor(first)];
+  for (let i = 0; i + 1 < rv.length; i++) out.push(nice(rv[i], rv[i + 1]));
+  out.push(Math.abs(last - Math.round(last)) < 1e-9 ? Math.round(last) + 1 : Math.ceil(last));
+  return out;
+}
+const numFr = t => fr(Math.round(t * 100), 100);
+const sgn = (v, tol = 1e-9) => v > tol ? '+' : v < -tol ? '-' : '0';
+const slopeIcon = s => '<svg class="sl" viewBox="0 0 30 20" aria-label="' + (s === '+' ? 'up' : s === '-' ? 'down' : 'flat') + '">' +
+  (s === '+' ? '<line x1="5" y1="16" x2="25" y2="4" style="stroke:var(--up)"/>' :
+   s === '-' ? '<line x1="5" y1="4" x2="25" y2="16" style="stroke:var(--down)"/>' :
+   '<line x1="5" y1="10" x2="25" y2="10" style="stroke:var(--flat)"/>') + '</svg>';
+const natureOf = (l, r) => l === '+' && r === '-' ? 'maximum turning point' : l === '-' && r === '+' ? 'minimum turning point' :
+  l === '+' ? 'rising point of inflection' : 'falling point of inflection';
+const shortNature = n => ({ 'maximum turning point': 'max TP', 'minimum turning point': 'min TP', 'rising point of inflection': 'rising PoI', 'falling point of inflection': 'falling PoI' })[n];
+
+// Nature table for f′ (coefficients dco). mode 'factor' or 'test'.
+function natureTable(dco, an, mode) {
+  const rs = an.roots.filter((r, i, a) => i === 0 || Math.abs(r.v - a[i - 1].v) > 1e-9);
+  const tests = testPoints(rs.map(r => r.v));
+  const cols = [];
+  tests.forEach((t, i) => {
+    cols.push({ x: t, root: false });
+    if (i < rs.length) cols.push({ x: rs[i].v, root: true, r: rs[i] });
+  });
+  const dfn = x => peval(dco, x);
+  const head = cols.map(c => c.root ? '<th class="root">' + (c.r.approx ? '≈' : '') + c.r.html + '</th>' :
+    '<th>' + (mode === 'test' ? fracH(numFr(c.x)) : '→') + '</th>').join('');
+  let rows = '';
+  const signRow = (label, fn) => '<tr><td>' + label + '</td>' + cols.map(c => {
+    const s = sgn(fn(c.x), 1e-7);
+    return '<td class="' + (c.root ? 'root ' : '') + (s === '+' ? 'p' : s === '-' ? 'm' : '') + '">' + (s === '+' ? '+' : s === '-' ? '−' : '0') + '</td>';
+  }).join('') + '</tr>';
+  if (mode === 'factor') {
+    if (an.lead.n < 0) rows += signRow(fracH(an.lead), () => -1);
+    an.factorRows.forEach(r => rows += signRow(r.h, r.fn));
+    rows += signRow('<i>f</i> ′(' + X + ')', dfn);
+  } else {
+    rows += '<tr><td><i>f</i> ′(' + X + ')</td>' + cols.map(c => {
+      if (c.root) return '<td class="root">0</td>';
+      const v = pevalF(dco, numFr(c.x)), s = sgn(fval(v));
+      return '<td class="' + (s === '+' ? 'p' : 'm') + '">' + fracH(v) + '</td>';
+    }).join('') + '</tr>';
+  }
+  rows += '<tr><td>slope</td>' + cols.map(c => '<td class="' + (c.root ? 'root' : '') + '">' + slopeIcon(c.root ? '0' : sgn(dfn(c.x))) + '</td>').join('') + '</tr>';
+  const natures = rs.map((r, i) => natureOf(sgn(dfn(tests[i])), sgn(dfn(tests[i + 1]))));
+  return { html: '<div style="overflow-x:auto"><table class="nt mm"><tr><th>' + X + '</th>' + head + '</tr>' + rows + '</table></div>', natures, rs };
+}
+
+// Stationary points of a polynomial f with all the details
+function stationary(co) {
+  const dco = ptrim(pderiv(co)), an = analysePoly(dco);
+  const rs = an.roots.filter((r, i, a) => i === 0 || Math.abs(r.v - a[i - 1].v) > 1e-9);
+  const tests = testPoints(rs.map(r => r.v));
+  const pts = rs.map((r, i) => {
+    const yF = r.rat ? pevalF(co, r.rat) : null, y = peval(co, r.v);
+    const l = sgn(peval(dco, tests[i])), rt = sgn(peval(dco, tests[i + 1]));
+    return { r, x: r.v, y, yF, yH: yF ? fracH(yF) : fmt(y, 2), yT: yF ? fracText(yF) : fmt(y, 2), nature: natureOf(l, rt) };
+  });
+  return { dco, an, pts };
+}
+const ptText = p => '(' + (p.r.approx || !p.r.rat ? fmt(p.x, 2) : p.r.text) + ', ' + p.yT + ')';
+const ptH = p => '(' + (p.r.rat ? p.r.html : p.r.html) + ', ' + p.yH + ')';
+
+// ===================== SVG plotting =====================
+function Plot(svg, W = 720, H = 440) {
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const cid = 'c' + Math.random().toString(36).slice(2);
+  let v = { x0: -5, x1: 5, y0: -5, y1: 5 }, under, main, top, trig = null;
+  const P = {
+    W, H,
+    sx: x => (x - v.x0) / (v.x1 - v.x0) * W,
+    sy: y => H - (y - v.y0) / (v.y1 - v.y0) * H,
+    get v() { return v; },
+    begin(view, opt = {}) { v = view; trig = opt.trig || null; under = []; main = []; top = []; grid(opt); },
+    end() {
+      svg.innerHTML = '<defs><clipPath id="' + cid + '"><rect width="' + W + '" height="' + H + '"/></clipPath></defs>' +
+        under.join('') + '<g clip-path="url(#' + cid + ')">' + main.join('') + '</g>' + top.join('');
+    },
+    curve(fn, cls, from = v.x0, to = v.x1, n = 500) {
+      let d = '', pen = false, prevOut = 0;
+      for (let i = 0; i <= n; i++) {
+        const x = from + (to - from) * i / n, y = fn(x);
+        if (!isFinite(y)) { pen = false; continue; }
+        let py = P.sy(y);
+        const out = py < -H ? -1 : py > 2 * H ? 1 : 0;
+        if (out && prevOut && out !== prevOut) pen = false;
+        prevOut = out;
+        py = Math.max(-H, Math.min(2 * H, py));
+        d += (pen ? 'L' : 'M') + P.sx(x).toFixed(1) + ' ' + py.toFixed(1);
+        pen = true;
+      }
+      main.push('<path class="' + cls + '" d="' + d + '"/>');
+    },
+    region(fn, cls, from = v.x0, to = v.x1, n = 300) { // between curve and the x-axis
+      let d = 'M' + P.sx(from).toFixed(1) + ' ' + P.sy(0).toFixed(1);
+      for (let i = 0; i <= n; i++) {
+        const x = from + (to - from) * i / n, y = fn(x);
+        d += 'L' + P.sx(x).toFixed(1) + ' ' + Math.max(-H, Math.min(2 * H, P.sy(isFinite(y) ? y : 0))).toFixed(1);
+      }
+      d += 'L' + P.sx(to).toFixed(1) + ' ' + P.sy(0).toFixed(1) + 'Z';
+      under.push('<g clip-path="url(#' + cid + ')"><path class="' + cls + '" d="' + d + '"/></g>');
+    },
+    band(a, b, cls = 'band') {
+      const x1 = Math.max(0, P.sx(a)), x2 = Math.min(W, P.sx(b));
+      if (x2 > x1) under.unshift('<rect class="' + cls + '" x="' + x1 + '" y="0" width="' + (x2 - x1) + '" height="' + H + '"/>');
+    },
+    seg(x1, y1, x2, y2, cls) { main.push('<line class="' + cls + '" x1="' + P.sx(x1) + '" y1="' + P.sy(y1) + '" x2="' + P.sx(x2) + '" y2="' + P.sy(y2) + '"/>'); },
+    through(x0, y0, m, cls) { P.seg(v.x0, y0 + m * (v.x0 - x0), v.x1, y0 + m * (v.x1 - x0), cls); },
+    vline(x, cls = 'vl', y0 = v.y0, y1 = v.y1) { P.seg(x, y0, x, y1, cls); },
+    dot(x, y, cls = 'pt', r = 6) {
+      if (!isFinite(y) || x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) return;
+      top.push('<circle class="' + cls + '" cx="' + P.sx(x).toFixed(1) + '" cy="' + P.sy(y).toFixed(1) + '" r="' + r + '"/>');
+    },
+    trail(xs, fn, cls = 'ptr') { xs.forEach(x => { const y = fn(x); if (isFinite(y) && y > v.y0 && y < v.y1) main.push('<circle class="' + cls + '" cx="' + P.sx(x).toFixed(1) + '" cy="' + P.sy(y).toFixed(1) + '" r="3"/>'); }); },
+    label(x, y, text, cls = '', dx = 8, dy = -10) {
+      if (!isFinite(y) || x < v.x0 || x > v.x1 || y < v.y0 || y > v.y1) return;
+      let px = P.sx(x) + dx, py = P.sy(y) + dy, anchor = 'start';
+      if (px > W - 150 && dx >= 0) { px = P.sx(x) - dx; anchor = 'end'; }
+      py = Math.max(16, Math.min(H - 6, py));
+      top.push('<text class="lab ' + cls + '" x="' + px.toFixed(1) + '" y="' + py.toFixed(1) + '" text-anchor="' + anchor + '">' + text + '</text>');
+    },
+    text(px, py, text, cls = 'lab', anchor = 'start') { top.push('<text class="' + cls + '" x="' + px + '" y="' + py + '" text-anchor="' + anchor + '">' + text + '</text>'); },
+    raw(s) { top.push(s); },
+    drag(cb) {
+      let down = false;
+      const toX = e => { const r = svg.getBoundingClientRect(); return v.x0 + (e.clientX - r.left) / r.width * (v.x1 - v.x0); };
+      svg.addEventListener('pointerdown', e => { down = true; svg.setPointerCapture(e.pointerId); cb(toX(e)); });
+      svg.addEventListener('pointermove', e => { if (down) cb(toX(e)); });
+      svg.addEventListener('pointerup', () => { down = false; });
+      svg.addEventListener('pointercancel', () => { down = false; });
+    }
+  };
+  function niceStep(span) {
+    const raw = span / 9, p = 10 ** Math.floor(Math.log10(raw)), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+  }
+  function grid(opt) {
+    const g = [], t = [];
+    const ax = Math.max(0, Math.min(H, P.sy(0))), ay = Math.max(0, Math.min(W, P.sx(0)));
+    let xs, xl;
+    if (trig === 'rad') { const s = Math.PI / 2; xs = s; xl = k => { const q = fr(k, 2); return q.n === 0 ? '' : angText({ f: q, pi: true }); }; }
+    else if (trig === 'deg') { xs = 90; xl = k => fmtInt(k * 90) + '°'; }
+    else { xs = niceStep(v.x1 - v.x0); xl = k => fmt(k * xs); }
+    for (let k = Math.ceil(v.x0 / xs); k * xs <= v.x1; k++) {
+      const px = P.sx(k * xs).toFixed(1);
+      g.push('<line class="gl" x1="' + px + '" y1="0" x2="' + px + '" y2="' + H + '"/>');
+      if (k !== 0 && px > 14 && px < W - 14) t.push('<text class="tk" x="' + px + '" y="' + Math.min(H - 4, ax + 17) + '" text-anchor="middle">' + xl(k) + '</text>');
+    }
+    const ys = opt.ystep || niceStep(v.y1 - v.y0);
+    for (let k = Math.ceil(v.y0 / ys); k * ys <= v.y1; k++) {
+      const py = P.sy(k * ys).toFixed(1);
+      g.push('<line class="gl" x1="0" y1="' + py + '" x2="' + W + '" y2="' + py + '"/>');
+      if (k !== 0) t.push('<text class="tk" x="' + (ay > W - 40 ? ay - 6 : ay + 6) + '" y="' + (Number(py) + 4) + '" text-anchor="' + (ay > W - 40 ? 'end' : 'start') + '">' + fmt(k * ys) + '</text>');
+    }
+    g.push('<line class="ax" x1="0" y1="' + ax + '" x2="' + W + '" y2="' + ax + '"/>');
+    g.push('<line class="ax" x1="' + ay + '" y1="0" x2="' + ay + '" y2="' + H + '"/>');
+    g.push('<text class="tk" x="' + (W - 6) + '" y="' + (ax - 6) + '" text-anchor="end" font-style="italic">x</text>');
+    g.push('<text class="tk" x="' + (ay + 8) + '" y="14" font-style="italic">' + (opt.ylab || 'y') + '</text>');
+    under.push(g.join('') + t.join(''));
+  }
+  return P;
+}
+// a window that shows the key points of a polynomial
+function polyView(co, extraX = [], extraY = []) {
+  const st = stationary(co), ra = analysePoly(co);
+  const xs = [...st.pts.map(p => p.x), ...ra.roots.map(r => r.v), ...extraX];
+  let x0 = xs.length ? Math.min(...xs) : -3, x1 = xs.length ? Math.max(...xs) : 3;
+  if (x1 - x0 > 12) { const s = st.pts.map(p => p.x); x0 = Math.min(...s, x0 + 0); }
+  const pad = Math.max(1.3, (x1 - x0) * 0.35);
+  x0 -= pad; x1 += pad;
+  if (x1 - x0 < 6) { const c = (x0 + x1) / 2; x0 = c - 3; x1 = c + 3; }
+  const ysK = [0, ...st.pts.map(p => p.y), ...extraY];
+  for (let i = 0; i <= 10; i++) ysK.push(peval(co, x0 + (x1 - x0) * (0.3 + 0.04 * i)));
+  let y0 = Math.min(...ysK), y1 = Math.max(...ysK);
+  // let the curve leave the window, but not by too much
+  const span = Math.max(y1 - y0, 4);
+  y0 -= span * 0.3; y1 += span * 0.3;
+  return { x0, x1, y0, y1 };
+}
+
+// ===================== UI pieces =====================
+function Stepper(el, onChange) {
+  let steps = [], n = 1;
+  el.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (b) { const a = b.dataset.act; go(a === 'next' ? n + 1 : a === 'back' ? n - 1 : a === 'all' ? steps.length : 0); return; }
+    const s = e.target.closest('.step.hid'); if (s) go(Number(s.dataset.i) + 1);
+  });
+  function go(k) { n = Math.max(0, Math.min(steps.length, k)); draw(); onChange(); }
+  function draw() {
+    el.innerHTML = '<div class="stepbar"><button class="btn" data-act="back">← Back (B)</button>' +
+      '<button class="btn primary" data-act="next">Next step (W)</button><button class="btn" data-act="all">Show all</button>' +
+      '<button class="btn" data-act="none">Hide all</button></div>' +
+      steps.map((s, i) => '<div class="step' + (i >= n ? ' hid' : '') + '" data-i="' + i + '"><div class="num">' + (i + 1) +
+        '</div><div class="body"><div class="st">' + s.title + '</div>' + (i < n ? s.html : '') + '</div></div>').join('');
+  }
+  return {
+    set(s) { steps = s; if (n > steps.length) n = steps.length; draw(); },
+    get n() { return n; }, go, reset(k = 1) { n = k; },
+    next() { go(n + 1); }, back() { go(n - 1); }
+  };
+}
+function Mover(el, onMove) {
+  el.innerHTML = '<button class="btn" aria-pressed="false">Play (P)</button><label>Move the point <input type="range" step="any"></label><span class="status"></span>';
+  const btn = el.querySelector('button'), rng = el.querySelector('input'), st = el.querySelector('.status');
+  let l = -1, r = 1, v = 0, playing = false, raf = null;
+  const M = {
+    get v() { return v; },
+    range(a, b, start) { l = a; r = b; rng.min = a; rng.max = b; M.set(start === undefined ? a + (b - a) * 0.1 : start); },
+    set(x) { v = Math.max(l, Math.min(r, x)); rng.value = v; onMove(v); },
+    stop() { playing = false; cancelAnimationFrame(raf); btn.textContent = 'Play (P)'; btn.setAttribute('aria-pressed', 'false'); },
+    toggle() {
+      if (playing) return M.stop();
+      playing = true; btn.textContent = 'Pause (P)'; btn.setAttribute('aria-pressed', 'true');
+      const tick = () => { let x = v + (r - l) / 450; if (x > r) x = l; M.set(x); raf = requestAnimationFrame(tick); };
+      raf = requestAnimationFrame(tick);
+    },
+    status(h) { st.innerHTML = h; }
+  };
+  btn.addEventListener('click', () => M.toggle());
+  rng.addEventListener('input', () => { M.stop(); M.set(Number(rng.value)); });
+  return M;
+}
+// select of examples + coefficient boxes
+function PolyIn(host, presets, onChange, deg = 3, name = 'f') {
+  let boxes = '';
+  for (let k = deg; k >= 0; k--) {
+    boxes += '<input class="n" data-k="' + k + '" aria-label="coefficient of x to the ' + k + '">' +
+      (k > 1 ? X + sup(k) : k === 1 ? X : '') + (k > 0 ? ' +' : '');
+  }
+  host.insertAdjacentHTML('beforeend', '<label>Example <select class="psel"></select></label>' +
+    '<span class="eqin mm"><i>' + name + '</i>(' + X + ') = ' + boxes + '</span><button class="btn primary pdraw">Draw</button><span class="err"></span>');
+  const sel = host.querySelector('.psel'), ins = [...host.querySelectorAll('input.n[data-k]')], err = host.querySelector('.err');
+  const pad = a => { const s = a.split(','); while (s.length < deg + 1) s.unshift('0'); return s; };
+  presets.forEach((p, i) => { const o = document.createElement('option'); o.value = i; o.textContent = (p.label || polyText(pad(p.co).map(parseNum))); sel.appendChild(o); });
+  const own = document.createElement('option'); own.value = 'own'; own.textContent = 'Your own (type in the boxes)'; sel.appendChild(own);
+  const I = { co: null, preset: null };
+  function read() {
+    const co = ins.map(el => parseNum(el.value));
+    ins.forEach((el, i) => el.classList.toggle('bad', !co[i]));
+    if (co.some(c => !c)) { err.textContent = 'Use whole numbers, decimals or fractions like 1/3.'; return; }
+    if (ptrim(co).length < 2) { err.textContent = 'Type a function with an x term.'; return; }
+    err.textContent = '';
+    I.co = ptrim(co); onChange(I);
+  }
+  I.load = i => {
+    sel.value = i; I.preset = presets[i];
+    pad(presets[i].co).forEach((v, k) => ins[k].value = v.replace('-', '−'));
+    read();
+  };
+  I.next = () => I.load(sel.value === 'own' ? 0 : (Number(sel.value) + 1) % presets.length);
+  sel.addEventListener('change', () => { if (sel.value !== 'own') I.load(Number(sel.value)); else { I.preset = null; ins[0].focus(); } });
+  ins.forEach(el => {
+    el.addEventListener('input', () => { sel.value = 'own'; I.preset = null; });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') read(); });
+  });
+  host.querySelector('.pdraw').addEventListener('click', read);
+  return I;
+}
+function layout(pane, o) {
+  pane.innerHTML = '<div class="bar">' + (o.bar || '') + '</div>' +
+    '<div class="cols"><div class="panel">' +
+    (o.lab1 ? '<div class="glab">' + o.lab1 + '</div>' : '') + '<svg class="g g1"></svg>' +
+    (o.two ? (o.lab2 ? '<div class="glab">' + o.lab2 + '</div>' : '') + '<svg class="g g2"></svg>' : '') +
+    (o.mover === false ? '' : '<div class="mover"></div>') +
+    '<div class="legend">' + (o.legend || '') + '</div>' + (o.under || '') + '</div>' +
+    '<div class="panel work"><div class="stepper"></div>' + (o.extra || '') + '</div></div>';
+  return s => pane.querySelector(s);
+}
+const leg = (c, t) => '<span style="--c:var(--' + c + ')">' + t + '</span>';
+const gradStatus = (x, m, tol = 1e-3) => {
+  const cls = Math.abs(m) < tol ? 'flat' : m > 0 ? 'up' : 'down';
+  const w = cls === 'flat' ? 'stationary' : cls === 'up' ? 'increasing' : 'decreasing';
+  return X.replace('<i>x</i>', 'x') + ' = ' + fmt(x, 2) + ', gradient = ' + fmt(m, 2) + ' → <b class="' + cls + '">' + w + '</b>';
+};
+const ansBox = h => '<div class="answer">' + h + '</div>';
+const fP = '<i>f</i> ′(' + X + ')', fX = '<i>f</i>(' + X + ')', dydx = stack('<i>dy</i>', '<i>dx</i>');
+
+// ===================== Tabs =====================
+const TABS = [];
+
+// ---------- 1. Gradient of a curve ----------
+TABS.push({
+  id: 'gradient', name: 'Gradient of a curve', seq: 'Steps 1.1 and 3.1: the derivative is the gradient. Replaces the separate sin x and cos x tools.',
+  build(pane) {
+    const GF = [
+      { l: 'y = x²', f: x => x * x, d: x => 2 * x, dh: '2' + X, v: [-4, 4, -6, 10] },
+      { l: 'y = x³', f: x => x ** 3, d: x => 3 * x * x, dh: '3' + X + sup(2), v: [-3, 3, -9, 12] },
+      { l: 'y = x³ − 3x', f: x => x ** 3 - 3 * x, d: x => 3 * x * x - 3, dh: '3' + X + sup(2) + ' − 3', v: [-3, 3, -7, 10] },
+      { l: 'y = ½x⁴ − 2x²', f: x => x ** 4 / 2 - 2 * x * x, d: x => 2 * x ** 3 - 4 * x, dh: '2' + X + sup(3) + ' − 4' + X, v: [-2.7, 2.7, -6, 7] },
+      { l: 'y = 1/x', f: x => 1 / x, d: x => -1 / (x * x), dh: '−' + stack(1, X + sup(2)), v: [-4, 4, -5, 5], gap: 0.12 },
+      { l: 'y = √x', f: x => x >= 0 ? Math.sqrt(x) : NaN, d: x => 1 / (2 * Math.sqrt(x)), dh: stack(1, '2' + sqrtH(X)), v: [-1, 9, -1.5, 4], from: 0.05 },
+      { l: 'y = sin x', trig: 'sin', f: Math.sin, d: Math.cos, dh: 'cos ' + X },
+      { l: 'y = cos x', trig: 'cos', f: Math.cos, d: x => -Math.sin(x), dh: '−sin ' + X }
+    ];
+    const $ = layout(pane, {
+      bar: '<label>Function <select class="sel">' + GF.map((g, i) => '<option value="' + i + '">' + g.l + '</option>').join('') + '</select></label>' +
+        '<button class="btn deg" hidden>Switch to degrees</button>',
+      legend: leg('f', 'the curve') + leg('tan', 'tangent') + leg('down', 'gradient of the tangent') + leg('up', 'the gradient function')
+    });
+    const P = Plot($('.g1'));
+    let G = GF[0], deg = false;
+    const sel = $('.sel'), degBtn = $('.deg');
+    const mv = Mover($('.mover'), draw);
+    const st = Stepper($('.stepper'), draw);
+    P.drag(x => { mv.stop(); mv.set(x); });
+    const k = () => deg ? Math.PI / 180 : 1;
+    const fx = x => G.f(x * k());
+    const num = x => { const h = deg ? 1e-3 : 1e-5; return (fx(x + h) - fx(x - h)) / (2 * h); };
+    function view() {
+      if (G.trig) return deg ? { x0: -380, x1: 380, y0: -1.7, y1: 1.7 } : { x0: -7, x1: 7, y0: -2.3, y1: 2.3 };
+      return { x0: G.v[0], x1: G.v[1], y0: G.v[2], y1: G.v[3] };
+    }
+    const ok = x => !(G.gap && Math.abs(x) < G.gap) && !(G.from !== undefined && x < G.from);
+    function steps() {
+      const name = G.l.replace('y = ', '');
+      return [
+        { title: 'The tangent', html: '<p>Drag on the graph or press Play. The dashed line is the tangent: its gradient is the gradient of the curve at that point.</p><p class="why">Ask: where is the gradient positive? Negative? Zero? Steepest?</p>' },
+        { title: 'Plot the gradient as a point', html: '<p>The red point is at (' + X.replace(/<\/?i>/g, '') + ', gradient). Its height is the gradient of the tangent.</p><p class="why">Before the next step, pupils sketch a prediction of the gradient graph.</p>' },
+        { title: 'Trace the gradient graph', html: '<p>Press Play: the red trail draws the gradient at every point.</p>' },
+        { title: 'The gradient function', html: '<div class="mm">' + (G.trig ? '<i>y</i> = ' + G.trig + ' ' + X : '<i>y</i> = ' + name) + '<br>' + dydx + ' = ' + G.dh + '</div>' +
+          (G.trig && deg ? '<p class="why"><b>In degrees the trail is much flatter than the green curve.</b> The gradient of sin x° is only π/180 ≈ 0.017 times cos x°, so ' + stack('<i>d</i>', '<i>dx</i>') + '(sin ' + X + ') = cos ' + X + ' only works in radians.</p>' :
+            G.trig ? '<p class="why">Extension: Switch to degrees and watch the trail flatten.</p>' : '<p class="why">The green curve sits on top of the trail.</p>') }
+      ];
+    }
+    function load() {
+      G = GF[sel.value]; deg = false;
+      degBtn.hidden = !G.trig; degBtn.textContent = 'Switch to degrees';
+      const v = view(); mv.stop(); st.reset(1); st.set(steps());
+      mv.range(G.from !== undefined ? G.from : v.x0, v.x1, G.from !== undefined ? 0.4 : v.x0 + (v.x1 - v.x0) * 0.1);
+    }
+    function draw() {
+      const v = view(), n = st.n, a = mv.v;
+      P.begin(v, { trig: G.trig ? (deg ? 'deg' : 'rad') : null, ystep: G.trig ? 0.5 : undefined });
+      P.curve(fx, 'cf', G.from !== undefined ? 0 : v.x0, v.x1, 800);
+      if (n >= 4) P.curve(G.trig && deg ? x => G.d(x * Math.PI / 180) : G.d, 'cg', G.from !== undefined ? 0.01 : v.x0, v.x1, 800);
+      if (n >= 3) {
+        const xs = []; const s = (v.x1 - v.x0) / 140;
+        for (let x = G.from !== undefined ? G.from : v.x0; x <= a; x += s) if (ok(x)) xs.push(x);
+        P.trail(xs, num);
+      }
+      if (ok(a)) {
+        const m = num(a), y = fx(a);
+        if (n >= 1) P.through(a, y, m, 'ct');
+        P.dot(a, y, 'pf', 7);
+        if (n >= 2) { P.dot(a, m, 'pd', 8); P.label(a, m, 'gradient = ' + fmt(m, 2), 'r'); }
+        mv.status(gradStatus(a, m, deg ? 1e-4 : 1e-3));
+      } else mv.status('the gradient isn’t defined here');
+      P.end();
+    }
+    sel.addEventListener('change', load);
+    degBtn.addEventListener('click', () => {
+      deg = !deg; degBtn.textContent = deg ? 'Switch to radians' : 'Switch to degrees';
+      const v = view(); mv.stop(); st.set(steps()); mv.range(v.x0, v.x1, v.x0);
+    });
+    load();
+    return { next: () => { sel.value = (Number(sel.value) + 1) % GF.length; load(); }, play: () => mv.toggle(), stop: () => mv.stop(), st };
+  }
+});
+
+// ---------- 2. Differentiating ----------
+const T = (c, p) => ({ t: 'pow', c: typeof c === 'number' ? fr(c) : c, p: typeof p === 'number' ? fr(p) : p });
+const TS = (fn, c, b) => ({ t: fn, c: typeof c === 'number' ? fr(c) : c, b: typeof b === 'number' ? fr(b) : b });
+const DIFF = [
+  { lhs: 'y', orig: '3' + X + sup(4) + ' − 5' + X + sup(2) + ' + 7' + X + ' − 2', label: 'y = 3x⁴ − 5x² + 7x − 2', ts: [T(3, 4), T(-5, 2), T(7, 1), T(-2, 0)], a: '1', seq: '1.1' },
+  { lhs: 'f', orig: stack(4, X + sup(3)), label: 'f(x) = 4/x³', ts: [T(4, -3)], a: '2', seq: '1.2' },
+  { lhs: 'y', orig: '6' + sqrtH(X), label: 'y = 6√x', ts: [T(6, fr(1, 2))], a: '4', seq: '1.2' },
+  { lhs: 'y', orig: stack(2, sqrtH(X)), label: 'y = 2/√x', ts: [T(2, fr(-1, 2))], a: '4', seq: '1.2' },
+  { lhs: 'f', orig: stack(1, '2' + X + sup(4)), label: 'f(x) = 1/(2x⁴)', ts: [T(fr(1, 2), -4)], a: '1', seq: '1.2',
+    note: 'Common error: 1/(2x⁴) is ½x<sup>−4</sup>, not 2x<sup>−4</sup>.' },
+  { lhs: 'y', orig: '5∛' + ov(X + '<sup>2</sup>'), label: 'y = 5∛(x²)', ts: [T(5, fr(2, 3))], a: '8', seq: '1.2' },
+  { lhs: 'y', orig: '(2' + X + ' − 1)(' + X + ' + 3)', label: 'y = (2x − 1)(x + 3)', ts: [T(2, 2), T(5, 1), T(-3, 0)], a: '−1', seq: '1.3',
+    how: 'Expand the brackets', mid: '2' + X + sup(2) + ' + 6' + X + ' − ' + X + ' − 3' },
+  { lhs: 'y', orig: X + sup(2) + '(' + X + ' − 4)', label: 'y = x²(x − 4)', ts: [T(1, 3), T(-4, 2)], a: '2', seq: '1.3', how: 'Expand the bracket' },
+  { lhs: 'f', orig: stack(X + sup(4) + ' + 3', X + sup(2)), label: 'f(x) = (x⁴ + 3)/x²', ts: [T(1, 2), T(3, -2)], a: '1', seq: '1.3',
+    how: 'Split the fraction', mid: stack(X + sup(4), X + sup(2)) + ' + ' + stack(3, X + sup(2)) },
+  { lhs: 'y', orig: stack(X + sup(2) + ' − 3', sqrtH(X)), label: 'y = (x² − 3)/√x', ts: [T(1, fr(3, 2)), T(-3, fr(-1, 2))], a: '1', seq: '1.3',
+    how: 'Split the fraction', mid: stack(X + sup(2), X + sup(fr(1, 2))) + ' − ' + stack(3, X + sup(fr(1, 2))) },
+  { lhs: 'y', orig: '3 sin ' + X + ' − 2 cos ' + X, label: 'y = 3 sin x − 2 cos x', ts: [TS('sin', 3, 1), TS('cos', -2, 1)], a: 'π/3', seq: '3.1' },
+  { lhs: 'f', orig: '5 cos 3' + X, label: 'f(x) = 5 cos 3x', ts: [TS('cos', 5, 3)], a: 'π/6', seq: '3.1' },
+  { lhs: 'y', orig: '4 sin 2' + X, label: 'y = 4 sin 2x', ts: [TS('sin', 4, 2)], a: 'π/6', seq: '3.2' }
+];
+TABS.push({
+  id: 'differentiate', name: 'Differentiating', seq: 'Steps 1.1–1.4 and 3.1–3.2: index form first, then differentiate, then evaluate.',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '<label>Example <select class="sel">' + DIFF.map((d, i) => '<option value="' + i + '">' + d.label + ' (' + d.seq + ')</option>').join('') +
+        '<option value="own">Your own (type below)</option></select></label>' +
+        '<span class="eqin"><label><i>y</i> = <input class="n w own" placeholder="e.g. 3x^2 − 4/x + 2sqrt(x)"></label></span>' +
+        '<label class="eqin">evaluate at <i>x</i> = <input class="n at"></label><button class="btn primary go">Go</button><span class="err"></span>',
+      mover: false,
+      legend: leg('f', 'the curve') + leg('tan', 'tangent at the point') + leg('d', 'the derivative'),
+      under: '<div class="checks"><label><input type="checkbox" class="shd"> Show the graph of the derivative</label></div>' +
+        '<p class="hint">Your own: type terms like 3x^2, 4/x^3, 1/(2x^4), 6sqrt(x), 2/sqrt(x), x^(3/2), 5sin(3x). Angles can use pi, e.g. pi/3.</p>'
+    });
+    const P = Plot($('.g1'));
+    const sel = $('.sel'), own = $('.own'), at = $('.at'), err = $('.err'), shd = $('.shd');
+    const st = Stepper($('.stepper'), draw);
+    let D = null, A = null;
+    function load() {
+      if (sel.value !== 'own') { const d = DIFF[sel.value]; own.value = d.label.replace(/^(y|f\(x\)) = /, ''); at.value = d.a; }
+      go();
+    }
+    function go() {
+      let d;
+      if (sel.value === 'own') {
+        const ts = parseExpr(own.value);
+        if (!ts || !ts.length) { err.textContent = 'I can’t read that. Try terms like 3x^2 − 4/x + 2sqrt(x).'; return; }
+        d = { lhs: 'y', ts, orig: sumH(ts, 'nice') };
+      } else d = DIFF[sel.value];
+      const a = parseAngle(at.value);
+      if (!a) { err.textContent = 'Type a number for x, e.g. 2, 1/2 or pi/3.'; return; }
+      err.textContent = ''; D = d; A = a;
+      st.set(steps()); draw();
+    }
+    function steps() {
+      const ts = D.ts, dts = dTerms(ts), L = D.lhs === 'y' ? '<i>y</i>' : fX, DL = D.lhs === 'y' ? dydx : fP;
+      const idx = sumH(ts, 'index'), nice = sumH(dts, 'nice'), didx = sumH(dts, 'index');
+      const out = [];
+      const needs = idx !== D.orig;
+      const how = D.how || (needs ? 'Write in index form' : 'Ready to differentiate');
+      out.push({ title: how, html: '<div class="mm">' + L + ' = ' + D.orig + (D.mid ? '<br>&emsp;= ' + D.mid : '') + (needs ? '<br>&emsp;= ' + idx : '') + '</div>' +
+        (D.note ? '<p class="why">' + D.note + '</p>' : needs ? '' : '<p class="why">Every term is already a power of x (or sin/cos).</p>') });
+      out.push({ title: 'Differentiate', html: '<div class="mm">' + DL + ' = ' + rawDiffH(ts) + '<br>&emsp;= ' + didx + '</div>' +
+        '<p class="why">' + (ts.some(t => t.t === 'pow') ? 'Multiply by the power, then take 1 off the power. A constant differentiates to 0. ' : '') +
+        (ts.some(t => t.t !== 'pow') ? 'sin a' + X + ' → a cos a' + X + ', cos a' + X + ' → −a sin a' + X + ' (radians).' : '') + '</p>' });
+      out.push({ title: 'Tidy the answer', html: nice === didx ? '<p class="why">Nothing to tidy: no negative or fractional powers.</p>' :
+        '<div class="mm">' + DL + ' = ' + nice + '</div><p class="why">Write negative powers as fractions and fractional powers as roots.</p>' });
+      const aH = angH(A), E = exactEval(dts, A), v = evalTerms(dts, angVal(A));
+      const DLa = D.lhs === 'y' ? dydx.replace('</span></span>', '</span></span>') : '<i>f</i> ′(' + aH + ')';
+      let res;
+      if (!isFinite(v)) res = '<p>The derivative isn’t defined at ' + X + ' = ' + aH + '.</p>';
+      else {
+        const val = E ? exactH(E) + (exactIsRational(E) ? '' : ' ≈ ' + fmt(exactNum(E))) : '≈ ' + fmt(v);
+        res = '<div class="mm">' + (D.lhs === 'y' ? 'At ' + X + ' = ' + aH + ':&ensp;' + dydx : DLa) + ' = ' + sumH(dts, 'nice', aH) + '<br>&emsp;= ' + val + '</div>' +
+          ansBox('The gradient of the tangent at ' + X + ' = ' + aH + ' is ' + val.replace('≈ ', '≈ ') + '.' +
+            '<br><span class="why">Rate of change of ' + (D.lhs === 'y' ? '<i>y</i>' : '<i>f</i>') + ' with respect to ' + X + ' at this point.</span>');
+      }
+      out.push({ title: 'Evaluate at ' + X + ' = ' + aH, html: res });
+      return out;
+    }
+    function draw() {
+      if (!D) return;
+      const ts = D.ts, dts = dTerms(ts), n = st.n, a = angVal(A);
+      const f = x => evalTerms(ts, x), df = x => evalTerms(dts, x);
+      const trig = ts.some(t => t.t !== 'pow') && ts.every(t => t.t !== 'pow' || t.p.n === 0);
+      let v;
+      if (trig) v = { x0: -0.5, x1: 2 * Math.PI + 0.3, y0: 0, y1: 0 };
+      else { const c = isFinite(a) ? a : 0; v = { x0: Math.min(-1, c - 4), x1: Math.max(5, c + 4), y0: 0, y1: 0 }; if (ts.some(t => t.t === 'pow' && t.p.d > 1 && t.p.d % 2 === 0)) v.x0 = -0.5; }
+      const ys = [];
+      for (let i = 0; i <= 200; i++) { const x = v.x0 + (v.x1 - v.x0) * i / 200, y = f(x); if (isFinite(y) && Math.abs(y) < 1e4) ys.push(y); if (shd.checked) { const d = df(x); if (isFinite(d) && Math.abs(d) < 1e4) ys.push(d); } }
+      ys.sort((p, q) => p - q);
+      const lo = ys[Math.floor(ys.length * 0.05)] || -5, hi = ys[Math.floor(ys.length * 0.95)] || 5, fa = f(a);
+      v.y0 = Math.min(lo, 0, isFinite(fa) ? fa : 0); v.y1 = Math.max(hi, 0, isFinite(fa) ? fa : 0);
+      const pad = Math.max((v.y1 - v.y0) * 0.2, 1); v.y0 -= pad; v.y1 += pad;
+      P.begin(v, { trig: trig ? 'rad' : null });
+      P.curve(f, 'cf', v.x0, v.x1, 800);
+      if (shd.checked && n >= 2) P.curve(df, 'cd', v.x0, v.x1, 800);
+      if (n >= 4 && isFinite(fa)) {
+        const m = df(a);
+        if (isFinite(m)) { P.through(a, fa, m, 'ct'); P.label(a, fa, 'gradient = ' + fmt(m, 2), 'f'); }
+        P.dot(a, fa, 'pf', 7);
+      }
+      P.end();
+    }
+    sel.addEventListener('change', () => { if (sel.value === 'own') own.focus(); else load(); });
+    own.addEventListener('input', () => { sel.value = 'own'; });
+    [own, at].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+    $('.go').addEventListener('click', go);
+    shd.addEventListener('change', draw);
+    load();
+    return { next: () => { sel.value = sel.value === 'own' ? 0 : (Number(sel.value) + 1) % DIFF.length; load(); }, st };
+  }
+});
+
+// ---------- 3. Tangents ----------
+const TAN = [
+  { label: 'y = x³ − 2x² + 1 at x = 2', ts: [T(1, 3), T(-2, 2), T(1, 0)], a: '2', seq: '2.1' },
+  { label: 'y = 2x² − 3x + 1 at the point (−1, 6)', ts: [T(2, 2), T(-3, 1), T(1, 0)], a: '-1', given: true, seq: '2.2' },
+  { label: 'y = x³ − 3x at x = −2', ts: [T(1, 3), T(-3, 1)], a: '-2', seq: '2.2' },
+  { label: 'y = 4/x at x = 2', ts: [T(4, -1)], a: '2', seq: '2.3' },
+  { label: 'y = 6√x at x = 4', ts: [T(6, fr(1, 2))], a: '4', seq: '2.3' },
+  { label: 'y = 2x − 1/x² at x = 1', ts: [T(2, 1), T(-1, -2)], a: '1', seq: '2.3' },
+  { label: 'y = x² − 1/x at x = 2', ts: [T(1, 2), T(-1, -1)], a: '2', seq: '2.3' }
+];
+function lineEq(m, c) { // y = mx + c, plus a whole-number version if there are fractions
+  const mx = isZ(m) ? '' : (isOne(m) ? '' : m.n === -1 && m.d === 1 ? '−' : fracH(m)) + X;
+  const cc = isZ(c) ? '' : mx === '' ? fracH(c) : signed(c);
+  let s = '<i>y</i> = ' + (mx + cc || '0');
+  const L = lcm(m.d, c.d);
+  if (L > 1) {
+    const M = m.n * L / m.d, C = c.n * L / c.d;
+    s += '&emsp;or&emsp;' + L + '<i>y</i> = ' + (M === 0 ? '' : (M === 1 ? '' : M === -1 ? '−' : fmtInt(M)) + X) + (C === 0 ? '' : M === 0 ? fmtInt(C) : (C < 0 ? ' − ' : ' + ') + Math.abs(C));
+  }
+  return s;
+}
+TABS.push({
+  id: 'tangent', name: 'Equation of a tangent', seq: 'Steps 2.1–2.3: y from the curve, m from the derivative, then y − b = m(x − a).',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '<label>Example <select class="sel">' + TAN.map((d, i) => '<option value="' + i + '">' + d.label + ' (' + d.seq + ')</option>').join('') +
+        '<option value="own">Your own (type below)</option></select></label>' +
+        '<span class="eqin"><label><i>y</i> = <input class="n w own"></label></span>' +
+        '<label class="eqin">at <i>x</i> = <input class="n at"></label><button class="btn primary go">Go</button><span class="err"></span>',
+      mover: false,
+      legend: leg('f', 'the curve') + leg('hi', 'the tangent'),
+      under: '<p class="hint">Click or drag on the graph to move the point (it snaps to halves).</p>'
+    });
+    const P = Plot($('.g1'));
+    const sel = $('.sel'), own = $('.own'), at = $('.at'), err = $('.err');
+    const st = Stepper($('.stepper'), draw);
+    let D, a;
+    P.drag(x => { at.value = fracText(fr(Math.round(x * 2), 2)).replace('−', '-'); go(true); });
+    function load() { if (sel.value !== 'own') { const d = TAN[sel.value]; own.value = d.label.replace(/^y = /, '').replace(/ at .*/, ''); at.value = d.a; } go(); }
+    function go(keep) {
+      const ts = parseExpr(own.value), af = parseNum(at.value);
+      if (!ts || !ts.length) { err.textContent = 'I can’t read the curve.'; return; }
+      if (!af) { err.textContent = 'Type a number for x.'; return; }
+      err.textContent = '';
+      D = { ts, given: sel.value !== 'own' && TAN[sel.value].given && fval(af) === Number(TAN[sel.value].a) }; a = af;
+      if (!keep) st.reset(1);
+      st.set(steps()); draw();
+    }
+    function steps() {
+      const ts = D.ts, dts = dTerms(ts), aH = fracH(a), A = { f: a, pi: false };
+      const yE = exactEval(ts, A), mE = exactEval(dts, A);
+      const yv = evalTerms(ts, fval(a)), mv = evalTerms(dts, fval(a));
+      if (!isFinite(yv) || !isFinite(mv)) return [{ title: 'Not defined', html: '<p>The curve or its gradient isn’t defined at ' + X + ' = ' + aH + '. Pick another point.</p>' }];
+      const exact = yE && mE && exactIsRational(yE) && exactIsRational(mE);
+      const b = exact ? yE[1] : null, m = exact ? mE[1] : null;
+      const bH = exact ? fracH(b) : fmt(yv, 3), mH = exact ? fracH(m) : fmt(mv, 3);
+      const out = [];
+      out.push({ title: 'The point of contact', html: D.given ? '<p>The point (' + aH + ', ' + bH + ') is given. Check it is on the curve:</p><div class="mm"><i>y</i> = ' + sumH(ts, 'nice', aH) + ' = ' + bH + ' ✓</div>' :
+        '<div class="mm"><i>y</i> = ' + sumH(ts, 'nice', aH) + '<br>&emsp;= ' + bH + '</div>' + ansBox('Point: (' + aH + ', ' + bH + ')') + '<p class="why">y-values come from the original function.</p>' });
+      out.push({ title: 'The gradient', html: '<div class="mm">' + dydx + ' = ' + sumH(dts, 'nice') + '<br><i>m</i> = ' + sumH(dts, 'nice', aH) + ' = ' + mH + '</div><p class="why">Gradients come from the derivative.</p>' });
+      const bracket = (v, h) => (v < 0 ? ' + ' + h.replace('−', '') : v > 0 ? ' − ' + h : '');
+      const eqH = '<i>y</i>' + bracket(exact ? fval(b) : yv, bH) + ' = ' + (exact ? fracH(m) : mH) + '(' + X + bracket(fval(a), aH) + ')';
+      out.push({ title: 'Use y − b = m(x − a)', html: '<div class="mm">' + eqH + '</div>' });
+      if (exact) out.push({ title: 'Tidy', html: ansBox('<span class="mm">' + lineEq(m, fsub(b, fmul(m, a))) + '</span>') });
+      else out.push({ title: 'Tidy', html: ansBox('<span class="mm"><i>y</i> ≈ ' + fmt(mv, 3) + X + (yv - mv * fval(a) < 0 ? ' − ' : ' + ') + fmt(Math.abs(yv - mv * fval(a)), 3) + '</span>') });
+      return out;
+    }
+    function draw() {
+      if (!D) return;
+      const ts = D.ts, f = x => evalTerms(ts, x), df = x => evalTerms(dTerms(ts), x), av = fval(a), fa = f(av), n = st.n;
+      const v = { x0: Math.min(-4, av - 3), x1: Math.max(4, av + 3) };
+      const ys = [];
+      for (let i = 0; i <= 200; i++) { const y = f(v.x0 + (v.x1 - v.x0) * i / 200); if (isFinite(y)) ys.push(y); }
+      ys.sort((p, q) => p - q);
+      v.y0 = Math.min(ys[Math.floor(ys.length * 0.08)] ?? -5, 0, isFinite(fa) ? fa : 0);
+      v.y1 = Math.max(ys[Math.floor(ys.length * 0.92)] ?? 5, 0, isFinite(fa) ? fa : 0);
+      const pad = Math.max((v.y1 - v.y0) * 0.2, 1.5); v.y0 -= pad; v.y1 += pad;
+      P.begin(v);
+      P.curve(f, 'cf', v.x0, v.x1, 900);
+      if (n >= 3 && isFinite(fa)) P.through(av, fa, df(av), 'cl');
+      if (n >= 1 && isFinite(fa)) { P.dot(av, fa, 'phi', 7); P.label(av, fa, '(' + fracText(a) + ', ' + fmt(fa, 2) + ')', 'hi'); }
+      P.end();
+    }
+    sel.addEventListener('change', () => { if (sel.value === 'own') own.focus(); else load(); });
+    own.addEventListener('input', () => { sel.value = 'own'; });
+    [own, at].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+    $('.go').addEventListener('click', () => go());
+    load();
+    return { next: () => { sel.value = sel.value === 'own' ? 0 : (Number(sel.value) + 1) % TAN.length; load(); }, st };
+  }
+});
+
+// ---------- 4. Chain rule ----------
+const CHAIN = [
+  { label: '(3x + 1)⁵', form: 'lin', k: '1', n: '5', a: '3', b: '1', at: '0', seq: '4.1' },
+  { label: '4(2x − 5)³', form: 'lin', k: '4', n: '3', a: '2', b: '-5', at: '3', seq: '4.1' },
+  { label: '6/(3x − 2)²', form: 'lin', k: '6', n: '-2', a: '3', b: '-2', at: '1', seq: '4.2' },
+  { label: '√(4x + 1)', form: 'lin', k: '1', n: '1/2', a: '4', b: '1', at: '2', seq: '4.2' },
+  { label: '1/√(2x + 7)', form: 'lin', k: '1', n: '-1/2', a: '2', b: '7', at: '1', seq: '4.2' },
+  { label: 'sin(3x − π/4)', form: 'sin', k: '1', n: '1', a: '3', b: '-pi/4', at: 'pi/4', seq: '4.3' },
+  { label: '4 cos(2x + π/3)', form: 'cos', k: '4', n: '1', a: '2', b: 'pi/3', at: '0', seq: '4.3' },
+  { label: 'cos³x', form: 'cosn', k: '1', n: '3', a: '1', b: '0', at: 'pi/3', seq: '4.4' },
+  { label: '3 sin²(2x)', form: 'sinn', k: '3', n: '2', a: '2', b: '0', at: 'pi/8', seq: '4.4' }
+];
+TABS.push({
+  id: 'chain', name: 'Chain rule', seq: 'Steps 4.1–4.4: differentiate the outside, then multiply by the derivative of the inside.',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '<label>Example <select class="sel">' + CHAIN.map((d, i) => '<option value="' + i + '">f(x) = ' + d.label + ' (' + d.seq + ')</option>').join('') +
+        '<option value="own">Your own (choose a form)</option></select></label>' +
+        '<label>Form <select class="form"><option value="lin">k(ax + b)ⁿ</option><option value="sin">k sin(ax + b)</option><option value="cos">k cos(ax + b)</option>' +
+        '<option value="sinn">k sinⁿ(ax + b)</option><option value="cosn">k cosⁿ(ax + b)</option></select></label>' +
+        '<span class="eqin"><i>k</i> <input class="n ik"> <span class="nwrap"><i>n</i> <input class="n in"></span> <i>a</i> <input class="n ia"> <i>b</i> <input class="n ib"></span>' +
+        '<label class="eqin">evaluate at <i>x</i> = <input class="n at"></label><button class="btn primary go">Go</button><span class="err"></span>',
+      mover: false,
+      legend: leg('f', 'y = f(x)') + leg('d', 'y = f′(x)') + leg('tan', 'tangent'),
+      under: '<p class="hint">n can be negative or a fraction, e.g. −2 or 1/2. b can use pi, e.g. pi/3.</p>'
+    });
+    const P = Plot($('.g1'));
+    const sel = $('.sel'), form = $('.form'), ik = $('.ik'), inn = $('.in'), ia = $('.ia'), ib = $('.ib'), at = $('.at'), err = $('.err');
+    const st = Stepper($('.stepper'), draw);
+    let C;
+    function load() {
+      if (sel.value !== 'own') { const d = CHAIN[sel.value]; form.value = d.form; ik.value = d.k; inn.value = d.n; ia.value = d.a; ib.value = d.b; at.value = d.at; }
+      go();
+    }
+    function go() {
+      const k = parseNum(ik.value || '1'), n = parseNum(inn.value || '1'), a = parseNum(ia.value || '1'), b = parseAngle(ib.value || '0'), c = parseAngle(at.value || '0');
+      $('.nwrap').hidden = form.value === 'sin' || form.value === 'cos';
+      if (!k || !n || !a || !b || !c || isZ(k) || isZ(a) || isZ(n)) { err.textContent = 'Check the numbers: k, n and a can’t be 0.'; return; }
+      if (form.value === 'lin' && b.pi) { err.textContent = 'Use π only inside sin or cos.'; return; }
+      err.textContent = '';
+      C = { form: form.value, k, n: form.value === 'sin' || form.value === 'cos' ? fr(1) : n, a, b, c };
+      st.set(steps()); draw();
+    }
+    // inside, as html
+    const lin = (a, b) => (isOne(a) ? '' : a.n === -1 && a.d === 1 ? '−' : fracH(a)) + X + (isZ(b.f) ? '' : (b.f.n < 0 ? ' − ' : ' + ') + angH({ f: fabs(b.f), pi: b.pi }));
+    const simpleArg = () => isZ(C.b.f);
+    const trigH = (fn, pw) => fn + (pw && !(pw.n === 1 && pw.d === 1) ? sup(pw) : '') + (simpleArg() ? ' ' + lin(C.a, C.b) : '(' + lin(C.a, C.b) + ')');
+    const brk = () => '(' + lin(C.a, C.b) + ')';
+    function powNice(coef, m, body) { // coef·(body)^m tidily
+      if (isZ(m)) return fracH(coef);
+      if (m.n < 0) {
+        const q = fr(-m.n, m.d), den = q.d === 2 && q.n === 1 ? sqrtH(body.slice(1, -1)) : body + (isOne(q) ? '' : sup(q));
+        return (coef.n < 0 ? '−' : '') + stack(Math.abs(coef.n), (coef.d > 1 ? coef.d : '') + den);
+      }
+      const bd = m.d === 2 && m.n === 1 ? sqrtH(body.slice(1, -1)) : body + (isOne(m) ? '' : sup(m));
+      return coefH(coef) + bd;
+    }
+    function evalF(x) {
+      const u = fval(C.a) * x + angVal(C.b), k = fval(C.k);
+      if (C.form === 'lin') return k * powR(u, C.n);
+      if (C.form === 'sin') return k * Math.sin(u);
+      if (C.form === 'cos') return k * Math.cos(u);
+      return k * (C.form === 'sinn' ? Math.sin(u) : Math.cos(u)) ** fval(C.n);
+    }
+    function evalD(x) {
+      const u = fval(C.a) * x + angVal(C.b), k = fval(C.k), a = fval(C.a), n = fval(C.n);
+      if (C.form === 'lin') return k * n * a * powR(u, fsub(C.n, fr(1)));
+      if (C.form === 'sin') return k * a * Math.cos(u);
+      if (C.form === 'cos') return -k * a * Math.sin(u);
+      if (C.form === 'sinn') return k * n * a * Math.sin(u) ** (n - 1) * Math.cos(u);
+      return -k * n * a * Math.cos(u) ** (n - 1) * Math.sin(u);
+    }
+    function steps() {
+      const { k, n, a } = C, out = [], kn = fmul(k, n), kna = fmul(kn, a), n1 = fsub(n, fr(1));
+      let orig, finalH;
+      if (C.form === 'lin') {
+        orig = powNice(k, n, brk());
+        const idx = coefH(k) + brk() + sup(n);
+        out.push({ title: 'Spot the inside and the outside', html: '<div class="mm">' + fX + ' = ' + orig + (orig !== idx ? '<br>&emsp;= ' + idx : '') + '</div>' +
+          '<p class="why">Outside: ' + coefH(k) + '( )' + sup(n) + '. Inside: ' + lin(C.a, C.b) + (orig !== idx ? '. Write it in index form first.' : '.') + '</p>' });
+        out.push({ title: 'Differentiate the outside', html: '<div class="mm">' + (isOne(k) ? '' : fracH(k) + ' × ') + fracH(n) + brk() + (isZ(n1) ? '' : sup(n1)) + '</div><p class="why">Bring down the power and take 1 off it. Leave the bracket alone.</p>' });
+        out.push({ title: 'Multiply by the derivative of the inside', html: '<div class="mm">' + fP + ' = ' + coefH(kn) + brk() + (isZ(n1) ? '' : sup(n1)) + ' × ' + fracH(a) + '</div><p class="why">' + stack('<i>d</i>', '<i>dx</i>') + '(' + lin(C.a, C.b) + ') = ' + fracH(a) + '</p>' });
+        finalH = powNice(kna, n1, brk());
+        out.push({ title: 'Simplify', html: ansBox('<span class="mm">' + fP + ' = ' + coefH(kna) + brk() + (isZ(n1) || isOne(n1) ? '' : sup(n1)) + (finalH !== coefH(kna) + brk() + (isZ(n1) || isOne(n1) ? '' : sup(n1)) ? '<br>&emsp;&emsp;= ' + finalH : '') + '</span>') });
+      } else if (C.form === 'sin' || C.form === 'cos') {
+        const s = C.form === 'sin';
+        orig = coefH(k) + trigH(C.form);
+        out.push({ title: 'Spot the inside and the outside', html: '<div class="mm">' + fX + ' = ' + orig + '</div><p class="why">Outside: ' + coefH(k) + C.form + '( ). Inside: ' + lin(C.a, C.b) + '.</p>' });
+        out.push({ title: 'Differentiate the outside', html: '<div class="mm">' + (s ? coefH(k) + trigH('cos') : coefH(fneg(k)) + trigH('sin')) + '</div><p class="why">' + (s ? 'sin → cos' : 'cos → −sin') + '. Leave the inside alone.</p>' });
+        out.push({ title: 'Multiply by the derivative of the inside', html: '<div class="mm">' + fP + ' = ' + (s ? coefH(k) + trigH('cos') : coefH(fneg(k)) + trigH('sin')) + ' × ' + fracH(a) + '</div>' });
+        finalH = (s ? coefH(kna) + trigH('cos') : coefH(fneg(kna)) + trigH('sin'));
+        out.push({ title: 'Simplify', html: ansBox('<span class="mm">' + fP + ' = ' + finalH + '</span>') });
+      } else {
+        const s = C.form === 'sinn', fn = s ? 'sin' : 'cos', in1 = trigH(fn);
+        orig = coefH(k) + trigH(fn, n);
+        out.push({ title: 'Spot the inside and the outside', html: '<div class="mm">' + fX + ' = ' + orig + '<br>&emsp;= ' + coefH(k) + '(' + in1 + ')' + sup(n) + '</div><p class="why">Outside: ' + coefH(k) + '( )' + sup(n) + '. Inside: ' + in1 + '.</p>' });
+        out.push({ title: 'Differentiate the outside', html: '<div class="mm">' + coefH(kn) + '(' + in1 + ')' + (isOne(n1) ? '' : sup(n1)) + '</div><p class="why">Bring down the power and take 1 off it.</p>' });
+        const din = s ? coefH(a) + trigH('cos') : coefH(fneg(a)) + trigH('sin');
+        out.push({ title: 'Multiply by the derivative of the inside', html: '<div class="mm">' + fP + ' = ' + coefH(kn) + '(' + in1 + ')' + (isOne(n1) ? '' : sup(n1)) + ' × ' + (din[0] === '−' ? '(' + din + ')' : din) + '</div><p class="why">The inside is ' + in1 + ', and its derivative is ' + din + ' (chain rule again if a ≠ 1).</p>' });
+        finalH = coefH(s ? kna : fneg(kna)) + (isZ(n1) ? '' : trigH(fn, n1) + ' ') + trigH(s ? 'cos' : 'sin');
+        out.push({ title: 'Simplify', html: ansBox('<span class="mm">' + fP + ' = ' + finalH + '</span>') });
+      }
+      // evaluate
+      const cH = angH(C.c), cv = angVal(C.c), dv = evalD(cv);
+      let val = '≈ ' + fmt(dv);
+      if (C.form === 'lin' && !C.c.pi) {
+        const u = fadd(fmul(C.a, C.c.f), C.b.f), pw = exactPow(u, n1);
+        if (pw) val = '= ' + fracH(fmul(kna, pw));
+        out.push({ title: 'Evaluate at ' + X + ' = ' + cH, html: isFinite(dv) ? '<div class="mm"><i>f</i> ′(' + cH + ') = ' + coefH(kna) + '(' + fracH(u) + ')' + (isZ(n1) ? '' : sup(n1)) + '<br>&emsp;' + val + '</div>' : '<p>Not defined at this value.</p>' });
+      } else if (C.form === 'sin' || C.form === 'cos') {
+        const q = C.c.pi && (C.b.pi || isZ(C.b.f)) ? fadd(fmul(C.a, C.c.f), C.b.f) : null;
+        const ex = q ? (C.form === 'sin' ? exactCos(q) : exactSin(q)) : null;
+        if (ex) { const E = { 1: fr(0), 2: fr(0), 3: fr(0) }; E[ex.s] = fmul(C.form === 'sin' ? kna : fneg(kna), ex.c); val = '= ' + exactH(E); }
+        out.push({ title: 'Evaluate at ' + X + ' = ' + cH, html: '<div class="mm"><i>f</i> ′(' + cH + ') = ' + coefH(C.form === 'sin' ? kna : fneg(kna)) + (C.form === 'sin' ? 'cos' : 'sin') + '(' + (q ? angH({ f: q, pi: true }) : fmt(fval(C.a) * cv + angVal(C.b))) + ')<br>&emsp;' + val + '</div>' });
+      } else out.push({ title: 'Evaluate at ' + X + ' = ' + cH, html: '<div class="mm"><i>f</i> ′(' + cH + ') ' + val + '</div>' });
+      return out;
+    }
+    function draw() {
+      if (!C) return;
+      const n = st.n, trig = C.form !== 'lin';
+      let v;
+      if (trig) v = { x0: -0.5, x1: 2 * Math.PI + 0.3 };
+      else { const r = -angVal(C.b) / fval(C.a); v = { x0: Math.min(r - 3, angVal(C.c) - 1.5), x1: Math.max(r + 3, angVal(C.c) + 1.5) }; }
+      const ys = [];
+      for (let i = 0; i <= 300; i++) { const x = v.x0 + (v.x1 - v.x0) * i / 300; [evalF(x), n >= 4 ? evalD(x) : NaN].forEach(y => { if (isFinite(y)) ys.push(y); }); }
+      ys.sort((p, q) => p - q);
+      v.y0 = Math.min(ys[Math.floor(ys.length * 0.06)] ?? -3, 0); v.y1 = Math.max(ys[Math.floor(ys.length * 0.94)] ?? 3, 0);
+      const pad = Math.max((v.y1 - v.y0) * 0.15, 1); v.y0 -= pad; v.y1 += pad;
+      P.begin(v, { trig: trig ? 'rad' : null });
+      P.curve(evalF, 'cf', v.x0, v.x1, 900);
+      if (n >= 4) P.curve(evalD, 'cd', v.x0, v.x1, 900);
+      if (n >= 5) {
+        const c = angVal(C.c), y = evalF(c), m = evalD(c);
+        if (isFinite(y) && isFinite(m)) { P.through(c, y, m, 'ct'); P.dot(c, y, 'pf', 7); P.dot(c, m, 'pd', 6); P.label(c, m, 'f′ = ' + fmt(m, 2), 'd'); }
+      }
+      P.end();
+    }
+    sel.addEventListener('change', () => { if (sel.value !== 'own') load(); });
+    [form, ik, inn, ia, ib, at].forEach(el => el.addEventListener('input', () => { sel.value = 'own'; }));
+    form.addEventListener('change', go);
+    [ik, inn, ia, ib, at].forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+    $('.go').addEventListener('click', go);
+    load();
+    return { next: () => { sel.value = sel.value === 'own' ? 0 : (Number(sel.value) + 1) % CHAIN.length; load(); }, st };
+  }
+});
+
+// ---------- 5. Increasing and decreasing ----------
+const INC = [
+  { co: '1,-3,-9,5', seq: '5.4' }, { co: '2,-9,12,1', seq: '5.4' }, { co: '-1,3,9,-2', seq: '5.4' },
+  { co: '1/3,-1,-3,2', seq: '5.4' }, { co: '1,-6,12,-5', seq: '5.2' }, { co: '1,3,6,-1', seq: '5.3' },
+  { co: '-2,3,-4,1', seq: '5.3' }, { co: '2,-3,-6,1', seq: '5.4' }, { co: '0,-1,4,2', seq: '5.4' }
+].map(p => ({ ...p, label: null }));
+TABS.push({
+  id: 'incdec', name: 'Increasing and decreasing', seq: 'Steps 5.1–5.4. Replaces the two separate increasing/decreasing tools.',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '', two: true, lab1: '<i>y</i> = <i>f</i>(<i>x</i>)', lab2: '<i>y</i> = <i>f</i> ′(<i>x</i>)',
+      legend: leg('f', 'y = f(x)') + leg('d', 'y = f′(x)') + leg('up', 'f′(x) > 0, increasing') + leg('down', 'f′(x) < 0, decreasing'),
+      extra: ''
+    });
+    $('.bar').insertAdjacentHTML('afterbegin', '<span>Find where f(x) is</span><button class="btn" data-q="+" aria-pressed="true">increasing</button><button class="btn" data-q="-" aria-pressed="false">decreasing</button><span style="width:12px"></span>');
+    const P1 = Plot($('.g1'), 720, 330), P2 = Plot($('.g2'), 720, 220);
+    const st = Stepper($('.stepper'), () => draw());
+    const mv = Mover($('.mover'), () => draw(true));
+    P1.drag(x => { mv.stop(); mv.set(x); }); P2.drag(x => { mv.stop(); mv.set(x); });
+    let A, target = '+', V;
+    const I = PolyIn($('.bar'), INC.map(p => ({ co: p.co, label: polyText(p.co.split(',').map(parseNum)) + '  (' + p.seq + ')' })), inp => {
+      const co = inp.co, dco = ptrim(pderiv(co)), an = analysePoly(dco);
+      const rs = an.roots.filter((r, i, a) => i === 0 || Math.abs(r.v - a[i - 1].v) > 1e-9);
+      const tests = rs.length ? testPoints(rs.map(r => r.v)) : [0];
+      A = { co, dco, an, rs, signs: tests.map(x => sgn(peval(dco, x))) };
+      V = polyView(co);
+      mv.stop(); st.reset(1); st.set(steps());
+      mv.range(V.x0, V.x1);
+    }, 3);
+    function interval(i) {
+      const rs = A.rs, n = rs.length;
+      if (!n) return 'all ' + X;
+      if (i === 0) return X + ' &lt; ' + rs[0].html;
+      if (i === n) return X + ' &gt; ' + rs[n - 1].html;
+      return rs[i - 1].html + ' &lt; ' + X + ' &lt; ' + rs[i].html;
+    }
+    function describe(s) {
+      const idx = A.signs.map((g, i) => g === s ? i : -1).filter(i => i >= 0);
+      if (!idx.length) return null;
+      if (idx.length === A.signs.length) return A.rs.length ? { text: 'all ' + X + ' except ' + X + ' = ' + A.rs.map(r => r.html).join(' and ' + X + ' = '), except: true } : { text: 'all ' + X };
+      return { text: idx.map(interval).join('&ensp;or&ensp;') };
+    }
+    function numberLine() {
+      const n = A.rs.length, L = 30, R = 570, y = 46;
+      const xs = A.rs.map((_, i) => L + (i + 1) * (R - L) / (n + 1)), b = [L, ...xs, R];
+      let s = '<svg class="nl" viewBox="0 0 600 92" role="img" aria-label="Number line of the sign of f′(x)">';
+      A.signs.forEach((g, i) => {
+        const c = g === '+' ? 'var(--up)' : 'var(--down)';
+        s += '<line x1="' + b[i] + '" y1="' + y + '" x2="' + b[i + 1] + '" y2="' + y + '" stroke="' + c + '" stroke-width="6"/>';
+        s += '<text x="' + (b[i] + b[i + 1]) / 2 + '" y="' + (y - 16) + '" text-anchor="middle" style="fill:' + c + ';font-weight:700">' + (g === '+' ? 'f′(x) &gt; 0 ↗' : 'f′(x) &lt; 0 ↘') + '</text>';
+      });
+      xs.forEach((x, i) => {
+        s += '<circle cx="' + x + '" cy="' + y + '" r="7" style="fill:var(--panel);stroke:var(--ink);stroke-width:2.5"/>';
+        s += '<text x="' + x + '" y="' + (y + 32) + '" text-anchor="middle">x = ' + A.rs[i].text + '</text>';
+      });
+      return s + '</svg>';
+    }
+    function steps() {
+      const out = [], dco = A.dco, an = A.an;
+      out.push({ title: 'Differentiate', html: '<div class="mm">' + fX + ' = ' + polyH(A.co) + '<br>' + fP + ' = ' + polyH(dco) + '</div>' });
+      let s2;
+      if (an.deg === 0) s2 = '<div class="mm">' + fP + ' = ' + fracH(dco[0]) + '</div><p>' + (isZ(dco[0]) ? 'f is constant.' : 'This is never zero.') + '</p>';
+      else if (an.deg === 2 && !an.roots.length) {
+        const [a, b, c] = dco, h = fdiv(b, fmul(fr(2), a)), k = fsub(c, fdiv(fmul(b, b), fmul(fr(4), a)));
+        const sq = '(' + X + (isZ(h) ? '' : signed(h)) + ')' + sup(2);
+        s2 = '<div class="mm">' + fP + ' = ' + polyH(dco) + '<br>&emsp;= ' + coefH(a) + sq + signed(k) + '</div>' +
+          '<p class="why">Completing the square. ' + sq + ' ≥ 0 for all ' + X + ', so ' + fP + (a.n > 0 ? ' ≥ ' : ' ≤ ') + fracH(k) + (a.n > 0 ? ' &gt; 0' : ' &lt; 0') + '. ' + fP + ' is never zero.</p>' +
+          '<p class="why">Or: b² − 4ac = ' + fracText(fsub(fmul(b, b), fmul(fr(4), fmul(a, c)))) + ' &lt; 0, so ' + fP + ' = 0 has no real roots.</p>';
+      } else { const S = solveLines(dco, an); s2 = '<div class="mm">' + fP + ' = 0</div>' + linesH(S.L, S.why); }
+      out.push({ title: 'Solve f′(x) = 0', html: s2 });
+      if (an.deg > 0 || !isZ(dco[0])) {
+        const pos = describe('+'), neg = describe('-'), lines = [];
+        if (pos) lines.push('<span class="tag up">f′(x) &gt; 0</span> for ' + pos.text);
+        if (neg) lines.push('<span class="tag down">f′(x) &lt; 0</span> for ' + neg.text);
+        out.push({ title: 'Signs of f′(x)', html: '<p class="why">Read from the graph of y = f′(x): above the x-axis is positive, below is negative.</p><div class="mm">' + lines.join('<br>') + '</div>' + numberLine() });
+      }
+      const word = target === '+' ? 'increasing' : 'decreasing';
+      let a;
+      if (an.deg === 0 && isZ(dco[0])) a = 'f(' + X + ') is constant, so it is neither increasing nor decreasing.';
+      else {
+        const d = describe(target);
+        if (d) {
+          a = 'f(' + X + ') is ' + word + ' for ' + d.text + '.';
+          if (d.except) {
+            const sq = an.factorRows.length === 1 && an.factors.length === 1 && an.factors[0].mult === 2;
+            a += '<br><span class="why">' + (sq ? fP + ' = ' + an.factorH + ' ≥ 0' : fP + (target === '+' ? ' ≥ 0' : ' ≤ 0')) + ' for all ' + X + ', so f is never ' + (target === '+' ? 'decreasing' : 'increasing') + '. It is stationary at ' + X + ' = ' + A.rs[0].html + '.</span>';
+          }
+        } else {
+          a = 'f(' + X + ') is never ' + word + ', because ' + fP + (A.rs.length ? (target === '+' ? ' ≤ 0' : ' ≥ 0') : (target === '+' ? ' &lt; 0' : ' &gt; 0')) + ' for all ' + X + '.';
+        }
+      }
+      out.push({ title: 'Answer', html: ansBox('<b>' + a + '</b>') + '<p class="why">Increasing means f′(x) &gt; 0. Decreasing means f′(x) &lt; 0.</p>' });
+      return out;
+    }
+    function draw() {
+      if (!A) return;
+      const n = st.n, f = x => peval(A.co, x), df = x => peval(A.dco, x), a = mv.v;
+      P1.begin(V);
+      if (n >= 3) { P1.curve(x => df(x) > 0 ? f(x) : NaN, 'cup'); P1.curve(x => df(x) < 0 ? f(x) : NaN, 'cdown'); }
+      else P1.curve(f, 'cf');
+      if (n >= 2) A.rs.forEach(r => { P1.vline(r.v); P1.dot(r.v, f(r.v), 'pop', 6); });
+      P1.through(a, f(a), df(a), 'ct'); P1.dot(a, f(a), 'pt', 7);
+      P1.end();
+      const ds = []; for (let i = 0; i <= 100; i++) ds.push(df(V.x0 + (V.x1 - V.x0) * i / 100));
+      const lo = Math.min(0, ...ds), hi = Math.max(0, ...ds), pad = Math.max((hi - lo) * 0.12, 1);
+      P2.begin({ x0: V.x0, x1: V.x1, y0: lo - pad, y1: hi + pad }, { ylab: 'f′(x)' });
+      if (n >= 3) { P2.region(x => Math.max(0, df(x)), 'fup'); P2.region(x => Math.min(0, df(x)), 'fdown'); }
+      if (n >= 2) A.rs.forEach(r => { P2.vline(r.v); P2.dot(r.v, 0, 'pop', 6); });
+      P2.curve(df, 'cd'); P2.dot(a, df(a), 'pd', 7);
+      P2.end();
+      const g = df(a);
+      mv.status('x = ' + fmt(a, 2) + ', f′(x) = ' + fmt(g, 2) + ' → <b class="' + (Math.abs(g) < 0.02 ? 'flat' : g > 0 ? 'up' : 'down') + '">' + (Math.abs(g) < 0.02 ? 'stationary' : g > 0 ? 'increasing' : 'decreasing') + '</b>');
+    }
+    pane.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => {
+      target = b.dataset.q;
+      pane.querySelectorAll('[data-q]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      st.set(steps());
+    }));
+    I.load(0);
+    return { next: () => I.next(), play: () => mv.toggle(), stop: () => mv.stop(), st };
+  }
+});
+
+// ---------- 6. Given gradient ----------
+const GIV = [
+  { kind: 'poly', co: '1,-6,0,5', m: '15', seq: '6.1' },
+  { kind: 'poly', co: '2,-3,-10,1', m: '2', seq: '6.1' },
+  { kind: 'poly', co: '1,0,-3,1', m: '9', line: { h: '<i>y</i> = 9' + X + ' − 2', c: -2, rearr: '' }, seq: '6.2' },
+  { kind: 'poly', co: '0,1,5,0', m: '-3', line: { h: '3' + X + ' + <i>y</i> = 4', c: 4, rearr: '<i>y</i> = −3' + X + ' + 4' }, seq: '6.2' },
+  { kind: 'hand', id: 'recip', seq: '6.3' }, { kind: 'hand', id: 'root', seq: '6.3' },
+  { kind: 'hand', id: 'sin', seq: '6.4' }, { kind: 'hand', id: 'sin2', seq: '6.4' }
+];
+const HAND = {
+  recip: { label: 'y = x + 9/x, gradient −8', ts: [T(1, 1), T(9, -1)], m: -8, v: { x0: -6, x1: 6, y0: -22, y1: 22 },
+    steps: [
+      { title: 'Differentiate', html: '<div class="mm"><i>y</i> = ' + X + ' + 9' + X + sup(-1) + '<br>' + dydx + ' = 1 − 9' + X + sup(-2) + ' = 1 − ' + stack(9, X + sup(2)) + '</div>' },
+      { title: 'Set the derivative equal to the gradient', html: '<div class="mm">1 − ' + stack(9, X + sup(2)) + ' = −8<br>' + stack(9, X + sup(2)) + ' = 9<br>' + X + sup(2) + ' = 1</div>' },
+      { title: 'Solve', html: '<div class="mm">' + X + ' = 1&ensp;or&ensp;' + X + ' = −1</div>' },
+      { title: 'Find the points', html: '<div class="mm">' + X + ' = 1: <i>y</i> = 1 + 9 = 10<br>' + X + ' = −1: <i>y</i> = −1 − 9 = −10</div>' + ansBox('The points are (1, 10) and (−1, −10).') }
+    ], sols: [[1, 10, '(1, 10)'], [-1, -10, '(−1, −10)']] },
+  root: { label: 'y = 4√x, gradient 1', ts: [T(4, fr(1, 2))], m: 1, v: { x0: -1, x1: 10, y0: -2, y1: 14 },
+    steps: [
+      { title: 'Differentiate', html: '<div class="mm"><i>y</i> = 4' + X + sup(fr(1, 2)) + '<br>' + dydx + ' = 2' + X + sup(fr(-1, 2)) + ' = ' + stack(2, sqrtH(X)) + '</div>' },
+      { title: 'Set the derivative equal to the gradient', html: '<div class="mm">' + stack(2, sqrtH(X)) + ' = 1<br>' + sqrtH(X) + ' = 2</div>' },
+      { title: 'Solve', html: '<div class="mm">' + X + ' = 4</div>' },
+      { title: 'Find the point', html: '<div class="mm"><i>y</i> = 4' + sqrtH('4') + ' = 8</div>' + ansBox('The point is (4, 8).') }
+    ], sols: [[4, 8, '(4, 8)']] },
+  sin: { label: 'y = 2 sin x, 0 ≤ x < 2π, gradient 1', ts: [TS('sin', 2, 1)], m: 1, trig: true, v: { x0: -0.4, x1: 2 * Math.PI + 0.4, y0: -2.6, y1: 2.6 },
+    steps: [
+      { title: 'Differentiate', html: '<div class="mm">' + dydx + ' = 2 cos ' + X + '</div>' },
+      { title: 'Set the derivative equal to the gradient', html: '<div class="mm">2 cos ' + X + ' = 1<br>cos ' + X + ' = ' + stack(1, 2) + '</div>' },
+      { title: 'Solve (radians)', html: '<div class="mm">' + X + ' = ' + stack('π', 3) + '&ensp;or&ensp;' + X + ' = 2π − ' + stack('π', 3) + ' = ' + stack('5π', 3) + '</div><p class="why">cos is positive in the first and fourth quadrants.</p>' },
+      { title: 'Find the points', html: '<div class="mm"><i>y</i> = 2 sin ' + stack('π', 3) + ' = √3<br><i>y</i> = 2 sin ' + stack('5π', 3) + ' = −√3</div>' + ansBox('The points are (π/3, √3) and (5π/3, −√3).') }
+    ], sols: [[Math.PI / 3, Math.sqrt(3), '(π/3, √3)'], [5 * Math.PI / 3, -Math.sqrt(3), '(5π/3, −√3)']] },
+  sin2: { label: 'y = sin 2x, 0 ≤ x < 2π, gradient −1', ts: [TS('sin', 1, 2)], m: -1, trig: true, v: { x0: -0.4, x1: 2 * Math.PI + 0.4, y0: -1.8, y1: 1.8 },
+    steps: [
+      { title: 'Differentiate', html: '<div class="mm">' + dydx + ' = 2 cos 2' + X + '</div>' },
+      { title: 'Set the derivative equal to the gradient', html: '<div class="mm">2 cos 2' + X + ' = −1<br>cos 2' + X + ' = −' + stack(1, 2) + '</div>' },
+      { title: 'Solve (radians)', html: '<div class="mm">0 ≤ 2' + X + ' &lt; 4π<br>2' + X + ' = ' + stack('2π', 3) + ', ' + stack('4π', 3) + ', ' + stack('8π', 3) + ', ' + stack('10π', 3) + '<br>' + X + ' = ' + stack('π', 3) + ', ' + stack('2π', 3) + ', ' + stack('4π', 3) + ', ' + stack('5π', 3) + '</div><p class="why">cos is negative in the second and third quadrants. Double the range because the angle is 2x.</p>' },
+      { title: 'Find the points', html: '<div class="mm"><i>y</i> = sin ' + stack('2π', 3) + ' = ' + stack('√3', 2) + ', &ensp;sin ' + stack('4π', 3) + ' = −' + stack('√3', 2) + ', …</div>' + ansBox('(π/3, √3/2), (2π/3, −√3/2), (4π/3, √3/2), (5π/3, −√3/2)') }
+    ], sols: [[Math.PI / 3, Math.sqrt(3) / 2, ''], [2 * Math.PI / 3, -Math.sqrt(3) / 2, ''], [4 * Math.PI / 3, Math.sqrt(3) / 2, ''], [5 * Math.PI / 3, -Math.sqrt(3) / 2, '']] }
+};
+TABS.push({
+  id: 'given', name: 'Given gradient', seq: 'Steps 6.1–6.4: set the derivative equal to the gradient and solve. Tangents parallel to a line have the same gradient.',
+  build(pane) {
+    const lab = g => g.kind === 'hand' ? HAND[g.id].label : (g.line ? 'y = ' + polyText(g.co.split(',').map(parseNum)) + ', tangent parallel to ' + g.line.h.replace(/<[^>]+>/g, '') : 'y = ' + polyText(g.co.split(',').map(parseNum)) + ', gradient ' + g.m.replace('-', '−'));
+    const $ = layout(pane, {
+      bar: '<label>Example <select class="sel">' + GIV.map((g, i) => '<option value="' + i + '">' + lab(g) + ' (' + g.seq + ')</option>').join('') + '<option value="own">Your own polynomial</option></select></label>' +
+        '<span class="ownbits" hidden></span>',
+      mover: false, legend: leg('f', 'the curve') + leg('hi', 'tangents with the given gradient') + leg('muted', 'the given line')
+    });
+    const P = Plot($('.g1'));
+    const sel = $('.sel'), ob = $('.ownbits');
+    const st = Stepper($('.stepper'), draw);
+    let G;
+    const I = PolyIn(ob, [{ co: '1,-6,0,5' }], inp => { if (sel.value === 'own') setPoly(inp.co, parseNum(ob.querySelector('.mi').value) || fr(0), null); }, 3, 'f');
+    ob.querySelector('.psel').closest('label').hidden = true;
+    ob.insertAdjacentHTML('beforeend', '<label class="eqin">gradient <i>m</i> = <input class="n mi" value="15"></label>');
+    ob.querySelector('.mi').addEventListener('keydown', e => { if (e.key === 'Enter') ob.querySelector('.pdraw').click(); });
+    function setPoly(co, m, line) {
+      const dco = ptrim(pderiv(co)), eq = ptrim(dco.map((c, i) => i === dco.length - 1 ? fsub(c, m) : c));
+      const S = solveLines(eq);
+      const pts = S.an.roots.map(r => ({ x: r.v, y: peval(co, r.v), r, yF: r.rat ? pevalF(co, r.rat) : null }));
+      const out = [];
+      if (line) out.push({ title: 'Gradient of the line', html: '<div class="mm">' + line.h + (line.rearr ? '<br>' + line.rearr : '') + '<br><i>m</i> = ' + fracH(m) + '</div><p class="why">Parallel lines have the same gradient.</p>' });
+      out.push({ title: 'Differentiate', html: '<div class="mm"><i>y</i> = ' + polyH(co) + '<br>' + dydx + ' = ' + polyH(dco) + '</div>' });
+      out.push({ title: 'Set the derivative equal to the gradient', html: '<div class="mm">' + polyH(dco) + ' = ' + fracH(m) + '</div>' });
+      out.push({ title: 'Solve', html: linesH(S.L, S.why) });
+      out.push({ title: 'Find the points', html: pts.length ? '<div class="mm">' + pts.map(p => X + ' = ' + p.r.html + ': <i>y</i> = ' + (p.yF ? polyH(co, p.r.html) + ' = ' + fracH(p.yF) : '≈ ' + fmt(p.y, 2))).join('<br>') + '</div>' +
+        ansBox((pts.length > 1 ? 'The points are ' : 'The point is ') + pts.map(p => '(' + (p.r.rat ? p.r.text : fmt(p.x, 2)) + ', ' + (p.yF ? fracText(p.yF) : fmt(p.y, 2)) + ')').join(' and ') + '.') :
+        ansBox('No point on the curve has this gradient.') });
+      const f = x => peval(co, x);
+      G = { f, m: fval(m), steps: out, sols: pts.map(p => [p.x, p.y, '(' + (p.r.rat ? p.r.text : fmt(p.x, 2)) + ', ' + (p.yF ? fracText(p.yF) : fmt(p.y, 2)) + ')']),
+        line: line ? { c: line.c } : null, v: polyView(co, pts.map(p => p.x), pts.map(p => p.y)) };
+      st.set(out); draw();
+    }
+    function load() {
+      ob.hidden = sel.value !== 'own'; st.reset(1);
+      if (sel.value === 'own') { I.load(0); return; }
+      const g = GIV[sel.value];
+      if (g.kind === 'poly') setPoly(g.co.split(',').map(parseNum).filter((c, i, a) => i > 0 || !isZ(c)), parseNum(g.m), g.line || null);
+      else { const h = HAND[g.id]; G = { f: x => evalTerms(h.ts, x), m: h.m, steps: h.steps, sols: h.sols, v: h.v, trig: h.trig }; st.set(h.steps); draw(); }
+    }
+    function draw() {
+      if (!G) return;
+      const n = st.n, last = G.steps.length;
+      P.begin(G.v, { trig: G.trig ? 'rad' : null });
+      if (G.line) P.through(0, G.line.c, G.m, 'cline');
+      P.curve(G.f, 'cf', G.v.x0, G.v.x1, 900);
+      if (n >= last) G.sols.forEach(([x, y, l]) => { P.through(x, y, G.m, 'cl'); P.dot(x, y, 'phi', 7); if (l) P.label(x, y, l, 'hi'); });
+      else if (n >= last - 1) G.sols.forEach(([x]) => P.vline(x));
+      P.end();
+    }
+    sel.addEventListener('change', load);
+    load();
+    return { next: () => { sel.value = sel.value === 'own' ? 0 : (Number(sel.value) + 1) % GIV.length; load(); }, st };
+  }
+});
+
+// ---------- 7. Stationary points ----------
+const SP = [
+  { co: '0,1,-3,-9,5', seq: '7.1' }, { co: '0,2,3,-12,1', seq: '7.1' }, { co: '0,-1,0,3,2', seq: '7.1' },
+  { co: '0,1/3,-1,-3,2', seq: '7.1' }, { co: '0,1,-6,12,-5', seq: '7.2' }, { co: '1,-4,0,0,0', seq: '7.2' },
+  { co: '3,-4,-12,0,1', seq: '7.2' }, { co: '1,0,0,4,0', seq: '7.2' }, { co: '0,1,3,-6,0', seq: '7.3' }, { co: '0,2,0,-9,1', seq: '7.3' }
+];
+TABS.push({
+  id: 'stationary', name: 'Stationary points', isNew: true, seq: 'Steps 7.1–7.3: f′(x) = 0, then y-coordinates from f(x), then a nature table.',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '',
+      legend: leg('f', 'y = f(x)') + leg('sp', 'stationary points') + leg('up', 'increasing') + leg('down', 'decreasing') + leg('tan', 'tangent'),
+      under: '<div class="checks"><label>Nature table: <select class="ntm"><option value="factor">signs of the factors</option><option value="test">test values either side</option></select></label></div>'
+    });
+    const P = Plot($('.g1'));
+    const st = Stepper($('.stepper'), draw);
+    const mv = Mover($('.mover'), () => draw());
+    P.drag(x => { mv.stop(); mv.set(x); });
+    const ntm = $('.ntm');
+    let S, co, V, auto = true;
+    const I = PolyIn($('.bar'), SP.map(p => ({ co: p.co, label: polyText(ptrim(p.co.split(',').map(parseNum))) + '  (' + p.seq + ')' })), inp => {
+      co = inp.co; S = stationary(co); V = polyView(co);
+      if (auto) ntm.value = S.an.restKind === 'surd' || S.an.restKind === 'num' ? 'test' : 'factor';
+      mv.stop(); st.reset(1); st.set(steps()); mv.range(V.x0, V.x1);
+    }, 4);
+    function steps() {
+      const out = [], { dco, an, pts } = S;
+      out.push({ title: 'Differentiate', html: '<div class="mm">' + fX + ' = ' + polyH(co) + '<br>' + fP + ' = ' + polyH(dco) + '</div>' });
+      if (!pts.length) {
+        const Sv = solveLines(dco, an);
+        out.push({ title: 'Stationary points: f′(x) = 0', html: '<div class="mm">' + fP + ' = 0</div>' + linesH(Sv.L, Sv.why) + ansBox('There are no stationary points.') });
+        return out;
+      }
+      const Sv = solveLines(dco, an);
+      out.push({ title: 'Stationary points: f′(x) = 0', html: '<p class="why">Stationary points are where the gradient is zero.</p><div class="mm">' + fP + ' = 0</div>' + linesH(Sv.L, Sv.why) });
+      out.push({ title: 'Find the y-coordinates', html: '<div class="mm">' + pts.map(p => p.yF ? '<i>f</i>(' + p.r.html + ') = ' + polyH(co, p.r.html) + ' = ' + p.yH : '<i>f</i>(' + p.r.html + ') ≈ ' + p.yH).join('<br>') + '</div>' +
+        '<p class="why">Substitute into f(x), not f′(x).</p><div class="mm">Stationary points: ' + pts.map(ptH).join(', ') + '</div>' });
+      const nt = natureTable(dco, an, ntm.value);
+      out.push({ title: 'Nature table', html: nt.html + '<p class="why">' + (ntm.value === 'factor' ? 'Work out the sign of each factor just either side of each stationary point, then multiply.' : 'Substitute a value either side of each stationary point into f′(x). Only the sign matters.') + '</p>' });
+      out.push({ title: 'State the nature', html: ansBox(pts.map(p => '<b class="mm">' + ptH(p) + '</b> is a <b>' + p.nature + '</b>.').join('<br>')) +
+        (pts.some(p => /inflection/.test(p.nature)) ? '<p class="why">At a point of inflection f′(x) has the same sign on both sides: here f′(x) has a squared factor.</p>' : '') });
+      return out;
+    }
+    function draw() {
+      if (!S) return;
+      const n = st.n, f = x => peval(co, x), df = x => peval(S.dco, x), a = mv.v;
+      P.begin(V);
+      if (n >= 4) { P.curve(x => df(x) > 0 ? f(x) : NaN, 'cup'); P.curve(x => df(x) < 0 ? f(x) : NaN, 'cdown'); }
+      else P.curve(f, 'cf');
+      if (n >= 2) S.pts.forEach(p => P.vline(p.x));
+      P.through(a, f(a), df(a), 'ct'); P.dot(a, f(a), 'pt', 6);
+      if (n >= 3) S.pts.forEach((p, i) => {
+        P.seg(p.x - (V.x1 - V.x0) * 0.06, p.y, p.x + (V.x1 - V.x0) * 0.06, p.y, 'cl');
+        P.dot(p.x, p.y, 'psp', 8);
+        const below = /minimum/.test(p.nature);
+        P.label(p.x, p.y, ptText(p) + (n >= 5 ? ' ' + shortNature(p.nature) : ''), 'sp', 10, below ? 26 : -12);
+        void i;
+      });
+      P.end();
+      mv.status(gradStatus(a, df(a), 0.02));
+    }
+    ntm.addEventListener('change', () => { auto = false; st.set(steps()); });
+    I.load(0);
+    return { next: () => { auto = true; I.next(); }, play: () => mv.toggle(), stop: () => mv.stop(), st };
+  }
+});
+
+// ---------- 8. Curve sketching ----------
+const SK = [
+  { co: '0,1,-3,0,4', seq: '8.1' }, { co: '0,-1,0,12,0', seq: '8.1' }, { co: '0,2,-3,-12,0', seq: '8.1' }, { co: '0,1,-6,9,0', seq: '8.1' },
+  { co: '1,-4,0,0,0', seq: '8.2' }, { co: '-1,0,2,0,0', seq: '8.2' }, { co: '1,-4,4,0,0', seq: '8.2' }
+];
+TABS.push({
+  id: 'sketch', name: 'Curve sketching', isNew: true, seq: 'Steps 8.1–8.2: y-intercept, roots, stationary points and their nature, then what happens for large x.',
+  build(pane) {
+    const $ = layout(pane, { bar: '', mover: false, legend: leg('f', 'the sketch') + leg('hi', 'intercepts') + leg('sp', 'stationary points') });
+    const P = Plot($('.g1'));
+    const st = Stepper($('.stepper'), draw);
+    let co, S, R, V;
+    const I = PolyIn($('.bar'), SK.map(p => ({ co: p.co, label: polyText(ptrim(p.co.split(',').map(parseNum))) + '  (' + p.seq + ')' })), inp => {
+      co = inp.co; S = stationary(co); R = analysePoly(co); V = polyView(co);
+      st.reset(1); st.set(steps());
+    }, 4);
+    function steps() {
+      const out = [], d = co.length - 1, y0 = co[co.length - 1];
+      out.push({ title: 'Where it cuts the y-axis', html: '<div class="mm">' + X + ' = 0: <i>y</i> = ' + fracH(y0) + '</div>' + ansBox('(0, ' + fracText(y0) + ')') });
+      const rs = R.roots.filter((r, i, a) => i === 0 || Math.abs(r.v - a[i - 1].v) > 1e-9);
+      const Sv = solveLines(co, R);
+      out.push({ title: 'Where it cuts the x-axis', html: '<div class="mm"><i>y</i> = 0</div>' + linesH(Sv.L, Sv.why) +
+        (rs.length ? ansBox(rs.map(r => '(' + (r.approx ? '≈' : '') + r.text + ', 0)').join(', ')) : ansBox('It doesn’t cut the x-axis.')) +
+        (R.roots.some(r => r.mult === 2) ? '<p class="why">A squared factor means the curve touches the x-axis there.</p>' : '') });
+      out.push({ title: 'Stationary points and their nature', html: S.pts.length ? '<div class="mm">' + fP + ' = ' + polyH(S.dco) + ' = ' + S.an.factorH + '</div>' +
+        natureTable(S.dco, S.an, S.an.restKind === 'surd' || S.an.restKind === 'num' ? 'test' : 'factor').html +
+        ansBox(S.pts.map(p => ptH(p) + ' ' + p.nature).join('<br>')) + '<p class="why">Full working is on the Stationary points tab.</p>' : '<p>No stationary points.</p>' });
+      const lead = fval(co[0]), even = d % 2 === 0;
+      const right = lead > 0 ? '+∞' : '−∞', left = even ? right : (lead > 0 ? '−∞' : '+∞');
+      out.push({ title: 'Large positive and negative x', html: '<p>The ' + X + sup(d) + ' term dominates for large ' + X + '.</p><div class="mm">As ' + X + ' → +∞, <i>y</i> → ' + right + '<br>As ' + X + ' → −∞, <i>y</i> → ' + left + '</div>' });
+      out.push({ title: 'Sketch', html: '<p>Join the points with a smooth curve and label the intercepts and stationary points.</p>' });
+      return out;
+    }
+    function draw() {
+      if (!co) return;
+      const n = st.n, f = x => peval(co, x);
+      P.begin(V);
+      if (n >= 5) P.curve(f, 'cf'); else if (n >= 4) {
+        // just the ends
+        const w = (V.x1 - V.x0) * 0.1;
+        P.curve(f, 'cf', V.x0, V.x0 + w); P.curve(f, 'cf', V.x1 - w, V.x1);
+      }
+      const y0 = fval(co[co.length - 1]);
+      // a stationary point label wins over an intercept label at the same place
+      const isSP = (x, y) => n >= 3 && S.pts.some(p => Math.abs(p.x - x) < 1e-9 && Math.abs(p.y - y) < 1e-9);
+      if (n >= 1) { P.dot(0, y0, 'phi', 7); if (!isSP(0, y0)) P.label(0, y0, '(0, ' + fracText(co[co.length - 1]) + ')', 'hi', 10, 18); }
+      if (n >= 2) R.roots.forEach(r => { if (Math.abs(r.v) > 1e-9 || Math.abs(y0) > 1e-9) { P.dot(r.v, 0, 'phi', 7); if (!isSP(r.v, 0)) P.label(r.v, 0, '(' + r.text + ', 0)', 'hi', -10, 22); } });
+      if (n >= 3) S.pts.forEach(p => { P.dot(p.x, p.y, 'psp', 8); P.label(p.x, p.y, ptText(p) + ' ' + shortNature(p.nature), 'sp', 10, /minimum/.test(p.nature) ? 26 : -12); });
+      P.end();
+    }
+    I.load(0);
+    return { next: () => I.next(), st };
+  }
+});
+
+// ---------- 9. The derived graph ----------
+const DER = [
+  { co: '0,1,-3,0,4', seq: '9.1' }, { co: '0,-1,0,12,0', seq: '9.1' }, { co: '0,1,-6,12,-5', seq: '9.2' },
+  { co: '1,-4,0,0,0', seq: '9.2' }, { co: '1,0,-8,0,10', seq: '9.1' }, { co: '0,0,1,-4,1', seq: '9.1' }
+];
+TABS.push({
+  id: 'derived', name: 'The derived graph', isNew: true, seq: 'Steps 9.1–9.3: sketch f′ from f, and read the stationary points of f from f′.',
+  build(pane) {
+    const $ = layout(pane, {
+      bar: '<span>Start from</span><button class="btn" data-m="f" aria-pressed="true">the graph of f, sketch f′</button><button class="btn" data-m="d" aria-pressed="false">the graph of f′, find f</button><span style="width:12px"></span>',
+      two: true, lab1: '<span class="l1"></span>', lab2: '<span class="l2"></span>',
+      legend: leg('f', 'y = f(x)') + leg('d', 'y = f′(x)') + leg('up', 'f′ > 0, f increasing') + leg('down', 'f′ < 0, f decreasing')
+    });
+    const P1 = Plot($('.g1'), 720, 300), P2 = Plot($('.g2'), 720, 260);
+    const st = Stepper($('.stepper'), () => draw());
+    const mv = Mover($('.mover'), () => draw());
+    P1.drag(x => { mv.stop(); mv.set(x); }); P2.drag(x => { mv.stop(); mv.set(x); });
+    let mode = 'f', co, S, V, DV;
+    const I = PolyIn($('.bar'), DER.map(p => ({ co: p.co, label: polyText(ptrim(p.co.split(',').map(parseNum))) + '  (' + p.seq + ')' })), inp => {
+      co = inp.co; S = stationary(co); V = polyView(co);
+      const ds = []; for (let i = 0; i <= 120; i++) ds.push(peval(S.dco, V.x0 + (V.x1 - V.x0) * i / 120));
+      ds.sort((a, b) => a - b);
+      const lo = Math.min(0, ds[6]), hi = Math.max(0, ds[ds.length - 7]), pad = Math.max((hi - lo) * 0.2, 1);
+      DV = { x0: V.x0, x1: V.x1, y0: lo - pad, y1: hi + pad };
+      mv.stop(); st.reset(1); st.set(steps()); mv.range(V.x0, V.x1);
+    }, 4);
+    function steps() {
+      const pts = S.pts;
+      const intervals = () => {
+        const rs = pts.map(p => p.r), tests = testPoints(rs.map(r => r.v)), sg = tests.map(x => sgn(peval(S.dco, x)));
+        const iv = i => !rs.length ? 'all ' + X : i === 0 ? X + ' &lt; ' + rs[0].html : i === rs.length ? X + ' &gt; ' + rs[rs.length - 1].html : rs[i - 1].html + ' &lt; ' + X + ' &lt; ' + rs[i].html;
+        return sg.map((s, i) => '<span class="tag ' + (s === '+' ? 'up' : 'down') + '">' + (s === '+' ? 'f′ &gt; 0' : 'f′ &lt; 0') + '</span> ' + iv(i)).join('<br>');
+      };
+      if (mode === 'f') return [
+        { title: 'Slide the tangent along f', html: '<p>Drag on either graph or press Play. Watch the sign of the gradient.</p>' },
+        { title: 'Stationary points of f → f′(x) = 0', html: '<p>Where f has a stationary point, f′ crosses or touches the x-axis.</p><div class="mm">' + (pts.length ? pts.map(p => X + ' = ' + p.r.html + ' (' + shortNature(p.nature) + ')').join('<br>') : 'none') + '</div>' +
+          (pts.some(p => /inflection/.test(p.nature)) ? '<p class="why">At a point of inflection f′ only touches the axis (9.2).</p>' : '') },
+        { title: 'Increasing → above the axis', html: '<p>Where f is increasing, f′ is above the x-axis. Where f is decreasing, f′ is below.</p><div class="mm">' + intervals() + '</div>' },
+        { title: 'Trace f′', html: '<p>Press Play: the red trail plots the gradient of f at each point. Pupils sketch first.</p>' },
+        { title: 'Reveal f′(x)', html: '<div class="mm">' + fX + ' = ' + polyH(co) + '<br>' + fP + ' = ' + polyH(S.dco) + '</div><p class="why">A cubic f gives a quadratic f′; a quartic gives a cubic.</p>' }
+      ];
+      return [
+        { title: 'Where f′(x) = 0', html: '<p>f has stationary points where the graph of f′ meets the x-axis.</p><div class="mm">' + (pts.length ? pts.map(p => X + ' = ' + p.r.html).join(', ') : 'none') + '</div>' },
+        { title: 'Above or below the axis', html: '<div class="mm">' + intervals() + '</div><p class="why">Above the axis: f increasing. Below: f decreasing.</p>' },
+        { title: 'Nature of each stationary point', html: '<p>+ to − is a maximum, − to + is a minimum. If f′ only touches the axis, it’s a point of inflection.</p>' +
+          ansBox(pts.map(p => X + ' = ' + p.r.html + ': ' + p.nature).join('<br>') || 'No stationary points.') },
+        { title: 'Sketch f', html: '<p>One possible graph of f. Any vertical shift of it has the same f′.</p><div class="mm">' + fX + ' = ' + polyH(co) + '</div>' }
+      ];
+    }
+    function draw() {
+      if (!co) return;
+      const n = st.n, f = x => peval(co, x), df = x => peval(S.dco, x), a = mv.v;
+      const fTop = mode === 'f';
+      $('.l1').innerHTML = fTop ? 'y = f(x)' : 'y = f′(x) (given)';
+      $('.l2').innerHTML = fTop ? 'y = f′(x)' : 'y = f(x)';
+      const drawF = (P, show) => {
+        P.begin(V);
+        if (show === 'colour') { P.curve(x => df(x) > 0 ? f(x) : NaN, 'cup'); P.curve(x => df(x) < 0 ? f(x) : NaN, 'cdown'); }
+        else if (show) P.curve(f, 'cf');
+        return P;
+      };
+      const drawD = (P, show, shade) => {
+        P.begin(DV, { ylab: 'f′(x)' });
+        if (shade) { P.region(x => Math.max(0, df(x)), 'fup'); P.region(x => Math.min(0, df(x)), 'fdown'); }
+        if (show) P.curve(df, 'cd');
+        return P;
+      };
+      if (fTop) {
+        const p1 = drawF(P1, n >= 3 ? 'colour' : true);
+        p1.through(a, f(a), df(a), 'ct'); p1.dot(a, f(a), 'pt', 7);
+        if (n >= 2) S.pts.forEach(p => { p1.vline(p.x); p1.dot(p.x, p.y, 'psp', 7); });
+        p1.end();
+        const p2 = drawD(P2, n >= 5, n >= 3);
+        if (n >= 2) S.pts.forEach(p => { p2.vline(p.x); p2.dot(p.x, 0, 'psp', 7); });
+        if (n >= 4) { const xs = []; for (let x = V.x0; x <= a; x += (V.x1 - V.x0) / 140) xs.push(x); p2.trail(xs, df); }
+        if (n >= 1) { p2.dot(a, df(a), 'pd', 7); p2.label(a, df(a), 'gradient = ' + fmt(df(a), 2), 'r'); }
+        p2.end();
+      } else {
+        const p1 = drawD(P1, true, n >= 2);
+        if (n >= 1) S.pts.forEach(p => { p1.vline(p.x); p1.dot(p.x, 0, 'psp', 7); p1.label(p.x, 0, X.replace(/<\/?i>/g, '') + ' = ' + p.r.text, 'sp', 6, 20); });
+        p1.dot(a, df(a), 'pd', 7);
+        p1.end();
+        const p2 = drawF(P2, n >= 4 ? 'colour' : false);
+        if (n >= 1) S.pts.forEach(p => p2.vline(p.x));
+        if (n >= 3) S.pts.forEach(p => { p2.dot(p.x, p.y, 'psp', 7); p2.label(p.x, p.y, shortNature(p.nature), 'sp', 10, /minimum/.test(p.nature) ? 24 : -12); });
+        if (n >= 4) { p2.through(a, f(a), df(a), 'ct'); p2.dot(a, f(a), 'pt', 6); }
+        p2.end();
+      }
+      mv.status(gradStatus(a, df(a), 0.02));
+    }
+    pane.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
+      mode = b.dataset.m;
+      pane.querySelectorAll('[data-m]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      st.reset(1); st.set(steps()); draw();
+    }));
+    I.load(0);
+    return { next: () => I.next(), play: () => mv.toggle(), stop: () => mv.stop(), st };
+  }
+});
+
+// ---------- 10. Closed interval ----------
+const CI = [
+  { co: '1,-6,9,1', p: '-1', q: '4' }, { co: '2,-3,-12,4', p: '-2', q: '3' }, { co: '1,-3,0,0', p: '1', q: '4' }, { co: '-1,0,12,0', p: '-3', q: '1' }
+];
+TABS.push({
+  id: 'interval', name: 'Greatest and least values', isNew: true, seq: 'Step 10.2: on a closed interval, check the stationary points inside it and the end points.',
+  build(pane) {
+    const $ = layout(pane, { bar: '', mover: false, legend: leg('f', 'y = f(x) in the interval') + leg('sp', 'stationary points') + leg('hi', 'end points') + leg('up', 'greatest') + leg('down', 'least') });
+    const P = Plot($('.g1'));
+    const st = Stepper($('.stepper'), draw);
+    let co, S, lo, hi, V, cand;
+    const I = PolyIn($('.bar'), CI.map(c => ({ co: c.co, p: c.p, q: c.q, label: polyText(c.co.split(',').map(parseNum)) + ',  ' + c.p.replace('-', '−') + ' ≤ x ≤ ' + c.q })), inp => {
+      if (inp.preset) { $('.ip').value = inp.preset.p.replace('-', '−'); $('.iq').value = inp.preset.q; }
+      const p = parseNum($('.ip').value), q = parseNum($('.iq').value);
+      if (!p || !q || fval(p) >= fval(q)) { $('.ierr').textContent = 'The interval needs a < b.'; return; }
+      $('.ierr').textContent = '';
+      co = inp.co; lo = p; hi = q; S = stationary(co);
+      V = polyView(co, [fval(p), fval(q)], [peval(co, fval(p)), peval(co, fval(q))]);
+      st.reset(1); st.set(steps());
+    }, 3);
+    $('.bar').insertAdjacentHTML('beforeend', '<span class="eqin">interval <input class="n ip"> ≤ <i>x</i> ≤ <input class="n iq"></span><span class="err ierr"></span>');
+    pane.querySelectorAll('.ip, .iq').forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') pane.querySelector('.pdraw').click(); }));
+    function steps() {
+      const out = [], Sv = solveLines(S.dco, S.an);
+      out.push({ title: 'Stationary points: f′(x) = 0', html: '<div class="mm">' + fP + ' = ' + polyH(S.dco) + ' = 0</div>' + linesH(Sv.L.slice(1), Sv.why) });
+      const inside = S.pts.filter(p => p.x > fval(lo) - 1e-9 && p.x < fval(hi) + 1e-9), outside = S.pts.filter(p => !inside.includes(p));
+      out.push({ title: 'Which are in the interval?', html: '<div class="mm">' + fracH(lo) + ' ≤ ' + X + ' ≤ ' + fracH(hi) + '</div><p>' +
+        (inside.length ? 'Inside: ' + inside.map(p => X + ' = ' + p.r.html).join(', ') + '. ' : 'No stationary points inside. ') +
+        (outside.length ? 'Ignore ' + outside.map(p => X + ' = ' + p.r.html).join(', ') + ' (outside the interval).' : '') + '</p>' });
+      cand = [{ x: fval(lo), xh: fracH(lo), xt: fracText(lo), yF: pevalF(co, lo), end: true },
+        ...inside.map(p => ({ x: p.x, xh: p.r.html, xt: p.r.rat ? p.r.text : fmt(p.x, 2), yF: p.yF, y: p.y })),
+        { x: fval(hi), xh: fracH(hi), xt: fracText(hi), yF: pevalF(co, hi), end: true }].sort((a, b) => a.x - b.x);
+      cand.forEach(c => { c.y = c.yF ? fval(c.yF) : c.y; c.yh = c.yF ? fracH(c.yF) : fmt(c.y, 2); });
+      const ymax = Math.max(...cand.map(c => c.y)), ymin = Math.min(...cand.map(c => c.y));
+      out.push({ title: 'Evaluate f at the end points and stationary points', html: '<div class="mm">' + cand.map(c => '<i>f</i>(' + c.xh + ') = ' + (c.yF ? polyH(co, c.xh) + ' = ' : '≈ ') + c.yh + (c.end ? ' <span class="why">(end point)</span>' : '')).join('<br>') + '</div>' });
+      const g = cand.filter(c => Math.abs(c.y - ymax) < 1e-9), l = cand.filter(c => Math.abs(c.y - ymin) < 1e-9);
+      out.push({ title: 'Greatest and least values', html: ansBox('Greatest value: <b class="mm">' + g[0].yh + '</b> (at ' + X + ' = ' + g.map(c => c.xh).join(' and ' + X + ' = ') + ')<br>Least value: <b class="mm">' + l[0].yh + '</b> (at ' + X + ' = ' + l.map(c => c.xh).join(' and ' + X + ' = ') + ')') +
+        (g.concat(l).some(c => c.end) ? '<p class="why">An end point gives a greatest or least value here, which is why you must check them.</p>' : '') });
+      return out;
+    }
+    function draw() {
+      if (!co) return;
+      const n = st.n, f = x => peval(co, x), a = fval(lo), b = fval(hi);
+      P.begin(V);
+      P.band(a, b);
+      P.curve(f, 'cfaint'); P.curve(f, 'cf', a, b);
+      P.vline(a); P.vline(b);
+      if (n >= 1) S.pts.forEach(p => { const inn = p.x > a - 1e-9 && p.x < b + 1e-9; P.dot(p.x, p.y, inn ? 'psp' : 'pop', 7); });
+      if (n >= 3 && cand) {
+        const ymax = Math.max(...cand.map(c => c.y)), ymin = Math.min(...cand.map(c => c.y));
+        cand.forEach(c => {
+          const cls = n >= 4 && Math.abs(c.y - ymax) < 1e-9 ? 'pup' : n >= 4 && Math.abs(c.y - ymin) < 1e-9 ? 'pdn' : c.end ? 'phi' : 'psp';
+          P.dot(c.x, c.y, cls, 8); P.label(c.x, c.y, '(' + c.xt + ', ' + (c.yF ? fracText(c.yF) : fmt(c.y, 2)) + ')', cls === 'pup' ? 'u' : cls === 'pdn' ? 'r' : c.end ? 'hi' : 'sp', 10, c.y === ymin ? 24 : -12);
+        });
+      } else { P.dot(a, f(a), 'phi', 7); P.dot(b, f(b), 'phi', 7); }
+      P.end();
+    }
+    I.load(0);
+    return { next: () => I.next(), st };
+  }
+});
+
+// ===================== Tab switching and keys =====================
+const tabsEl = document.getElementById('tabs'), panesEl = document.getElementById('panes'), seqEl = document.getElementById('seq');
+const built = {};
+let current = null;
+TABS.forEach((t, i) => {
+  const b = document.createElement('button');
+  b.setAttribute('role', 'tab'); b.dataset.tab = t.id; if (t.isNew) b.className = 'new';
+  b.innerHTML = '<span class="k">' + ((i + 1) % 10) + '</span>' + t.name;
+  b.addEventListener('click', () => show(t.id));
+  tabsEl.appendChild(b);
+  const p = document.createElement('section'); p.id = 'p-' + t.id; p.hidden = true; panesEl.appendChild(p);
+});
+function show(id) {
+  const t = TABS.find(x => x.id === id) || TABS[0];
+  if (current && built[current] && built[current].stop) built[current].stop();
+  current = t.id;
+  TABS.forEach(x => { document.getElementById('p-' + x.id).hidden = x.id !== t.id; });
+  tabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t.id)));
+  seqEl.textContent = t.seq;
+  if (!built[t.id]) built[t.id] = t.build(document.getElementById('p-' + t.id));
+  history.replaceState(null, '', '#' + t.id);
+}
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest('input, select, textarea')) return;
+  const k = e.key.toLowerCase(), api = built[current];
+  if (/^[0-9]$/.test(k)) { const i = k === '0' ? 9 : Number(k) - 1; if (TABS[i]) show(TABS[i].id); return; }
+  if (!api) return;
+  if (k === 'w') api.st.next();
+  else if (k === 'b') api.st.back();
+  else if (k === 'p' && api.play) api.play();
+  else if (k === 'n' && api.next) api.next();
+  else return;
+  e.preventDefault();
+});
+show(location.hash.slice(1) || 'gradient');
+})();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "higher/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

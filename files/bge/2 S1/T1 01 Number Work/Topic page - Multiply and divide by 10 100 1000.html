@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiplying and dividing by 10, 100 and 1000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* Top bar */
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.95rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.tag{display:inline-block;font-size:.78rem;background:#2C5F67;color:#E8F1F0;border-radius:4px;padding:0 .4rem;margin-top:.3rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--head);font-size:1.5rem;font-weight:700;color:var(--deep)}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.25rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem;counter-reset:q}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.2rem;background:#FBFCFC}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-family:var(--head);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums}
+.qs .a{font-family:var(--head);font-size:1.6rem;color:var(--sea);font-weight:700;visibility:hidden}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q,#qPanel:fullscreen .qs .a{font-size:2.6rem}
+
+/* Scaffolds */
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.pv-input{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.pv-input input{width:9rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.pv-scroll{overflow-x:auto;padding-bottom:.25rem}
+.pv{min-width:640px}
+.pv-heads{display:grid;grid-template-columns:repeat(10,1fr)}
+.pv-heads div{text-align:center;font-family:var(--head);font-weight:600;font-size:.9rem;padding:.4rem 0;color:#fff;background:var(--sea);border-right:1px solid #2F7F89}
+.pv-heads div.dec{background:#3D7F87}
+.pv-heads div:first-child{border-radius:8px 0 0 0}.pv-heads div:last-child{border-radius:0 8px 0 0;border-right:0}
+.pv-track{position:relative;height:84px;display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--line);border-top:0;border-radius:0 0 8px 8px;background:var(--paper)}
+.pv-track .cell{border-right:1px dashed var(--line)}
+.pv-track .cell:last-child{border-right:0}
+.pv-point{position:absolute;left:60%;bottom:10px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--ink);z-index:3}
+.tile{position:absolute;top:12px;width:10%;height:60px;display:grid;place-items:center;transition:left .55s cubic-bezier(.3,.7,.3,1);z-index:2}
+.tile span{width:78%;height:100%;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:2rem;color:var(--deep);box-shadow:0 2px 0 #C99C25}
+.tile.zero span{background:transparent;border:2px dashed #B9C7C6;box-shadow:none;color:#7C8E95;animation:pop .35s ease .45s both}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+.pv-ops{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;align-items:center}
+.pv-ops .grp{display:flex;gap:.4rem}
+.pv-readout{margin-top:1rem;font-family:var(--head);font-size:1.5rem;font-weight:600;color:var(--deep);min-height:2rem}
+.pv-legend{font-size:.85rem;color:var(--muted);margin-top:.5rem}
+
+.bd-q{font-family:var(--head);font-size:2rem;font-weight:700;color:var(--deep)}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.3rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer input{width:9rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+
+/* Times table grid */
+.tt-scroll{overflow-x:auto}
+.tt{border-collapse:collapse;font-family:var(--head);font-variant-numeric:tabular-nums;min-width:560px}
+.tt th,.tt td{width:2.6rem;height:2.3rem;text-align:center;border:1px solid var(--line);font-size:.95rem}
+.tt th{background:var(--sea);color:#fff;font-weight:600}
+.tt td{cursor:pointer;background:var(--paper)}
+.tt td.hl{background:var(--sand-soft)}
+.tt th.hl{background:var(--deep)}
+.tt td.pick{background:var(--sand);font-weight:700;color:var(--deep)}
+.tt.hide td{color:transparent}
+.tt.hide td.pick{color:var(--deep)}
+.tt-out{font-family:var(--head);font-size:1.5rem;font-weight:600;color:var(--deep);min-height:2.2rem;margin-top:.75rem}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(560px,100%);height:240px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1.3rem,3vw,1.9rem);color:var(--deep);line-height:1.3;max-width:24ch}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Card grids */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.35rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html">Hub</a> › S1 Term 1 › Number Work › Multiplying and dividing by 10, 100, 1000</nav>
+</header>
+
+<div class="layout">
+
+  <!-- LEARNING SEQUENCE -->
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <ol class="steps" id="steps"></ol>
+    <div class="whole">
+      <button class="step" id="wholeBtn" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, rich tasks and games</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <!-- WORKED EXAMPLES (step) -->
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <!-- QUESTIONS (both) -->
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub">New questions every time.</p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <!-- SCAFFOLD (step) -->
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+
+      <div class="panel scaffold" id="ttGrid">
+        <h3>Times tables grid</h3>
+        <p class="sub">Press a square to find a fact. Hide the numbers to test yourself: press a square, say the answer, and it appears.</p>
+        <div class="controls"><button class="btn alt" id="ttHide" aria-pressed="false">Hide the numbers</button></div>
+        <div class="tt-scroll"><table class="tt" id="tt"></table></div>
+        <div class="tt-out" id="ttOut" aria-live="polite"></div>
+      </div>
+
+      <div class="panel scaffold" id="slider">
+        <h3>Place value slider</h3>
+        <p class="sub">Type a number, then multiply or divide. Watch the digits move. The decimal point stays where it is.</p>
+        <div class="pv-input">
+          <label for="pvNum">Number</label>
+          <input id="pvNum" inputmode="decimal" value="45.7" aria-describedby="pvErr">
+          <button class="btn" id="pvLoad">Put in chart</button>
+          <span id="pvErr" class="feedback no" role="status"></span>
+        </div>
+        <div class="pv-scroll">
+          <div class="pv">
+            <div class="pv-heads" id="pvHeads"></div>
+            <div class="pv-track" id="pvTrack"><div class="pv-point" aria-hidden="true"></div></div>
+          </div>
+        </div>
+        <div class="pv-ops">
+          <div class="grp" id="grpMul">
+            <button class="btn" data-shift="1">× 10</button>
+            <button class="btn" data-shift="2">× 100</button>
+            <button class="btn" data-shift="3">× 1000</button>
+          </div>
+          <div class="grp" id="grpDiv">
+            <button class="btn" data-shift="-1">÷ 10</button>
+            <button class="btn" data-shift="-2">÷ 100</button>
+            <button class="btn" data-shift="-3">÷ 1000</button>
+          </div>
+          <button class="btn alt" id="pvReset">Start again</button>
+        </div>
+        <div class="pv-readout" id="pvOut" aria-live="polite"></div>
+        <p class="pv-legend">Dashed tiles are placeholder zeros. HTh = hundred thousands, TTh = ten thousands, Th = thousands, H = hundreds, T = tens, O = ones, t = tenths, h = hundredths, th = thousandths, tth = ten-thousandths.</p>
+      </div>
+
+      <div class="panel scaffold" id="breakdown">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time.</p>
+        <div class="bd-q" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <label for="bdIn">Your answer</label>
+          <input id="bdIn" inputmode="decimal">
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+    </section>
+
+    <!-- FLASHCARDS (both) -->
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <!-- LINKS (step) -->
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <!-- RICH TASKS (whole) -->
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Chosen by your teacher.</p></div>
+      <div class="cards">
+        <div class="card empty"><h3>Rich task</h3><p>Space for a task title, a short description and a link or file.</p></div>
+        <div class="card empty"><h3>Rich task</h3><p>Space for a task title, a short description and a link or file.</p></div>
+      </div>
+    </section>
+
+    <!-- GAMES (whole) -->
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Games</h2><p>Quick practice for the whole class or on your own.</p></div>
+      <div class="cards">
+        <div class="card"><h3>Hit the Button</h3><p>Times tables, doubles, and multiplying and dividing by 10 and 100.</p><a class="open" href="https://www.topmarks.co.uk/maths-games/hit-the-button" target="_blank" rel="noopener">Open Hit the Button</a></div>
+        <div class="card empty"><h3>Bingo</h3><p>Space for a bingo game or caller sheet.</p></div>
+        <div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>
+      </div>
+    </section>
+
+    <footer>S1 Term 1 · Number Work week 1 · MNU 3-03b</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files for each step
+   ===================================================================== */
+const STEPS = [
+  {s:"I can recall my times tables facts quickly.", eg:"", tag:"Ongoing on TTRS"},
+  {s:"I can multiply whole numbers by 10, 100 and 1000, first with a place value chart and then without.", eg:"e.g. 44 × 10, 34 × 100"},
+  {s:"I can multiply decimals by 10, 100 and 1000, first with a place value chart and then without.", eg:"e.g. 2.9 × 100, 45.7 × 1000"},
+  {s:"I can divide whole numbers by 10, 100 and 1000, first with a place value chart and then without.", eg:"e.g. 72 ÷ 10, 452 ÷ 100"},
+  {s:"I can divide decimals by 10, 100 and 1000, first with a place value chart and then without.", eg:"e.g. 7.3 ÷ 10, 45.32 ÷ 100"},
+  {s:"I can multiply multiples of 10, 100 and 1000.", eg:"e.g. 60 × 70"},
+  {s:"I can multiply multiples of 0.1, 0.01 and 0.001.", eg:"e.g. 0.4 × 0.6"},
+  {s:"I can divide by multiples of 10, 100 and 1000.", eg:"e.g. 720 ÷ 90"},
+  {s:"I can divide with multiples of 0.1, 0.01 and 0.001.", eg:"e.g. 4.8 ÷ 6, 4.8 ÷ 0.6"}
+];
+
+// Which scaffold each step uses: "tt" times tables grid, "pv" place value slider, "bd" break it down
+const SCAFFOLD = {1:"tt",2:"pv",3:"pv",4:"pv",5:"pv",6:"bd",7:"bd",8:"bd",9:"bd"};
+const PV_START = {2:"44",3:"2.9",4:"72",5:"7.3"};
+
+// Websites. steps = which steps the link shows on.
+const LINKS = [
+  {steps:[1,6,7,8,9], title:"Times Tables Rock Stars", text:"Keep your times tables quick. You'll need them for steps 6 to 9.", url:"https://play.ttrockstars.com"},
+  {steps:[1,2,4], title:"Hit the Button", text:"Times tables, plus multiplying and dividing by 10, 100 and 1000 against the clock.", url:"https://www.topmarks.co.uk/maths-games/hit-the-button"},
+  {steps:[2,3,4,5], title:"MathsBot place value", text:"Interactive place value chart. Go to Manipulatives, then Place Value.", url:"https://mathsbot.com"},
+  {steps:[2,3,4,5,6,7,8,9], title:"Corbettmaths", text:"Videos and practice questions. Search for “multiplying by 10” or “dividing decimals”.", url:"https://corbettmaths.com/contents/"}
+];
+
+// Files in this topic folder. path is relative to this page.
+const SUB = "Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/";
+const FILES = [
+  {steps:[2,3,4,5], kind:"Printable scaffold", title:"Multiplying and dividing by 10, 100 and 1000 scaffold", path:SUB+"Multiplying and Dividing by 10, 100 and 1000 Scaffold (MNU 3-03b).docx"},
+  {steps:[2,3,4,5], kind:"Printable scaffold", title:"Scaffold for every question", path:SUB+"multiply-divide-by-10-100-1000 scaffold for every question_B.pdf"},
+  {steps:[2,3,4,5], kind:"Printable scaffold", title:"Place value table", path:SUB+"multiply-divide-by-10-100-1000-table_G_E.pdf"},
+  {steps:[2,3,6], kind:"PowerPoint", title:"Bigger or smaller? Multiplying", path:SUB+"Bigger or Smaller multiplying by multiples of 10 100 1000.pptx"},
+  {steps:[4,5,8], kind:"PowerPoint", title:"Bigger or smaller? Dividing", path:SUB+"Bigger or Smaller dividing by multiples of 10 100 1000.pptx"}
+];
+
+const WE = {
+ 1:[{q:"7 × 8",steps:["Know it straight away: 7 × 8 = 56.","Turn it around: 8 × 7 = 56 as well.","Use it for division: 56 ÷ 7 = 8 and 56 ÷ 8 = 7."],a:"56",note:"One fact gives you four facts."},
+    {q:"6 × 9",steps:["Can't remember it? Start from a fact you know: 5 × 9 = 45.","Add one more 9: 45 + 9 = 54."],a:"54"}],
+ 2:[{q:"44 × 10",steps:["Put 44 in the chart: 4 tens and 4 ones.","× 10 makes each digit worth ten times more, so every digit moves one place to the left.","The ones column is now empty, so put a 0 there as a placeholder."],a:"440",pv:"44"},
+    {q:"34 × 100",steps:["× 100 means every digit moves two places to the left.","3 tens become 3 thousands. 4 ones become 4 hundreds.","Put zeros in the tens and ones columns."],a:"3400",pv:"34"},
+    {q:"256 × 1000",steps:["× 1000: every digit moves three places to the left.","For a whole number, that's the same as writing three zeros on the end."],a:"256000",note:"Writing zeros on the end only works for whole numbers. Watch out in the next step!"}],
+ 3:[{q:"2.9 × 100",steps:["Put 2.9 in the chart: 2 ones and 9 tenths.","× 100: every digit moves two places to the left.","2 becomes 2 hundreds, 9 becomes 9 tens. The ones column is empty, so put a 0 there."],a:"290",pv:"2.9"},
+    {q:"45.7 × 1000",steps:["× 1000: every digit moves three places to the left.","4 → ten thousands, 5 → thousands, 7 → hundreds.","Put zeros in the tens and ones columns."],a:"45700",pv:"45.7"},
+    {q:"3.14 × 10",steps:["× 10: every digit moves one place to the left.","3 → tens, 1 → ones, 4 → tenths."],a:"31.4",pv:"3.14",note:"The decimal point doesn't move, the digits do. Writing a zero on the end gives 3.140, which is still 3.14."}],
+ 4:[{q:"72 ÷ 10",steps:["÷ 10 makes each digit worth ten times less, so every digit moves one place to the right.","7 tens become 7 ones. 2 ones become 2 tenths."],a:"7.2",pv:"72"},
+    {q:"452 ÷ 100",steps:["÷ 100: every digit moves two places to the right.","4 hundreds → 4 ones, 5 tens → 5 tenths, 2 ones → 2 hundredths."],a:"4.52",pv:"452"},
+    {q:"6 ÷ 1000",steps:["÷ 1000: the digit moves three places to the right.","6 ones become 6 thousandths.","Zeros hold the ones, tenths and hundredths places."],a:"0.006",pv:"6"}],
+ 5:[{q:"7.3 ÷ 10",steps:["Every digit moves one place to the right.","7 ones → 7 tenths. 3 tenths → 3 hundredths.","The ones column is empty, so put a 0 there."],a:"0.73",pv:"7.3"},
+    {q:"45.32 ÷ 100",steps:["Every digit moves two places to the right.","4 tens → 4 tenths, 5 ones → 5 hundredths, 3 tenths → 3 thousandths, 2 hundredths → 2 ten-thousandths.","Put a 0 in the ones column."],a:"0.4532",pv:"45.32"}],
+ 6:[{q:"60 × 70",steps:["Split each number up: 6 × 10 × 7 × 10.","Use the fact 6 × 7 = 42.","× 10 × 10 is the same as × 100, so 42 × 100."],a:"4200"},
+    {q:"300 × 40",steps:["Use the fact 3 × 4 = 12.","300 is 3 × 100 and 40 is 4 × 10, so that's × 1000 altogether.","12 × 1000"],a:"12000"},
+    {q:"500 × 80",steps:["Use the fact 5 × 8 = 40.","× 100 × 10 = × 1000.","40 × 1000"],a:"40000",note:"The fact 5 × 8 = 40 already ends in a zero, so there are more zeros in the answer than in the question."}],
+ 7:[{q:"0.4 × 0.6",steps:["0.4 is 4 ÷ 10 and 0.6 is 6 ÷ 10.","Use the fact 4 × 6 = 24.","÷ 10 ÷ 10 is the same as ÷ 100, so 24 ÷ 100."],a:"0.24"},
+    {q:"0.3 × 0.02",steps:["Use the fact 3 × 2 = 6.","0.3 is ÷ 10 and 0.02 is ÷ 100, so that's ÷ 1000 altogether.","6 ÷ 1000"],a:"0.006"},
+    {q:"0.5 × 0.8",steps:["Use the fact 5 × 8 = 40.","÷ 10 ÷ 10 = ÷ 100.","40 ÷ 100 = 0.40, which is 0.4"],a:"0.4"}],
+ 8:[{q:"720 ÷ 90",steps:["Divide both numbers by 10. The answer stays the same: 72 ÷ 9.","Use the fact 72 ÷ 9 = 8."],a:"8"},
+    {q:"4800 ÷ 60",steps:["Divide both numbers by 10: 480 ÷ 6.","Use the fact 48 ÷ 6 = 8, so 480 ÷ 6 = 80."],a:"80"},
+    {q:"3500 ÷ 700",steps:["Divide both numbers by 100: 35 ÷ 7.","Use the fact 35 ÷ 7 = 5."],a:"5"}],
+ 9:[{q:"4.8 ÷ 6",steps:["4.8 is 48 tenths.","Use the fact 48 ÷ 6 = 8.","8 tenths is 0.8."],a:"0.8"},
+    {q:"4.8 ÷ 0.6",steps:["Multiply both numbers by 10. The answer stays the same: 48 ÷ 6.","Use the fact 48 ÷ 6 = 8."],a:"8"},
+    {q:"0.35 ÷ 7",steps:["0.35 is 35 hundredths.","Use the fact 35 ÷ 7 = 5.","5 hundredths is 0.05."],a:"0.05"}]
+};
+
+const FACTS = [
+  {q:"How many millimetres are in 1 centimetre?",a:"10 mm = 1 cm"},
+  {q:"How many centimetres are in 1 metre?",a:"100 cm = 1 m"},
+  {q:"How many millimetres are in 1 metre?",a:"1000 mm = 1 m"},
+  {q:"How many metres are in 1 kilometre?",a:"1000 m = 1 km"},
+  {q:"How many grams are in 1 kilogram?",a:"1000 g = 1 kg"},
+  {q:"How many kilograms are in 1 tonne?",a:"1000 kg = 1 tonne"},
+  {q:"How many millilitres are in 1 litre?",a:"1000 ml = 1 litre"},
+  {q:"To change cm to mm, do you multiply or divide? By what?",a:"Multiply by 10"},
+  {q:"To change mm to cm, do you multiply or divide? By what?",a:"Divide by 10"},
+  {q:"To change m to cm, do you multiply or divide? By what?",a:"Multiply by 100"},
+  {q:"To change cm to m, do you multiply or divide? By what?",a:"Divide by 100"},
+  {q:"To change km to m, do you multiply or divide? By what?",a:"Multiply by 1000"},
+  {q:"To change g to kg, do you multiply or divide? By what?",a:"Divide by 1000"},
+  {q:"To change litres to ml, do you multiply or divide? By what?",a:"Multiply by 1000"}
+];
+
+/* ---------- Number helpers (exact, no rounding errors) ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+function fmt(n,dp){ // value = n / 10^dp
+  let s=String(n);
+  if(dp<=0) return n===0?'0':s+'0'.repeat(-dp);
+  s=s.padStart(dp+1,'0');
+  const i=s.slice(0,s.length-dp), f=s.slice(s.length-dp).replace(/0+$/,'');
+  return f?i+'.'+f:i;
+}
+const P=k=>10**k;
+const decM=(maxDp)=>{const dp=rnd(1,maxDp); let m=rnd(11,dp===1?999:9999); if(m%10===0) m+=rnd(1,9); return {m,dp};};
+const zeros=k=>k===0?'no zeros':k===1?'one zero':k+' zeros';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Question generators ---------- */
+const GEN = {
+ 1:()=>{const a=rnd(2,12),b=rnd(2,12);return {q:`${a} × ${b}`,a:String(a*b)};},
+ 2:()=>{const k=rnd(1,3),n=rnd(0,1)?rnd(2,99):rnd(100,999);return {q:`${n} × ${P(k)}`,a:fmt(n,-k)};},
+ 3:()=>{const {m,dp}=decM(2),k=rnd(1,3);return {q:`${fmt(m,dp)} × ${P(k)}`,a:fmt(m,dp-k)};},
+ 4:()=>{const k=rnd(1,3),n=rnd(2,9999);return {q:`${n} ÷ ${P(k)}`,a:fmt(n,k)};},
+ 5:()=>{const {m,dp}=decM(2),k=rnd(1,3);return {q:`${fmt(m,dp)} ÷ ${P(k)}`,a:fmt(m,dp+k)};},
+ 6:()=>{
+   const d1=rnd(2,9),d2=rnd(2,9),e1=rnd(1,2),e2=rnd(e1===2?0:1,3-e1);
+   const A=d1*P(e1),B=d2*P(e2),ans=fmt(d1*d2,-(e1+e2));
+   const [x,y,ex,ey]=rnd(0,1)?[A,B,e1,e2]:[B,A,e2,e1];
+   return {q:`${x} × ${y}`,a:ans,steps:[
+     `Use the fact ${d1} × ${d2} = ${d1*d2}.`,
+     `${x} has ${zeros(ex)} and ${y} has ${zeros(ey)}, so multiply by ${P(e1+e2)}.`,
+     `${d1*d2} × ${P(e1+e2)} = ${ans}`]};
+ },
+ 7:()=>{
+   const d1=rnd(2,9),d2=rnd(2,9),e1=rnd(1,2),e2=rnd(0,3-e1);
+   const A=fmt(d1,e1),B=fmt(d2,e2),t=e1+e2,ans=fmt(d1*d2,t);
+   const [x,y]=rnd(0,1)?[A,B]:[B,A];
+   return {q:`${x} × ${y}`,a:ans,steps:[
+     `Ignore the decimal points for now: ${d1} × ${d2} = ${d1*d2}.`,
+     `There ${t===1?'is 1 digit':'are '+t+' digits'} after the decimal points in the question, so divide by ${P(t)}.`,
+     `${d1*d2} ÷ ${P(t)} = ${ans}`]};
+ },
+ 8:()=>{
+   const d=rnd(2,9),q=rnd(2,9),e=rnd(1,2),k=rnd(0,1);
+   const top=d*q*P(e+k),bot=d*P(e),ans=fmt(q,-k);
+   const s=[`Divide both numbers by ${P(e)}. The answer stays the same: ${d*q*P(k)} ÷ ${d}.`,
+            `Use the fact ${d*q} ÷ ${d} = ${q}.`];
+   if(k) s.push(`So ${d*q*10} ÷ ${d} = ${ans}.`);
+   return {q:`${top} ÷ ${bot}`,a:ans,steps:s};
+ },
+ 9:()=>{
+   const d=rnd(2,9),q=rnd(2,9),e=rnd(1,2),top=fmt(d*q,e),unit=e===1?'tenths':'hundredths';
+   if(rnd(0,1)){
+     const ans=fmt(q,e);
+     return {q:`${top} ÷ ${d}`,a:ans,steps:[`${top} is ${d*q} ${unit}.`,`Use the fact ${d*q} ÷ ${d} = ${q}.`,`${q} ${unit} is ${ans}.`]};
+   }
+   return {q:`${top} ÷ ${fmt(d,e)}`,a:String(q),steps:[`Multiply both numbers by ${P(e)}. The answer stays the same: ${d*q} ÷ ${d}.`,`Use the fact ${d*q} ÷ ${d} = ${q}.`]};
+ }
+};
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();if(seen.has(g.q))continue;seen.add(g.q);out.push({...g,st});}
+  return out;
+}
+
+/* ---------- Learning sequence (sidebar) ---------- */
+const stepsEl=document.getElementById('steps');
+STEPS.forEach((st,i)=>{
+  const n=i+1, li=document.createElement('li');
+  li.innerHTML=`<button class="step" data-view="${n}"><span class="num">${n}</span>
+    <span class="txt">${esc(st.s)}${st.eg?`<span class="eg">${esc(st.eg)}</span>`:''}${st.tag?`<span class="tag">${esc(st.tag)}</span>`:''}</span></button>`;
+  stepsEl.appendChild(li);
+});
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';           // 'all' or a step number
+const qSel=new Set([1,2,3,4,5,6,7,8,9]); // steps chosen for the whole-topic check in
+
+function showView(v){
+  view=v;
+  const isStep=v!=='all';
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===String(v))));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = (s.dataset.for==='step')!==isStep);
+
+  const kicker=document.getElementById('kicker'), title=document.getElementById('title'), heroEg=document.getElementById('heroEg');
+  const jumps = isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['tasks','Rich tasks'],['games','Games']];
+  document.getElementById('jump').innerHTML = jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('') +
+    (isStep ? `<li class="stepnav">${v>1?`<button class="btn alt" data-go="${v-1}">← Step ${v-1}</button>`:''}${v<STEPS.length?`<button class="btn" data-go="${v+1}">Step ${v+1} →</button>`:''}</li>` : '');
+
+  if(isStep){
+    const st=STEPS[v-1];
+    kicker.textContent=`Step ${v} of ${STEPS.length}`;
+    title.textContent=st.s;
+    heroEg.textContent=st.eg||st.tag||'';
+    renderExamples(v);
+    renderScaffold(v);
+    renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=`New questions for step ${v} every time.`;
+  } else {
+    kicker.textContent='Number Work · S1 Term 1';
+    title.textContent='Multiplying and dividing by 10, 100 and 1000';
+    heroEg.textContent='Moving digits along the place value chart, then using times tables facts to multiply and divide with multiples of 10 and 0.1.';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include.';
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){location.hash='step-'+g.dataset.go;}
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d+)$/);
+  const v = m && +m[1]>=1 && +m[1]<=STEPS.length ? +m[1] : 'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples ---------- */
+function renderExamples(n){
+  document.getElementById('exs').innerHTML=(WE[n]||[]).map(ex=>`
+    <div class="ex">
+      <div class="exq">${ex.q}</div>
+      <ol>${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+      <div class="exa">${ex.q} = ${ex.a}</div>
+      ${ex.note?`<div class="note">${ex.note}</div>`:''}
+      ${ex.pv?`<button class="btn alt try" data-pv="${ex.pv}">Try it on the place value slider</button>`:''}
+    </div>`).join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-pv]'); if(!t) return;
+  document.getElementById('pvNum').value=t.dataset.pv; pvLoad(); document.getElementById('slider').scrollIntoView();
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'), qsEl=document.getElementById('qs');
+for(let n=1;n<=STEPS.length;n++){
+  const b=document.createElement('button');
+  b.className='chip';b.textContent=n;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${n}`);
+  b.onclick=()=>{qSel.has(n)?qSel.delete(n):qSel.add(n);b.setAttribute('aria-pressed',qSel.has(n));newChecks();};
+  chips.appendChild(b);
+}
+function newChecks(){
+  const steps = view==='all' ? [...qSel] : [view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  qsEl.innerHTML=out.map(g=>`<li><span class="q">${g.q} =</span><span class="a">${g.a}</span>${view==='all'?`<span class="from">Step ${g.st}</span>`:''}</li>`).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(n){
+  const kind=SCAFFOLD[n];
+  document.getElementById('ttGrid').hidden = kind!=='tt';
+  document.getElementById('slider').hidden = kind!=='pv';
+  document.getElementById('breakdown').hidden = kind!=='bd';
+  if(kind==='pv'){
+    document.getElementById('grpMul').hidden = n>=4;   // steps 2–3 multiply, 4–5 divide
+    document.getElementById('grpDiv').hidden = n<=3;
+    document.getElementById('pvNum').value=PV_START[n]; pvLoad();
+  }
+  if(kind==='bd') newBD();
+}
+
+/* Times tables grid */
+const tt=document.getElementById('tt');
+(function(){
+  let h='<tr><th>×</th>'+Array.from({length:12},(_,j)=>`<th data-c="${j+1}">${j+1}</th>`).join('')+'</tr>';
+  for(let i=1;i<=12;i++){h+=`<tr><th data-r="${i}">${i}</th>`+Array.from({length:12},(_,j)=>`<td data-r="${i}" data-c="${j+1}">${i*(j+1)}</td>`).join('')+'</tr>';}
+  tt.innerHTML=h;
+})();
+tt.addEventListener('click',e=>{
+  const td=e.target.closest('td'); if(!td) return;
+  const r=+td.dataset.r,c=+td.dataset.c;
+  tt.querySelectorAll('.hl,.pick').forEach(x=>x.classList.remove('hl','pick'));
+  tt.querySelectorAll('td,th').forEach(x=>{
+    const xr=+x.dataset.r||0, xc=+x.dataset.c||0;
+    if((xr===r && xc<=c && xc>0) || (xc===c && xr<=r && xr>0) || (x.tagName==='TH' && (xr===r||xc===c))) x.classList.add('hl');
+  });
+  td.classList.add('pick');
+  document.getElementById('ttOut').textContent=`${r} × ${c} = ${r*c}`;
+});
+const ttHide=document.getElementById('ttHide');
+ttHide.onclick=()=>{const on=tt.classList.toggle('hide');ttHide.setAttribute('aria-pressed',on);ttHide.textContent=on?'Show the numbers':'Hide the numbers';};
+
+/* Place value slider */
+const PV_LABEL=['HTh','TTh','Th','H','T','O','t','h','th','tth'];
+const PV_NAME=['Hundred thousands','Ten thousands','Thousands','Hundreds','Tens','Ones','Tenths','Hundredths','Thousandths','Ten-thousandths'];
+const heads=document.getElementById('pvHeads'), track=document.getElementById('pvTrack');
+PV_LABEL.forEach((l,i)=>{const d=document.createElement('div');d.textContent=l;d.title=PV_NAME[i];if(i>5)d.className='dec';heads.appendChild(d);
+  const c=document.createElement('div');c.className='cell';track.insertBefore(c,track.querySelector('.pv-point'));});
+let pv={s:'',dp:0,shift:0}, tiles=[];
+function pvParse(str){
+  str=str.trim();
+  if(!/^\d{1,6}(\.\d{1,4})?$/.test(str)) return null;
+  let [i,f='']=str.split('.'); f=f.replace(/0+$/,'');
+  const s=(i+f).replace(/^0+/,''); if(!s) return null;
+  return {s,dp:f.length,shift:0};
+}
+function pvLoad(){
+  const p=pvParse(document.getElementById('pvNum').value), err=document.getElementById('pvErr');
+  if(!p){err.textContent='Type a number like 45.7 (up to 6 digits before the point and 4 after).';return;}
+  err.textContent=''; pv=p;
+  tiles.forEach(t=>t.remove());
+  tiles=[...pv.s].map(d=>{const t=document.createElement('div');t.className='tile';t.innerHTML=`<span>${d}</span>`;track.appendChild(t);return t;});
+  pvRender();
+}
+function pvRender(){
+  const L=pv.s.length;
+  tiles.forEach((t,i)=>{const p=(L-1-i)-pv.dp+pv.shift;t.style.left=((5-p)*10)+'%';});
+  track.querySelectorAll('.tile.zero').forEach(z=>z.remove());
+  const hi=(L-1)-pv.dp+pv.shift, lo=-pv.dp+pv.shift, zs=[];
+  if(lo>0) for(let p=lo-1;p>=0;p--) zs.push(p);
+  if(hi<0) for(let p=0;p>hi;p--) zs.push(p);
+  zs.forEach(p=>{const z=document.createElement('div');z.className='tile zero';z.style.left=((5-p)*10)+'%';z.innerHTML='<span>0</span>';track.appendChild(z);});
+  const start=fmt(Number(pv.s),pv.dp), now=fmt(Number(pv.s),pv.dp-pv.shift), t=pv.shift;
+  document.getElementById('pvOut').textContent = t===0 ? start : `${start} ${t>0?'×':'÷'} ${P(Math.abs(t))} = ${now}`;
+  const max=5-(L-1-pv.dp), min=-4+pv.dp;
+  document.querySelectorAll('[data-shift]').forEach(b=>{const k=+b.dataset.shift;b.disabled=pv.shift+k>max||pv.shift+k<min;});
+}
+document.querySelectorAll('[data-shift]').forEach(b=>b.onclick=()=>{pv.shift+=+b.dataset.shift;pvRender();});
+document.getElementById('pvLoad').onclick=pvLoad;
+document.getElementById('pvNum').addEventListener('keydown',e=>{if(e.key==='Enter')pvLoad();});
+document.getElementById('pvReset').onclick=()=>{pv.shift=0;pvRender();};
+
+/* Break it down */
+let bd=null, shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIn=document.getElementById('bdIn'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  const n = view==='all' ? pick([6,7,8,9]) : view;
+  bd=GEN[n](); shown=0;
+  bdQ.textContent=bd.q+' = ?'; bdSteps.innerHTML=''; bdIn.value=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.textContent=bd.steps[shown++];bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+document.getElementById('bdCheck').onclick=()=>{
+  const v=bdIn.value.replace(/[\s,]/g,'');
+  if(!v){bdFb.textContent='Type your answer first.';bdFb.className='feedback no';return;}
+  const ok=Number(v)===Number(bd.a);
+  bdFb.textContent=ok?`Correct: ${bd.q} = ${bd.a}`:'Not yet. Check your answer or show a hint.';
+  bdFb.className='feedback '+(ok?'ok':'no');
+};
+bdIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+function renderLinks(n){
+  const web=LINKS.filter(l=>l.steps.includes(n)).map(l=>
+    `<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open ${esc(l.title)}</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(n)).map(f=>
+    `<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${esc(encodeURI(f.path))}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+
+    `<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+
+function buildDeckMenu(v){
+  const opts = v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['tt','Times tables'],['facts','Unit conversions']]
+    : [['step',`Step ${v} questions`], ...(v>=2&&v<=5?[['facts','Unit conversions (uses ×/÷ by 10, 100, 1000)']]:[]), ...(v>=6?[['tt','Times tables (you need these here)']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='facts') return shuffle(FACTS).slice(0,12);
+  const steps = type==='tt' ? [1] : type==='step' ? [view] : [2,3,4,5,6,7,8,9];
+  return makeQs(steps,12).map(g=>({q:g.q+' = ?',a:g.a}));
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i];
+  fcSetFlip(false);
+  fcFront.textContent=c.q;
+  setTimeout(()=>{fcBack.textContent=c.a;},250); // wait until the card has turned back so the next answer isn't seen
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+
+    (left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){ if(!fc.flipped) return; knew?fc.known++:fc.again.push(fc.deck[fc.i]); fc.i++; fcShow(); }
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true);
+fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Start ---------- */
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s1/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

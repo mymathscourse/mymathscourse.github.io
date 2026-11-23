@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scale Drawing and Bearings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#DCEDEC; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B; --hi:#C8501E;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.wk{font-family:var(--head);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A9C4C3;margin:1rem .3rem .3rem}
+.wk:first-of-type{margin-top:0}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.95rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem;max-width:65ch}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none;align-items:center}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--body);font-size:1.05rem;font-weight:700;line-height:1.5;color:var(--deep)}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex li{margin:.25rem 0}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.25rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:.75rem;counter-reset:q}
+@media (max-width:560px){.qs{grid-template-columns:1fr}}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.3rem;background:#FBFCFC}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-size:1.1rem;line-height:1.5}
+.qs .a{font-family:var(--head);font-size:1.2rem;color:var(--sea);font-weight:700;visibility:hidden}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+.qs .dr svg{max-width:190px;margin:.2rem 0}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q,#qPanel:fullscreen .qs .a{font-size:1.6rem}
+#qPanel:fullscreen .qs .dr svg{max-width:260px}
+
+/* Scaffolds */
+.scaffold+.scaffold{margin-top:1rem}
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.bd-q{font-family:var(--body);font-size:1.25rem;font-weight:700;line-height:1.5;max-width:60ch;color:var(--deep)}
+.bd-q .dr svg{max-width:220px;margin:.4rem 0}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.35rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer input{width:11rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.bd-tip{font-size:.9rem;color:var(--muted);margin-top:.4rem}
+
+/* Step-by-step drawing */
+.dr-controls{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:flex-end;margin-bottom:1rem}
+.dr-controls label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);gap:.15rem}
+.dr-controls input,.dr-controls select{padding:.35rem .45rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1rem;color:var(--ink);background:var(--paper)}
+.dr-controls input{width:6rem}
+.dr-fields{display:flex;flex-wrap:wrap;gap:.6rem}
+.dr-wrap{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+@media (max-width:820px){.dr-wrap{grid-template-columns:1fr}}
+.dr-steps{margin:0;padding-left:1.3rem}
+.dr-steps li{margin:.4rem 0;color:var(--muted)}
+.dr-steps li.now{color:var(--ink);font-weight:700}
+.dr-btns{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+
+/* Diagrams */
+.dr svg{width:100%;max-width:560px;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:8px}
+.dr line,.dr polyline,.dr path,.dr rect{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.dr .thick{stroke-width:3}
+.dr .faint{stroke:#8FA0A6;stroke-width:1.5}
+.dr .dash{stroke-dasharray:7 6}
+.dr .arc{stroke:var(--sea);stroke-width:2.5}
+.dr .grid{stroke:#DDE6E5;stroke-width:1}
+.dr .head{fill:var(--ink);stroke:none}
+.dr .pt{fill:var(--ink);stroke:none}
+.dr text{fill:var(--ink);font-family:var(--head);font-size:15px;text-anchor:middle;dominant-baseline:middle}
+.dr text.sm{font-size:12px;fill:var(--muted)}
+.dr text.big{font-size:20px;font-weight:700}
+.dr text.lab{font-size:17px;font-weight:700}
+.dr text.nlab{font-weight:700}
+.dr text.ang{fill:var(--sea);font-weight:700;font-size:14px}
+.dr .now line:not(.grid),.dr .now polyline,.dr .now path:not(.head),.dr .now rect:not(.grid){stroke:var(--hi)}
+.dr .now .head,.dr .now .pt{fill:var(--hi)}
+.dr .now text{fill:var(--hi)}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(580px,100%);height:320px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1rem,2.3vw,1.4rem);color:var(--deep);line-height:1.45;max-width:34ch;white-space:pre-line}
+.fc-text .dr svg{max-width:150px;margin:.4rem auto 0}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card p.task{color:var(--ink)}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card details{margin-top:auto;font-size:.95rem}
+.card summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+.card.wide{grid-column:span 2}
+@media (max-width:640px){.card.wide{grid-column:auto}}
+.card .dr svg{max-width:180px;margin:.3rem auto}
+
+/* Estimate the bearing */
+.eb{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+.eb .dr svg{width:200px}
+.eb-side{display:flex;flex-direction:column;gap:.5rem;flex:1;min-width:200px}
+.eb-side input{width:8rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.eb-score{font-family:var(--head);color:var(--muted);font-size:.95rem}
+
+/* Word scramble */
+.ws-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-bottom:1rem}
+.ws-top .fc-count{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .9rem;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.tog{display:inline-flex;gap:.4rem;align-items:center;font-size:.95rem;color:var(--muted);cursor:pointer}
+.tog input{width:1.1rem;height:1.1rem;accent-color:var(--sea)}
+.ws-one{text-align:center}
+.ws-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.5rem 0 1rem}
+.ws-tiles .gap{width:1.2rem}
+.ws-tiles span.t{width:2.6rem;height:3rem;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:1.6rem;color:var(--deep);box-shadow:0 3px 0 #C99C25}
+.ws-def{background:var(--sand-soft);border-radius:8px;padding:.6rem .9rem;max-width:52ch;margin:0 auto 1rem;text-align:left}
+.ws-def b{font-family:var(--head);color:var(--deep)}
+.ws-ans{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.ws-ans input{width:min(16rem,100%);padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem;text-transform:uppercase}
+.ws-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;counter-reset:w}
+.ws-list li{counter-increment:w;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;background:#FBFCFC}
+.ws-list li::before{content:counter(w);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem;display:block}
+.ws-list .scr{font-family:var(--head);font-weight:700;font-size:1.45rem;letter-spacing:.12em;color:var(--deep)}
+.ws-list .word{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.15rem;visibility:hidden}
+.ws-list.show .word{visibility:visible}
+.ws-list .d{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+#vocab:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#vocab:fullscreen .ws-list .scr{font-size:2rem}
+
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S2-t2-scale-drawing-and-bearings">Hub</a> › S2 Term 2 › Scale Drawing and Bearings</nav>
+</header>
+
+<div class="layout">
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <div id="seqWrap"></div>
+    <div class="whole">
+      <button class="step" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, rich tasks and games</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub"></p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+
+      <!-- Break it down -->
+      <div class="panel scaffold" id="sc-bd">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time.</p>
+        <div class="bd-q" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <label for="bdIn">Your answer</label>
+          <input id="bdIn" inputmode="text" autocomplete="off">
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <p class="bd-tip" id="bdTip"></p>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+
+      <!-- Step-by-step drawing -->
+      <div class="panel scaffold" id="sc-draw">
+        <h3>Step-by-step drawing</h3>
+        <p class="sub">Choose what to draw, type your own numbers or press <b>New numbers</b>, then press <b>Next step</b> to build the drawing one step at a time. The newest part is in orange.</p>
+        <div class="dr-controls">
+          <label>Draw <select id="drMode"></select></label>
+          <div class="dr-fields" id="drFields"></div>
+        </div>
+        <div class="dr-wrap">
+          <div class="dr" id="drSvg"></div>
+          <div>
+            <ol class="dr-steps" id="drSteps"></ol>
+            <div class="feedback no" id="drErr" role="status"></div>
+            <div class="dr-btns">
+              <button class="btn alt" id="drBack">← Back</button>
+              <button class="btn" id="drNext">Next step →</button>
+              <button class="btn alt" id="drAll">Show all</button>
+              <button class="btn alt" id="drNew">New numbers</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <section class="block" id="vocab" data-for="vocab" aria-labelledby="ws-title">
+      <div class="block-head"><h2 id="ws-title">Word scramble</h2><p>Unscramble the key words for this topic.</p></div>
+      <div class="panel">
+        <div class="ws-top">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="wsModeOne" aria-pressed="true">One at a time</button>
+            <button id="wsModeAll" aria-pressed="false">Whole list</button>
+          </div>
+          <label class="tog"><input type="checkbox" id="wsDefs"> Show the definitions</label>
+          <span class="fc-count" id="wsCount" aria-live="polite"></span>
+        </div>
+
+        <div class="ws-one" id="wsOne">
+          <div class="ws-tiles" id="wsTiles" aria-label="Scrambled letters"></div>
+          <div class="ws-def" id="wsDef" hidden></div>
+          <div class="ws-ans">
+            <label for="wsIn" class="sr">Your word</label>
+            <input id="wsIn" autocomplete="off" spellcheck="false" placeholder="Type the word">
+            <button class="btn" id="wsCheck">Check</button>
+            <button class="btn alt" id="wsDefBtn">Show the definition</button>
+            <button class="btn alt" id="wsReveal">Reveal</button>
+            <button class="btn alt" id="wsNext">Next word</button>
+          </div>
+          <div class="feedback" id="wsFb" role="status"></div>
+        </div>
+
+        <div id="wsAll" hidden>
+          <div class="controls">
+            <div class="btn-row" style="margin-left:0">
+              <button class="btn" id="wsReshuffle">New scramble</button>
+              <button class="btn alt" id="wsShowAll" aria-pressed="false">Show answers</button>
+              <button class="btn alt" id="wsFull">Full screen</button>
+            </div>
+          </div>
+          <ol class="ws-list" id="wsList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Think hard, explain your reasoning.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Week 4</span><h3>Plan the classroom</h3>
+          <p class="task">A classroom is 9 m long and 7 m wide. You want to draw a plan on A4 paper (29.7 cm by 21 cm), leaving a small border.</p>
+          <p>Which scale makes the plan as big as possible? Try 1 : 20, 1 : 30, 1 : 40 and 1 : 50.</p>
+          <details><summary>Answer</summary>1 : 30 gives 30 cm by 23.3 cm, which is too big. 1 : 40 gives 22.5 cm by 17.5 cm, which fits with a border, so it is the biggest. 1 : 50 (18 cm by 14 cm) also fits and is easier to work out: 1 cm stands for 0.5 m.</details></div>
+        <div class="card"><span class="kind">Week 4</span><h3>Twice as big?</h3>
+          <p class="task">Draw a 3 cm by 2 cm rectangle. Enlarge it by scale factor 2, then by scale factor 3.</p>
+          <p>What happens to the perimeter each time? What happens to the area? Can you predict scale factor 4?</p>
+          <details><summary>Answer</summary>Perimeter: 10 cm, 20 cm, 30 cm, so it is multiplied by the scale factor. Area: 6 cm², 24 cm², 54 cm², so it is multiplied by the scale factor squared (× 4, × 9). Scale factor 4: perimeter 40 cm, area 6 × 16 = 96 cm².</details></div>
+        <div class="card"><span class="kind">Week 5</span><h3>Why ± 180°?</h3>
+          <p class="task">The bearing of B from A is 070°. Draw it, with a North line at A and a North line at B.</p>
+          <p>Use the diagram to explain why the bearing of A from B is 250°. Why do North lines have to be parallel?</p>
+          <details><summary>Answer</summary>Carry the line AB on past B: it still points on 070°. Turning round to face A is a half turn, 180°, so 070° + 180° = 250°. North lines all point the same way (to the North Pole, which is very far away), so they are parallel. That is why the angles match at A and B.</details></div>
+        <div class="card"><span class="kind">Week 5</span><h3>Bearing riddles</h3>
+          <p class="task">1. I face 300°. I turn 90° clockwise, then 90° clockwise again. Which bearing do I face now?</p>
+          <p class="task">2. Can the bearing of B from A ever be the same as the bearing of A from B?</p>
+          <p class="task">3. Make up a riddle of your own for a partner.</p>
+          <details><summary>Answer</summary>1. 300 + 180 = 480, and 480 − 360 = 120°. 2. No: they always differ by exactly 180°.</details></div>
+        <div class="card"><span class="kind">Week 6</span><h3>Rescue at sea</h3>
+          <p class="task">Coastguard station B is 10 km due East of station A. A boat in trouble is on a bearing of 060° from A and 300° from B.</p>
+          <p>Make a scale drawing (1 cm : 1 km) to find where the boat is. How far is it from each station?</p>
+          <details><summary>Answer</summary>The lines cross about 5.8 km from each station. The triangle is isosceles: the angles at A and B are both 30° (90 − 60 and 300 − 270), so the boat is the same distance from both.</details></div>
+        <div class="card"><span class="kind">Week 6</span><h3>Impossible triangles</h3>
+          <p class="task">Try to construct triangles with these sides: (a) 3, 4, 5 cm; (b) 2, 3, 6 cm; (c) 5, 5, 10 cm; (d) 4, 4, 4 cm.</p>
+          <p>Which ones are impossible? Write a rule that tells you before you start.</p>
+          <details><summary>Answer</summary>(b) and (c) are impossible. In (b) the arcs never meet; in (c) the "triangle" is squashed flat into a straight line. Rule: the two shorter sides must add up to more than the longest side.</details></div>
+        <div class="card"><span class="kind">Challenge</span><h3>Orienteering loop</h3>
+          <p class="task">A loop has three legs of 2 km each and finishes back at the start. The first leg is on a bearing of 060°.</p>
+          <p>What are the bearings of the other two legs? Check with a scale drawing.</p>
+          <details><summary>Answer</summary>180° and 300°. The route is an equilateral triangle, so you turn 120° clockwise at each corner: 060 + 120 = 180, 180 + 120 = 300.</details></div>
+      </div>
+    </section>
+
+    <section class="block" id="talks" data-for="all" aria-labelledby="ft-title">
+      <div class="block-head"><h2 id="ft-title">Spot the mistake</h2><p>Who is right? What went wrong?</p></div>
+      <p style="margin:0 0 1rem;color:var(--muted)">Read each one on your own first, then explain the mistake to a partner. How would you help the pupil fix it?</p>
+      <div class="cards">
+        <div class="card"><span class="kind">Mistake 1</span><h3>Sam's bearing</h3><div class="dr" data-diag='{"ref":"N","side":-1,"a":50}'></div>
+          <p class="task">Sam says the bearing of B from A is 050°.</p>
+          <details><summary>Answer</summary>Sam measured anticlockwise. Bearings are always measured clockwise from North, so it is 360 − 50 = 310°.</details></div>
+        <div class="card"><span class="kind">Mistake 2</span><h3>Aisha's East</h3>
+          <p class="task">Aisha writes: "The bearing of East is 90°."</p>
+          <details><summary>Answer</summary>The angle is right, but bearings always have three figures: 090°.</details></div>
+        <div class="card"><span class="kind">Mistake 3</span><h3>Jack's way back</h3>
+          <p class="task">The bearing of B from A is 070°. Jack says the bearing of A from B must also be 070°.</p>
+          <details><summary>Answer</summary>Going back is a half turn, so add 180°: the bearing of A from B is 250°.</details></div>
+        <div class="card"><span class="kind">Mistake 4</span><h3>Ross's map</h3>
+          <p class="task">A map has a scale of 1 : 50 000. Ross says 4 cm on the map is 200 000 km.</p>
+          <details><summary>Answer</summary>4 × 50 000 = 200 000 is right, but it is 200 000 cm, not km. 200 000 cm = 2000 m = 2 km.</details></div>
+        <div class="card"><span class="kind">Mistake 5</span><h3>Mia's area</h3>
+          <p class="task">Mia enlarges a 3 cm by 2 cm rectangle by scale factor 2. She says the area doubles from 6 cm² to 12 cm².</p>
+          <details><summary>Answer</summary>Both lengths double, so the new rectangle is 6 cm by 4 cm and its area is 24 cm². The area is multiplied by 2 × 2 = 4.</details></div>
+        <div class="card"><span class="kind">Mistake 6</span><h3>Callum's protractor</h3><div class="dr" data-diag='{"ref":"N","side":1,"a":130}'></div>
+          <p class="task">Callum read the outside scale of his protractor and wrote 050°.</p>
+          <details><summary>Answer</summary>He read the wrong scale. The angle is obtuse (bigger than 90°), so it can't be 050°. Start from 0 on the North line: it is 130°.</details></div>
+      </div>
+    </section>
+
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Games and activities</h2><p>Quick practice for the whole class or on your own.</p></div>
+      <div class="cards">
+        <div class="card wide"><span class="kind">Quick-fire game</span><h3>Estimate the bearing</h3>
+          <p>No protractor! Estimate the bearing of B from A, then check. 3 points within 5°, 2 points within 15°, 1 point within 30°.</p>
+          <div class="eb">
+            <div class="dr" id="ebSvg"></div>
+            <div class="eb-side">
+              <label for="ebIn">Your estimate</label>
+              <div class="bd-answer"><input id="ebIn" inputmode="numeric" autocomplete="off" placeholder="e.g. 045"><button class="btn" id="ebCheck">Check</button><button class="btn alt" id="ebNext">Next</button></div>
+              <div class="feedback" id="ebFb" role="status"></div>
+              <span class="eb-score" id="ebScore"></span>
+            </div>
+          </div></div>
+        <div class="card"><span class="kind">Teaching tool</span><h3>Step-by-step drawing</h3><p>Map scales, room plans, enlargements, bearings, back bearings, journeys and triangle constructions, built one step at a time. Type your own numbers or make up new ones.</p>
+          <a class="open" href="#step-7">Open it on the journeys step</a></div>
+        <div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>
+      </div>
+    </section>
+
+    <footer>S2 Term 2 · Scale Drawing and Bearings · MTH 3-17b, MTH 3-17c, MTH 3-16a</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files
+   draw: {m: drawing mode, p: its numbers} opens that example in the step-by-step drawing.
+   diag: {ref: N/E/S/W, side: 1 clockwise or -1 anticlockwise, a: angle} draws a small bearing diagram.
+   ===================================================================== */
+const WEEKS = [
+  {label:"Week 4 · Scale and scale drawing", from:1, to:3},
+  {label:"Week 5 · Bearings", from:4, to:6},
+  {label:"Week 6 · Journeys and constructions", from:7, to:8}
+];
+const STEPS = [
+  {s:"I can use a scale to find real distances from a map or plan.", eg:"e.g. 1 cm : 2 km, 1 : 50 000"},
+  {s:"I can make a scale drawing of a room or plan.", eg:"e.g. a 6 m by 4 m room at 1 cm : 1 m"},
+  {s:"I can enlarge and reduce shapes using a scale factor.", eg:"e.g. enlarge a 4 cm by 3 cm rectangle by scale factor 2"},
+  {s:"I can use compass points and three-figure bearings.", eg:"e.g. East is 090°, South-west is 225°"},
+  {s:"I can measure and draw bearings accurately.", eg:"e.g. always clockwise from North; 300° is 60° anticlockwise"},
+  {s:"I can find a back bearing.", eg:"e.g. B from A is 070°, so A from B is 250°"},
+  {s:"I can make a scale drawing of a journey from bearings and distances.", eg:"e.g. 8 km on 050°, then 6 km on 140°"},
+  {s:"I can construct triangles accurately with a ruler, protractor and compasses.", eg:"e.g. SSS, SAS and ASA"}
+];
+// Scaffolds for each step (in order): draw = step-by-step drawing, bd = break it down
+const SCAFFOLD = {1:["bd","draw"],2:["bd","draw"],3:["bd","draw"],4:["draw","bd"],5:["draw","bd"],6:["draw","bd"],7:["draw","bd"],8:["draw","bd"]};
+// What the step-by-step drawing shows first on each step
+const DRAW_START = {1:{m:"map",p:{d:4.5,k:"km",s:2}}, 2:{m:"room",p:{L:6,W:4,s:1}}, 3:{m:"enlarge",p:{a:4,b:3,k:2}},
+  4:{m:"bearing",p:{b:135}}, 5:{m:"bearing",p:{b:300}}, 6:{m:"back",p:{b:70}},
+  7:{m:"journey",p:{b1:50,d1:8,b2:140,d2:6,b3:0,d3:0,s:2}}, 8:{m:"sss",p:{c:7,b:5,a:6}}};
+// Words shown in the word scramble on these steps (and on the whole topic)
+const VOCAB_STEPS = [1,4,8];
+
+const LINKS = [
+  {steps:[1,2,3,4,5,6,7,8], title:"Corbettmaths", text:"Videos and practice questions. Search for “scale drawings”, “bearings” or “constructions”.", url:"https://corbettmaths.com/contents/"},
+  {steps:[1,2,7], title:"OS Maps", text:"Real Ordnance Survey maps. Find your school and use the scale to measure real distances.", url:"https://explore.osmaps.com"},
+  {steps:[4,5,6,7], title:"Transum", text:"Bearings starters and practice. Search for “bearings”.", url:"https://www.transum.org"},
+  {steps:[3,8], title:"GeoGebra Geometry", text:"Draw and construct shapes on screen. Try constructing a triangle with circles (like compasses).", url:"https://www.geogebra.org/geometry"},
+  {steps:[1,2,3,4,5,6,7,8], title:"BBC Bitesize", text:"Notes and quizzes. Search for “scale drawing” or “bearings” at third level.", url:"https://www.bbc.co.uk/bitesize"}
+];
+const W = "I) Scale Drawing/Worksheets/";
+const FILES = [
+  {steps:[1,2,3], kind:"Worksheet", title:"Scale drawing practice sheet 2", path:W+"Scale drawing practice sheet 2.docx"},
+  {steps:[1,2,4,5,6,7], kind:"Worksheet", title:"Scale drawing and bearings practice", path:W+"Scale drawing and bearings practice.docx"}
+];
+
+const WE = {
+ 1:[{q:"A map has a scale of 1 cm : 2 km. Two towns are 4.5 cm apart on the map. How far apart are they in real life?",
+     steps:["1 cm on the map stands for 2 km.","Multiply: 4.5 × 2 = 9."],a:"9 km",draw:{m:"map",p:{d:4.5,k:"km",s:2}}},
+    {q:"A map has a scale of 1 : 50 000. A path is 6 cm long on the map. How long is the real path?",
+     steps:["1 cm on the map is 50 000 cm in real life.","Multiply: 6 × 50 000 = 300 000 cm.","Change to metres (÷ 100): 3000 m.","Change to km (÷ 1000): 3 km."],a:"3 km",draw:{m:"map",p:{d:6,k:"ratio",s:50000}},
+     note:"Quick way: 1 : 100 000 means 1 cm stands for 1 km. So 1 : 50 000 means 1 cm stands for 0.5 km."},
+    {q:"A map has a scale of 1 cm : 5 km. Two villages are 17.5 km apart. How far apart are they on the map?",
+     steps:["How many lots of 5 km are in 17.5 km?","Divide: 17.5 ÷ 5 = 3.5."],a:"3.5 cm",draw:{m:"map",p:{d:3.5,k:"km",s:5}},
+     note:"Map → real: multiply. Real → map: divide."}],
+ 2:[{q:"A bedroom is 6 m long and 4 m wide. Make a scale drawing using 1 cm : 1 m.",
+     steps:["Length: 6 ÷ 1 = 6 cm.","Width: 4 ÷ 1 = 4 cm.","Draw a rectangle 6 cm by 4 cm with a ruler. Write the scale on the drawing."],a:"6 cm by 4 cm",draw:{m:"room",p:{L:6,W:4,s:1}}},
+    {q:"A classroom is 9 m by 7 m. Draw it to a scale of 1 cm : 0.5 m.",
+     steps:["1 cm stands for 0.5 m, so 2 cm stand for 1 m.","Length: 9 ÷ 0.5 = 18 cm.","Width: 7 ÷ 0.5 = 14 cm."],a:"18 cm by 14 cm",draw:{m:"room",p:{L:9,W:7,s:0.5}},
+     note:"Dividing by 0.5 is the same as multiplying by 2."},
+    {q:"A wall is 3 m long. How long is it on a plan drawn at 1 : 50?",
+     steps:["Change to cm: 3 × 100 = 300 cm.","1 : 50 means everything is 50 times smaller: 300 ÷ 50 = 6."],a:"6 cm",draw:{m:"room",p:{L:3,W:2,s:0.5}},
+     note:"1 : 50 is the same as 1 cm : 50 cm, which is 1 cm : 0.5 m."}],
+ 3:[{q:"Enlarge a rectangle 4 cm by 3 cm by scale factor 2.",
+     steps:["Multiply every length by 2.","4 × 2 = 8 cm.","3 × 2 = 6 cm."],a:"8 cm by 6 cm",draw:{m:"enlarge",p:{a:4,b:3,k:2}}},
+    {q:"Reduce a rectangle 8 cm by 6 cm by scale factor ½.",
+     steps:["Multiply every length by ½ (the same as halving).","8 × ½ = 4 cm.","6 × ½ = 3 cm."],a:"4 cm by 3 cm",draw:{m:"enlarge",p:{a:8,b:6,k:0.5}},
+     note:"A scale factor less than 1 makes the shape smaller: a reduction."},
+    {q:"A photo 6 cm wide is enlarged to 15 cm wide. What is the scale factor? The photo was 4 cm tall. How tall is it now?",
+     steps:["Scale factor = new ÷ old = 15 ÷ 6 = 2.5.","New height = 4 × 2.5 = 10 cm."],a:"Scale factor 2.5, height 10 cm",draw:{m:"enlarge",p:{a:6,b:4,k:2.5}}}],
+ 4:[{q:"Write South-west as a three-figure bearing.",
+     steps:["Start facing North (000°).","South is 180°. South-west is halfway between South (180°) and West (270°).","180 + 45 = 225."],a:"225°",draw:{m:"bearing",p:{b:225}}},
+    {q:"Write East as a three-figure bearing.",
+     steps:["East is a quarter turn clockwise from North: 90°.","Bearings always have three figures, so put a 0 in front."],a:"090°",draw:{m:"bearing",p:{b:90}},
+     note:"Three figures: 5° → 005°, 45° → 045°, 135° → 135°."},
+    {q:"You face South-east and turn 90° clockwise. Which direction are you facing now?",
+     steps:["South-east is 135°.","Clockwise means add: 135 + 90 = 225°.","225° is South-west."],a:"South-west (225°)",draw:{m:"bearing",p:{b:225}}}],
+ 5:[{q:"Draw a bearing of 060° from A.",
+     steps:["Mark A and draw a North line.","Put the centre of the protractor on A with 0° on the North line.","Count clockwise round to 60° and make a mark.","Join A to the mark with a ruler."],a:"See the drawing",draw:{m:"bearing",p:{b:60}}},
+    {q:"Find the bearing of B from A.",diag:{ref:"N",side:-1,a:40},
+     steps:["The 40° is measured anticlockwise from North.","Bearings go clockwise, so the angle we want is the rest of the turn.","360 − 40 = 320."],a:"320°",draw:{m:"bearing",p:{b:320}}},
+    {q:"Find the bearing of B from A.",diag:{ref:"S",side:1,a:30},
+     steps:["The 30° is measured from South, going clockwise (towards West).","South is 180°.","180 + 30 = 210."],a:"210°",draw:{m:"bearing",p:{b:210}},
+     note:"To draw a bearing bigger than 180° with a semicircle protractor, measure 360 − bearing anticlockwise, or go to South (180°) and measure the rest."}],
+ 6:[{q:"The bearing of B from A is 070°. Find the bearing of A from B.",
+     steps:["Draw a North line at B. North lines are parallel.","To face back towards A you make a half turn: 180°.","070° is less than 180°, so add: 70 + 180 = 250."],a:"250°",draw:{m:"back",p:{b:70}}},
+    {q:"The bearing of Q from P is 300°. Find the bearing of P from Q.",
+     steps:["300° is more than 180°, so subtract 180°.","300 − 180 = 120."],a:"120°",draw:{m:"back",p:{b:300}},
+     note:"Less than 180°: add 180°. More than 180°: take away 180°. Check: the answer must be between 000° and 360°."},
+    {q:"A boat is North-east of a lighthouse. What is the bearing of the lighthouse from the boat?",
+     steps:["The bearing of the boat from the lighthouse is 045°.","Back bearing: 45 + 180 = 225."],a:"225° (South-west)",draw:{m:"back",p:{b:45}}}],
+ 7:[{q:"A ship sails 8 km on a bearing of 050°, then 6 km on a bearing of 140°. Make a scale drawing using 1 cm : 2 km. How far is the ship from the start?",
+     steps:["Leg 1: 8 ÷ 2 = 4 cm. Draw a North line at A, measure 050° and draw 4 cm to B.","Leg 2: 6 ÷ 2 = 3 cm. Draw a new North line at B, measure 140° and draw 3 cm to C.","Join C to A and measure it: 5 cm.","5 × 2 = 10 km."],a:"10 km",draw:{m:"journey",p:{b1:50,d1:8,b2:140,d2:6,b3:0,d3:0,s:2}},
+     note:"Draw a new North line at every point where the direction changes."},
+    {q:"A walker goes 3 km North, then 4 km East. Draw it at 1 cm : 1 km. How far is she from the start, and on what bearing must she walk to go straight back?",
+     steps:["Leg 1: 3 cm on 000°. Leg 2: 4 cm on 090°.","Join the end to the start: it measures 5 cm, so 5 km.","Draw a North line at the end and measure the angle to the start: about 233°."],a:"5 km on about 233°",draw:{m:"journey",p:{b1:0,d1:3,b2:90,d2:4,b3:0,d3:0,s:1}}},
+    {q:"On a scale drawing at 1 cm : 5 km, the line from the finish back to the start measures 6.4 cm. How far is that in real life?",
+     steps:["Each 1 cm stands for 5 km.","6.4 × 5 = 32."],a:"32 km",draw:{m:"journey",p:{b1:30,d1:20,b2:110,d2:25,b3:0,d3:0,s:5}}}],
+ 8:[{q:"Construct triangle ABC with AB = 7 cm, AC = 5 cm and BC = 6 cm. (SSS: three sides)",
+     steps:["Draw the base AB = 7 cm with a ruler.","Open the compasses to 5 cm. Point on A, draw an arc.","Open the compasses to 6 cm. Point on B, draw an arc that crosses the first one.","C is where the arcs cross. Join AC and BC. Leave the arcs showing."],a:"See the drawing",draw:{m:"sss",p:{c:7,b:5,a:6}}},
+    {q:"Construct triangle ABC with AB = 6 cm, angle A = 50° and AC = 4 cm. (SAS: two sides and the angle between them)",
+     steps:["Draw AB = 6 cm.","Protractor centre on A, 0° on AB. Mark 50° and draw a faint line.","Measure 4 cm along that line from A. Mark C.","Join BC."],a:"BC is about 4.6 cm",draw:{m:"sas",p:{c:6,A:50,b:4}}},
+    {q:"Construct triangle ABC with AB = 8 cm, angle A = 40° and angle B = 65°. (ASA: two angles and the side between them)",
+     steps:["Draw AB = 8 cm.","Measure 40° at A and draw a long line.","Measure 65° at B and draw a long line.","C is where the lines cross. Check: angle C = 180 − 40 − 65 = 75°."],a:"Angle C = 75°",draw:{m:"asa",p:{c:8,A:40,B:65}}}]
+};
+
+const RULES = [
+  {q:"Map distance → real distance",a:"Multiply by the scale.\n1 cm : 2 km, 4 cm → 4 × 2 = 8 km"},
+  {q:"Real distance → map distance",a:"Divide by the scale.\n1 cm : 2 km, 10 km → 10 ÷ 2 = 5 cm"},
+  {q:"What does 1 : 100 000 mean?",a:"1 cm on the map is 100 000 cm in real life.\n100 000 cm = 1000 m = 1 km"},
+  {q:"cm → m → km",a:"÷ 100 for cm to m.\n÷ 1000 for m to km."},
+  {q:"How do you enlarge a shape by a scale factor?",a:"Multiply every length by the scale factor.\nThe angles stay the same."},
+  {q:"How do you find a scale factor?",a:"new length ÷ old length\n15 ÷ 6 = 2.5"},
+  {q:"Scale factor less than 1 means…",a:"a reduction (the shape gets smaller)."},
+  {q:"Three rules for bearings",a:"1. Measure from North.\n2. Measure clockwise.\n3. Write three figures."},
+  {q:"Bearing of North-east",a:"045°"},
+  {q:"Bearing of South-west",a:"225°"},
+  {q:"Bearing of West",a:"270°"},
+  {q:"How do you find a back bearing?",a:"Less than 180°: add 180°.\nMore than 180°: take away 180°."},
+  {q:"Drawing a bearing bigger than 180°",a:"Measure 360 − bearing anticlockwise from North.\n300° → 60° anticlockwise"},
+  {q:"Scale drawing of a journey",a:"Draw a new North line at every point where the direction changes."},
+  {q:"SSS, SAS, ASA",a:"SSS: three sides (compasses).\nSAS: two sides and the angle between.\nASA: two angles and the side between."},
+  {q:"When can three sides make a triangle?",a:"When the two shorter sides add up to more than the longest side."}
+];
+const WORDS = [
+  {q:"Scale",a:"Tells you how a length on a map or drawing compares with the real length, e.g. 1 cm : 2 km."},
+  {q:"Ratio",a:"A way of comparing amounts, e.g. 1 : 50 000."},
+  {q:"Scale drawing",a:"An accurate drawing where every length is the real length made bigger or smaller by the same amount."},
+  {q:"Scale factor",a:"The number you multiply every length by to enlarge or reduce a shape."},
+  {q:"Enlargement",a:"Making a shape bigger (or smaller) with all lengths multiplied by the same scale factor."},
+  {q:"Reduction",a:"An enlargement with a scale factor less than 1: the shape gets smaller."},
+  {q:"Compass",a:"Shows the directions North, East, South and West. (Compasses are also used to draw circles and arcs.)"},
+  {q:"Bearing",a:"A direction given as an angle measured clockwise from North, written with three figures."},
+  {q:"Clockwise",a:"The way the hands of a clock turn."},
+  {q:"Protractor",a:"An instrument for measuring and drawing angles."},
+  {q:"Back bearing",a:"The bearing for the return journey: 180° more or less than the first bearing."},
+  {q:"Parallel",a:"Lines that are always the same distance apart and never meet, like North lines."},
+  {q:"Construct",a:"Draw accurately using a ruler, protractor and compasses."},
+  {q:"Arc",a:"Part of a circle, drawn with compasses."},
+  {q:"Triangle",a:"A shape with three straight sides. Its angles add up to 180°."}
+];
+
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r4=n=>Math.round(n*10000)/10000;
+/* Numbers: 50000 → 50 000 */
+const N=n=>{n=r4(n);let [i,f]=String(Math.abs(n)).split('.');if(i.length>4)i=i.replace(/\B(?=(\d{3})+(?!\d))/g,' ');return (n<0?'−':'')+i+(f?'.'+f:'');};
+const B3=b=>String(((Math.round(b)%360)+360)%360).padStart(3,'0')+'°';  // three-figure bearing
+const PEOPLE=[['Ruaridh','he'],['Eilidh','she'],['Calum','he'],['Iona','she'],['Kenny','he'],['Morag','she'],['Finlay','he'],['Kirsty','she']];
+const COMPASS=[['North','N',0],['North-east','NE',45],['East','E',90],['South-east','SE',135],['South','S',180],['South-west','SW',225],['West','W',270],['North-west','NW',315]];
+const cName=d=>COMPASS.find(c=>c[2]===((d%360)+360)%360);
+const normW=s=>String(s).toLowerCase().replace(/[^a-z]/g,'');
+
+/* ---------- Drawing helpers (angles are bearings: 0 = up, clockwise) ---------- */
+const rad=d=>d*Math.PI/180;
+const f1=n=>Math.round(n*10)/10;
+const P=(p,r,b)=>[p[0]+r*Math.sin(rad(b)),p[1]-r*Math.cos(rad(b))];
+const brg=(p,q)=>(Math.atan2(q[0]-p[0],-(q[1]-p[1]))*180/Math.PI+360)%360;
+const ln=(a,b,cls)=>`<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}"${cls?` class="${cls}"`:''}/>`;
+const tx=(p,s,cls)=>`<text x="${f1(p[0])}" y="${f1(p[1])}"${cls?` class="${cls}"`:''}>${s}</text>`;
+const dot=(p,lab,off=[-14,16])=>`<circle class="pt" cx="${f1(p[0])}" cy="${f1(p[1])}" r="4"/>`+(lab?tx([p[0]+off[0],p[1]+off[1]],lab,'lab'):'');
+function arcB(p,r,from,to,cls='arc'){   // clockwise from one bearing to another
+  const sp=((to-from)%360+360)%360||0, n=Math.max(2,Math.ceil(sp/4)), pts=[];
+  for(let i=0;i<=n;i++) pts.push(P(p,r,from+sp*i/n).map(f1).join(','));
+  return `<polyline class="${cls}" points="${pts.join(' ')}"/>`;
+}
+const angLab=(p,r,from,to,s)=>tx(P(p,r,from+(((to-from)%360+360)%360)/2),s,'ang');
+function north(p,len=60){const q=[p[0],p[1]-len];
+  return ln(p,q)+`<path class="head" d="M${f1(q[0]-6)},${f1(q[1]+11)} L${f1(q[0])},${f1(q[1])} L${f1(q[0]+6)},${f1(q[1]+11)} Z"/>`+tx([q[0],q[1]-11],'N','nlab');}
+function sideLab(a,c,s,away){   // label beside a line, on the side away from the point 'away'
+  const m=[(a[0]+c[0])/2,(a[1]+c[1])/2], L=Math.hypot(c[0]-a[0],c[1]-a[1])||1;
+  let n=[-(c[1]-a[1])/L,(c[0]-a[0])/L];
+  if(away && (n[0]*(away[0]-m[0])+n[1]*(away[1]-m[1]))>0) n=[-n[0],-n[1]];
+  return tx([m[0]+n[0]*16,m[1]+n[1]*16],s,'sm');
+}
+function grid(x0,y0,x1,y1,u){let g='';
+  for(let x=x0;x<=x1+0.1;x+=u) g+=ln([x,y0],[x,y1],'grid');
+  for(let y=y0;y<=y1+0.1;y+=u) g+=ln([x0,y],[x1,y],'grid');
+  return g;}
+const rect=(x,y,w,h,cls)=>`<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}"${cls?` class="${cls}"`:''}/>`;
+/* Small bearing diagram for questions: {ref:N/E/S/W, side:1 clockwise or -1 anticlockwise, a:angle} */
+const REF={N:0,E:90,S:180,W:270};
+function diag(sp){
+  const A=[100,108], r0=REF[sp.ref], lb=r0+sp.side*sp.a;
+  let g=north(A,78);
+  if(sp.ref!=='N') g+=ln(A,P(A,72,r0),'dash faint')+tx(P(A,84,r0),sp.ref,'nlab');
+  const B=P(A,80,lb);
+  const away=P(A,18,(sp.side>0?r0+sp.a/2:r0-sp.a/2)+180);   // A's label goes opposite the angle
+  g+=ln(A,B,'thick')+dot(A)+tx(away,'A','lab')+tx(P(A,94,lb),'B','lab');
+  g+=sp.side>0?arcB(A,28,r0,r0+sp.a):arcB(A,28,r0-sp.a,r0);
+  g+=angLab(A,46,sp.side>0?r0:r0-sp.a,sp.side>0?r0+sp.a:r0,sp.a+'°');
+  return `<div class="dr"><svg viewBox="0 0 200 200" role="img" aria-label="Bearing diagram: ${sp.a} degrees ${sp.side>0?'clockwise':'anticlockwise'} from ${sp.ref}">${g}</svg></div>`;
+}
+
+/* ---------- Step-by-step drawing modes ----------
+   Each has fields [key, label, options?], def (start numbers), rand(), check(p) → message if the numbers won't work,
+   and stages(p) → [{t: text, g: svg}] */
+const MODES = {
+ map:{name:"Map scale", fields:[["d","Map distance (cm)"],["k","Scale type",[["km","1 cm : ? km"],["ratio","1 : ?"]]],["s","Scale number"]],
+  def:{d:4.5,k:"km",s:2},
+  rand:()=>rnd(0,1)?{d:pick([2.5,3,3.5,4,4.5,5,6,7]),k:"km",s:pick([2,3,4,5,10])}:{d:pick([2,3,4,5,6,8]),k:"ratio",s:pick([25000,50000,100000,200000])},
+  check:p=>p.d>0&&p.d<=20&&p.s>0?"":"Use a map distance between 0 and 20 cm, and a scale bigger than 0.",
+  stages(p){
+    const kmPer=p.k==="km"?p.s:p.s/100000, r=r4(p.d*kmPer);
+    const u=Math.min(40,400/p.d), x0=240-p.d*u/2, y=110, A=[x0,y], B=[x0+p.d*u,y], n=Math.floor(p.d+1e-9);
+    const e1=Math.max(1,Math.ceil(22/u)), e2=Math.max(1,Math.ceil(62/u));
+    let rl=rect(x0-12,y+18,p.d*u+24,42,'faint');
+    for(let i=0;i<=n;i++){const x=x0+i*u;rl+=ln([x,y+18],[x,y+(i%e1?28:34)],'faint')+(i%e1===0?tx([x,y+46],i,'sm'):'');}
+    let kmL=''; for(let i=e2;i<=n;i+=e2){const x=x0+i*u;kmL+=ln([x,y+62],[x,y+72],'faint')+tx([x,y+84],N(r4(i*kmPer))+' km','sm');}
+    const out=[{t:`On the map, A to B measures ${N(p.d)} cm.`,
+      g:rl+ln(A,B,'thick')+dot(A,'A',[0,-18])+dot(B,'B',[0,-18])+tx([240,y-34],N(p.d)+' cm','big')}];
+    if(p.k==="ratio"){
+      out.push({t:`1 : ${N(p.s)} means 1 cm on the map is ${N(p.s)} cm in real life.`,g:tx([240,250],`1 cm → ${N(p.s)} cm`,'big')});
+      out.push({t:`Change to km: ${N(p.s)} cm ÷ 100 = ${N(p.s/100)} m, then ÷ 1000 = ${N(kmPer)} km. So 1 cm stands for ${N(kmPer)} km.`,g:tx([240,282],`= ${N(kmPer)} km`,'big')+kmL});
+    } else out.push({t:`The scale 1 cm : ${N(p.s)} km means every 1 cm on the map stands for ${N(p.s)} km.`,g:kmL+tx([240,262],`1 cm → ${N(p.s)} km`,'big')});
+    out.push({t:`So ${N(p.d)} cm stands for ${N(p.d)} × ${N(kmPer)} = ${N(r)} km.`,g:tx([240,330],`${N(p.d)} cm → ${N(r)} km`,'big')});
+    return out;
+  }},
+ room:{name:"Room plan", fields:[["L","Real length (m)"],["W","Real width (m)"],["s","Scale 1 cm : ? m"]],
+  def:{L:6,W:4,s:1},
+  rand:()=>{const s=pick([0.5,1,2]);return {L:s*rnd(4,s===0.5?18:10),W:s*rnd(2,s===0.5?12:7),s};},
+  check:p=>p.L>0&&p.W>0&&p.s>0&&p.L/p.s<=20&&p.W/p.s<=14?"":"The drawing must fit: at most 20 cm long and 14 cm wide. Try a bigger scale number.",
+  stages(p){
+    const x=r4(p.L/p.s), y=r4(p.W/p.s), u=Math.min(34,400/(x+1),210/(y+1));
+    const ox=240-x*u/2, oy=120+(230-y*u)/2;
+    const gl=grid(ox-u*Math.floor((ox-20)/u),oy-u*Math.floor((oy-112)/u),ox+x*u+u*Math.floor((460-ox-x*u)/u),oy+y*u+u*Math.floor((370-oy-y*u)/u),u);
+    return [
+      {t:`The real room is ${N(p.L)} m long and ${N(p.W)} m wide.`,g:gl+tx([240,26],`Real: ${N(p.L)} m by ${N(p.W)} m`,'big')},
+      {t:`Length: ${N(p.L)} ÷ ${N(p.s)} = ${N(x)} cm.`,g:tx([240,62],`${N(p.L)} ÷ ${N(p.s)} = ${N(x)} cm`)},
+      {t:`Width: ${N(p.W)} ÷ ${N(p.s)} = ${N(y)} cm.`,g:tx([240,88],`${N(p.W)} ÷ ${N(p.s)} = ${N(y)} cm`)},
+      {t:`Draw a rectangle ${N(x)} cm by ${N(y)} cm. Each square on the grid is 1 cm. Write the scale on your drawing.`,
+       g:rect(ox,oy,x*u,y*u,'thick')+tx([ox+x*u/2,oy+y*u+14],N(x)+' cm','sm')+tx([ox-24,oy+y*u/2],N(y)+' cm','sm')+tx([ox+x*u/2,oy+y*u/2],`1 cm : ${N(p.s)} m`,'sm')}
+    ];
+  }},
+ enlarge:{name:"Enlarge a rectangle", fields:[["a","Length (cm)"],["b","Width (cm)"],["k","Scale factor"]],
+  def:{a:4,b:3,k:2},
+  rand:()=>{const k=pick([2,3,1.5,2.5,0.5]);return k===0.5?{a:2*rnd(2,6),b:2*rnd(1,4),k}:{a:rnd(2,4),b:rnd(1,3),k};},
+  check:p=>p.a>0&&p.b>0&&p.k>0&&p.a*p.k<=40&&p.b*p.k<=30&&p.a<=40&&p.b<=30?"":"Keep the shapes small enough to show: lengths up to 40 cm and widths up to 30 cm.",
+  stages(p){
+    const A=r4(p.a*p.k), Bw=r4(p.b*p.k), u=Math.min(30,400/(p.a+A+3),230/(Math.max(p.b,Bw)+1));
+    const x1=240-(p.a+A+2)*u/2, x2=x1+(p.a+2)*u, yb=350;
+    const gl=grid(x1-u*Math.floor((x1-20)/u),yb-u*Math.floor((yb-100)/u),x1+u*Math.floor((460-x1)/u),yb+u,u);
+    return [
+      {t:`The original rectangle is ${N(p.a)} cm by ${N(p.b)} cm. Each square is 1 cm.`,g:gl+rect(x1,yb-p.b*u,p.a*u,p.b*u,'thick')+tx([x1+p.a*u/2,yb+14],N(p.a)+' cm','sm')+tx([x1-22,yb-p.b*u/2],N(p.b)+' cm','sm')},
+      {t:`Multiply the length by the scale factor: ${N(p.a)} × ${N(p.k)} = ${N(A)} cm.`,g:tx([240,30],`${N(p.a)} × ${N(p.k)} = ${N(A)} cm`)},
+      {t:`Multiply the width by the scale factor: ${N(p.b)} × ${N(p.k)} = ${N(Bw)} cm.`,g:tx([240,58],`${N(p.b)} × ${N(p.k)} = ${N(Bw)} cm`)},
+      {t:`Draw the new rectangle ${N(A)} cm by ${N(Bw)} cm. ${p.k>1?'The scale factor is bigger than 1, so it is an enlargement.':p.k<1?'The scale factor is less than 1, so it is a reduction.':'Scale factor 1 keeps it the same size.'}`,
+       g:rect(x2,yb-Bw*u,A*u,Bw*u,'thick')+tx([x2+A*u/2,yb+14],N(A)+' cm','sm')+tx([x2+A*u+22,yb-Bw*u/2],N(Bw)+' cm','sm')}
+    ];
+  }},
+ bearing:{name:"Draw a bearing", fields:[["b","Bearing (°)"]],
+  def:{b:135},
+  rand:()=>({b:rnd(1,71)*5}),
+  check:p=>p.b>=0&&p.b<360?"":"Use a bearing from 000° to 359°.",
+  stages(p){
+    const A=[240,200], b=p.b, B=P(A,130,b);
+    return [
+      {t:"Mark the point A and draw a North line straight up from it.",g:north(A,150)+dot(A,'A',[-14,16])},
+      {t:b<=180?`Put the centre of the protractor on A with 0° on the North line. Count clockwise round to ${b}° and make a mark.`
+         :`${b}° is more than 180°. Either measure 360 − ${b} = ${360-b}° anticlockwise from North, or measure 180° round to South and then ${b-180}° more.`,
+       g:arcB(A,48,0,b)+angLab(A,70,0,b,B3(b))+(b>180?arcB(A,26,b,360,'arc dash')+angLab(A,38,b,360,(360-b)+'°'):'')},
+      {t:`Join A to your mark with a ruler and label the end B. The bearing of B from A is ${B3(b)}.`,g:ln(A,B,'thick')+dot(B)+tx(P(A,150,b),'B','lab')}
+    ];
+  }},
+ back:{name:"Back bearing", fields:[["b","Bearing of B from A (°)"]],
+  def:{b:70},
+  rand:()=>{let b;do{b=rnd(1,71)*5;}while(b===180);return {b};},
+  check:p=>p.b>=0&&p.b<360?"":"Use a bearing from 000° to 359°.",
+  stages(p){
+    const b=p.b, back=(b+180)%360, C=[240,205], A=P(C,95,b+180), B=P(C,95,b);
+    return [
+      {t:`At A, draw a North line, measure ${B3(b)} clockwise and draw the line to B.`,
+       g:north(A,70)+arcB(A,30,0,b)+angLab(A,48,0,b,B3(b))+ln(A,B,'thick')+dot(A,'A',[-16,14])+dot(B,'B',[16,14])},
+      {t:"Draw a North line at B. North lines are always parallel.",g:north(B,70)},
+      {t:`Carry the line on past B (dashed): it still points on ${B3(b)}. Turning round to face A is a half turn, 180°.`,
+       g:ln(B,P(B,60,b),'dash faint')+arcB(B,26,b,b+180)+angLab(B,42,b,b+180,'180°')},
+      {t:`So the bearing of A from B is ${b<180?`${b} + 180`:`${b} − 180`} = ${B3(back)}.`,g:arcB(B,52,0,back)+angLab(B,74,0,back,B3(back))}
+    ];
+  }},
+ journey:{name:"Journey", fields:[["b1","Leg 1 bearing (°)"],["d1","Leg 1 distance (km)"],["b2","Leg 2 bearing (°)"],["d2","Leg 2 distance (km)"],["b3","Leg 3 bearing (°)"],["d3","Leg 3 distance (km, 0 for none)"],["s","Scale 1 cm : ? km"]],
+  def:{b1:50,d1:8,b2:140,d2:6,b3:0,d3:0,s:2},
+  rand:()=>{const s=pick([1,2,5]);return {b1:rnd(0,17)*10,d1:s*rnd(3,8),b2:rnd(8,26)*10,d2:s*rnd(3,8),b3:0,d3:0,s};},
+  check:p=>p.s>0&&p.d1>=0&&p.d2>=0&&p.d3>=0&&p.d1+p.d2+p.d3>0&&[p.b1,p.b2,p.b3].every(b=>b>=0&&b<360)?"":"Use bearings from 000° to 359°, distances of 0 or more, and a scale bigger than 0.",
+  stages(p){
+    const legs=[[p.b1,p.d1],[p.b2,p.d2],[p.b3,p.d3]].filter(l=>l[1]>0), pts=[[0,0]];
+    legs.forEach(([b,d])=>{const q=pts[pts.length-1];pts.push([q[0]+d*Math.sin(rad(b)),q[1]+d*Math.cos(rad(b))]);});
+    const xs=pts.map(q=>q[0]), ys=pts.map(q=>q[1]), mx=(Math.min(...xs)+Math.max(...xs))/2, my=(Math.min(...ys)+Math.max(...ys))/2;
+    const u=Math.min(380/((Math.max(...xs)-Math.min(...xs))||1),220/((Math.max(...ys)-Math.min(...ys))||1),40);
+    const S=q=>[240+(q[0]-mx)*u,225-(q[1]-my)*u], L='ABCD', out=[];
+    const mid=S([xs.reduce((s,x)=>s+x,0)/xs.length,ys.reduce((s,y)=>s+y,0)/ys.length]);   // side labels go outside the shape
+    legs.forEach(([b,d],i)=>{const a=S(pts[i]), c=S(pts[i+1]), cm=r4(d/p.s);
+      out.push({t:`Leg ${i+1}: ${N(d)} km ÷ ${N(p.s)} = ${N(cm)} cm. At ${L[i]}, draw a North line, measure ${B3(b)} clockwise and draw a line ${N(cm)} cm long to ${L[i+1]}.`,
+        g:north(a,46)+arcB(a,20,0,b)+tx(P(a,38,b<40?b/2+24:b/2),B3(b),'ang')+ln(a,c,'thick')+(i===0?dot(a,'A',[-14,14]):'')+dot(c,L[i+1],[14,14])+sideLab(a,c,N(cm)+' cm',mid)});});
+    const e=pts[pts.length-1], dist=Math.hypot(e[0],e[1]);
+    if(dist>0.05 && legs.length>1){const m=Math.round(dist/p.s*10)/10, back=Math.atan2(-e[0],-e[1])*180/Math.PI;
+      out.push({t:`Join ${L[legs.length]} back to A and measure it: about ${N(m)} cm, so about ${N(m)} × ${N(p.s)} = ${N(r4(m*p.s))} km. Draw a North line at ${L[legs.length]} to measure the bearing of A from ${L[legs.length]}: about ${B3(back)}.`,
+        g:ln(S(e),S([0,0]),'dash')+sideLab(S(e),S([0,0]),'≈ '+N(m)+' cm',mid)});}
+    return out;
+  }},
+ sss:{name:"Triangle: SSS", fields:[["c","AB (cm)"],["b","AC (cm)"],["a","BC (cm)"]],
+  def:{c:7,b:5,a:6},
+  rand:()=>{let a,b,c;do{c=rnd(5,9);b=rnd(3,8);a=rnd(3,8);}while(a+b<=c+1||a+c<=b+1||b+c<=a+1);return {c,b,a};},
+  check:p=>!(p.a>0&&p.b>0&&p.c>0&&p.c<=15)?"Use sides bigger than 0, with AB at most 15 cm."
+    :(p.a+p.b<=p.c||p.a+p.c<=p.b||p.b+p.c<=p.a)?"These sides can't make a triangle: the two shorter sides must add up to more than the longest side. The arcs would never cross.":"",
+  stages(p){
+    const cx=(p.c*p.c+p.b*p.b-p.a*p.a)/(2*p.c), C0=[cx,Math.sqrt(p.b*p.b-cx*cx)], {S,u}=triFit(p.c,C0);
+    const A=S([0,0]), B=S([p.c,0]), C=S(C0), bA=brg(A,C), bB=brg(B,C);
+    const aA=Math.round(Math.atan2(C0[1],C0[0])*180/Math.PI), aB=Math.round(Math.atan2(C0[1],p.c-C0[0])*180/Math.PI);
+    return [
+      {t:`Draw the base AB = ${N(p.c)} cm with a ruler.`,g:base(A,B,p.c)},
+      {t:`Open the compasses to AC = ${N(p.b)} cm. Put the point on A and draw an arc.`,g:arcB(A,p.b*u,bA-22,bA+22)},
+      {t:`Open the compasses to BC = ${N(p.a)} cm. Put the point on B and draw an arc that crosses the first one.`,g:arcB(B,p.a*u,bB-22,bB+22)},
+      {t:"C is where the arcs cross. Join A to C and B to C with a ruler. Leave the arcs showing.",g:ln(A,C,'thick')+ln(B,C,'thick')+dot(C,'C',[0,-18])+sideLab(A,C,N(p.b)+' cm',B)+sideLab(B,C,N(p.a)+' cm',A)},
+      {t:`Check: measure the sides again. The angles are about A = ${aA}°, B = ${aB}° and C = ${180-aA-aB}°, which add up to 180°.`,g:''}
+    ];
+  }},
+ sas:{name:"Triangle: SAS", fields:[["c","AB (cm)"],["A","Angle A (°)"],["b","AC (cm)"]],
+  def:{c:6,A:50,b:4},
+  rand:()=>({c:rnd(5,9),A:rnd(6,24)*5,b:rnd(3,7)}),
+  check:p=>p.c>0&&p.c<=15&&p.b>0&&p.b<=15&&p.A>0&&p.A<180?"":"Use sides from 0 to 15 cm and an angle between 0° and 180°.",
+  stages(p){
+    const C0=[p.b*Math.cos(rad(p.A)),p.b*Math.sin(rad(p.A))], {S,u}=triFit(p.c,C0), A=S([0,0]), B=S([p.c,0]), C=S(C0), bc=r4(Math.round(Math.hypot(p.c-C0[0],C0[1])*10)/10);
+    return [
+      {t:`Draw the base AB = ${N(p.c)} cm with a ruler.`,g:base(A,B,p.c)},
+      {t:`Put the centre of the protractor on A with 0° on AB. Mark ${p.A}° and draw a long faint line from A.`,g:ln(A,P(A,p.b*u+45,90-p.A),'faint')+arcB(A,30,90-p.A,90)+angLab(A,48,90-p.A,90,p.A+'°')},
+      {t:`Measure ${N(p.b)} cm along the line from A and mark C.`,g:ln(A,C,'thick')+dot(C,'C',[0,-18])+sideLab(A,C,N(p.b)+' cm',B)},
+      {t:`Join B to C. Measure BC: it should be about ${N(bc)} cm.`,g:ln(B,C,'thick')+sideLab(B,C,'≈ '+N(bc)+' cm',A)}
+    ];
+  }},
+ asa:{name:"Triangle: ASA", fields:[["c","AB (cm)"],["A","Angle A (°)"],["B","Angle B (°)"]],
+  def:{c:8,A:40,B:65},
+  rand:()=>{let A,B;do{A=rnd(6,18)*5;B=rnd(6,18)*5;}while(A+B>150);return {c:rnd(5,9),A,B};},
+  check:p=>!(p.c>0&&p.c<=15&&p.A>0&&p.B>0)?"Use AB from 0 to 15 cm and angles bigger than 0°."
+    :p.A+p.B>=180?"Angles A and B must add up to less than 180°, or the lines never meet.":p.A+p.B>165?"The angles add up to nearly 180°, so C is too far away to draw. Try smaller angles.":"",
+  stages(p){
+    const ac=p.c*Math.sin(rad(p.B))/Math.sin(rad(p.A+p.B)), C0=[ac*Math.cos(rad(p.A)),ac*Math.sin(rad(p.A))], {S,u}=triFit(p.c,C0);
+    const A=S([0,0]), B=S([p.c,0]), C=S(C0), dB=Math.hypot(C[0]-B[0],C[1]-B[1]);
+    return [
+      {t:`Draw the base AB = ${N(p.c)} cm with a ruler.`,g:base(A,B,p.c)},
+      {t:`At A, measure ${p.A}° from AB and draw a long line.`,g:ln(A,P(A,ac*u+40,90-p.A),'faint')+arcB(A,30,90-p.A,90)+angLab(A,48,90-p.A,90,p.A+'°')},
+      {t:`At B, measure ${p.B}° from BA and draw a long line.`,g:ln(B,P(B,dB+40,270+p.B),'faint')+arcB(B,30,270,270+p.B)+angLab(B,48,270,270+p.B,p.B+'°')},
+      {t:`C is where the lines cross. Go over AC and BC. Check: angle C = 180 − ${p.A} − ${p.B} = ${180-p.A-p.B}°.`,g:ln(A,C,'thick')+ln(B,C,'thick')+dot(C,'C',[0,-18])}
+    ];
+  }}
+};
+function triFit(c,C){   // A(0,0), B(c,0) and C in cm → screen
+  const xmin=Math.min(0,C[0]), xmax=Math.max(c,C[0]), u=Math.min(400/(xmax-xmin),230/Math.max(C[1],0.1),45);
+  return {u,S:q=>[240+(q[0]-(xmin+xmax)/2)*u,315-q[1]*u]};
+}
+const base=(A,B,c)=>ln(A,B,'thick')+dot(A,'A',[-14,14])+dot(B,'B',[14,14])+tx([(A[0]+B[0])/2,A[1]+20],N(c)+' cm','sm');
+
+/* ---------- Question generators ----------
+   Each returns {q, a, steps (hints), and v: [numbers] (any order) or alts: [accepted words]; bear: true for a bearing;
+   svg (optional diagram), draw (optional, for the step-by-step drawing)} */
+const GEN = {
+ 1:()=>{
+   const t=rnd(0,2);
+   if(t===0){const s=pick([2,3,4,5,10]),d=pick([2,3,4,5,6,7,8,2.5,3.5,4.5,6.5]),r=r4(d*s);
+     return {q:`A map has a scale of 1 cm : ${s} km. Two towns are ${N(d)} cm apart on the map. How far apart are they in real life?`,a:`${N(r)} km`,v:[r],
+       steps:[`1 cm on the map stands for ${s} km.`,`Map → real: multiply. ${N(d)} × ${s} = ${N(r)}.`,`So the real distance is ${N(r)} km.`],draw:{m:"map",p:{d,k:"km",s}}};}
+   if(t===1){const R=pick([25000,50000,100000,200000]),d=pick([2,3,4,5,6,8,10]),cm=d*R,km=r4(cm/100000);
+     return {q:`A map has a scale of 1 : ${N(R)}. A path is ${d} cm long on the map. How long is the real path in km?`,a:`${N(km)} km`,v:[km],
+       steps:[`1 : ${N(R)} means 1 cm on the map is ${N(R)} cm in real life.`,`Multiply: ${d} × ${N(R)} = ${N(cm)} cm.`,`Change to metres (÷ 100): ${N(cm/100)} m.`,`Change to km (÷ 1000): ${N(km)} km.`],draw:{m:"map",p:{d,k:"ratio",s:R}}};}
+   const s=pick([2,3,4,5,10]),d=pick([2,3,4,5,6,7,1.5,2.5,3.5]),r=r4(d*s);
+   return {q:`A map has a scale of 1 cm : ${s} km. Two villages are ${N(r)} km apart. How far apart are they on the map?`,a:`${N(d)} cm`,v:[d],
+     steps:[`Each 1 cm stands for ${s} km. How many lots of ${s} km are in ${N(r)} km?`,`Real → map: divide. ${N(r)} ÷ ${s} = ${N(d)}.`,`So they are ${N(d)} cm apart on the map.`],draw:{m:"map",p:{d,k:"km",s}}};
+ },
+ 2:()=>{
+   const t=rnd(0,3), thing=pick(['bedroom','classroom','kitchen','games hall','garden','car park']);
+   if(t===0){const s=pick([0.5,1,2]),x=s===0.5?rnd(4,18):rnd(3,10),L=r4(x*s);
+     return {q:`A ${thing} is ${N(L)} m long. You draw it to a scale of 1 cm : ${N(s)} m. How long is it on your drawing?`,a:`${N(x)} cm`,v:[x],
+       steps:[`Each 1 cm on the drawing stands for ${N(s)} m.`,`Real → drawing: divide. ${N(L)} ÷ ${N(s)} = ${N(x)}.`,`Draw it ${N(x)} cm long.`],draw:{m:"room",p:{L,W:s*Math.max(1,Math.round(x*0.6)),s}}};}
+   if(t===1){const R=pick([20,50,100]),L=R===20?rnd(1,4):rnd(2,9),cm=L*100,x=cm/R;
+     return {q:`A wall is ${L} m long. How long is it on a plan drawn to a scale of 1 : ${R}?`,a:`${N(x)} cm`,v:[x],
+       steps:[`Change the real length to cm: ${L} × 100 = ${cm} cm.`,`1 : ${R} means the plan is ${R} times smaller: ${cm} ÷ ${R} = ${N(x)}.`,`So the wall is ${N(x)} cm on the plan.`],draw:{m:"room",p:{L,W:Math.max(1,Math.round(L*0.6)),s:R/100}}};}
+   if(t===2){const s=pick([0.5,2,5,10]),x=pick([3,4,5,6,7,8,2.5,4.5]),r=r4(x*s);
+     return {q:`On a plan drawn to a scale of 1 cm : ${N(s)} m, a ${thing} is ${N(x)} cm long. How long is the real ${thing}?`,a:`${N(r)} m`,v:[r],
+       steps:[`Each 1 cm on the plan stands for ${N(s)} m.`,`Drawing → real: multiply. ${N(x)} × ${N(s)} = ${N(r)}.`,`So it is ${N(r)} m long.`],draw:{m:"room",p:{L:r,W:r4(s*Math.max(1,Math.round(x*0.6))),s}}};}
+   const s=pick([1,2,5,10]),x=rnd(4,12),y=rnd(2,Math.min(8,x)),L=x*s,Wd=y*s;
+   return {q:`A ${thing} is ${L} m long and ${Wd} m wide. What size is it on a scale drawing using 1 cm : ${s} m?`,a:`${x} cm by ${y} cm`,v:[x,y],
+     steps:[`Length: ${L} ÷ ${s} = ${x} cm.`,`Width: ${Wd} ÷ ${s} = ${y} cm.`,`Draw a rectangle ${x} cm by ${y} cm.`],draw:{m:"room",p:{L,W:Wd,s}}};
+ },
+ 3:()=>{
+   const t=rnd(0,3);
+   if(t===0){const k=pick([2,3,1.5,2.5,4]),a=rnd(2,5),b=rnd(1,a),A=r4(a*k),B=r4(b*k);
+     return {q:`A rectangle is ${a} cm by ${b} cm. Enlarge it by scale factor ${N(k)}. What size is the new rectangle?`,a:`${N(A)} cm by ${N(B)} cm`,v:[A,B],
+       steps:[`Multiply every length by ${N(k)}.`,`${a} × ${N(k)} = ${N(A)} cm.`,`${b} × ${N(k)} = ${N(B)} cm.`],draw:{m:"enlarge",p:{a,b,k}}};}
+   if(t===1){const [kd,k,m]=pick([['½',0.5,2],['¼',0.25,4],['⅓',1/3,3]]),a=m*rnd(2,5),b=m*rnd(1,3),A=r4(a*k),B=r4(b*k);
+     return {q:`A rectangle is ${a} cm by ${b} cm. Reduce it by scale factor ${kd}. What size is the new rectangle?`,a:`${N(A)} cm by ${N(B)} cm`,v:[A,B],
+       steps:[`Multiply every length by ${kd}: the same as dividing by ${m}.`,`${a} ÷ ${m} = ${N(A)} cm.`,`${b} ÷ ${m} = ${N(B)} cm.`],draw:{m:"enlarge",p:{a,b,k:r4(k)}}};}
+   if(t===2){const o=pick([2,4,6,8,10]),k=pick([2,3,4,1.5,2.5,0.5]),n=r4(o*k),thing=pick(['photo','poster','drawing','logo']);
+     return {q:`A ${thing} is ${o} cm wide. A copy of it is ${N(n)} cm wide. What is the scale factor?`,a:`${N(k)}`,v:[k],
+       steps:[`Scale factor = new length ÷ old length.`,`${N(n)} ÷ ${o} = ${N(k)}.`,k<1?`It is less than 1, so the copy is a reduction.`:`It is bigger than 1, so the copy is an enlargement.`]};}
+   const w=pick([4,6,8,10]),h=pick([2,3,4,5,6]),k=pick([1.5,2,2.5,3]),W2=r4(w*k),H2=r4(h*k);
+   return {q:`A photo is ${w} cm wide and ${h} cm tall. It is enlarged so it is ${N(W2)} cm wide. How tall is it now?`,a:`${N(H2)} cm`,v:[H2],
+     steps:[`Find the scale factor: ${N(W2)} ÷ ${w} = ${N(k)}.`,`Multiply the height by the same scale factor: ${h} × ${N(k)} = ${N(H2)}.`],draw:{m:"enlarge",p:{a:w,b:h,k}}};
+ },
+ 4:()=>{
+   const t=rnd(0,3);
+   if(t===0){const c=pick(COMPASS);
+     return {q:`Write ${c[0]} as a three-figure bearing.`,a:B3(c[2]),v:[c[2]],bear:true,
+       steps:[`Start facing North (000°) and turn clockwise.`,`East is 090°, South is 180°, West is 270°.${c[0].includes('-')?' The in-between directions are halfway: add 45°.':''}`,`${c[0]} is ${B3(c[2])}.`],draw:{m:"bearing",p:{b:c[2]}}};}
+   if(t===1){const c=pick(COMPASS);
+     return {q:`Which compass point has a bearing of ${B3(c[2])}?`,a:c[0],alts:[normW(c[0]),c[1].toLowerCase()],
+       steps:[`000° is North, 090° East, 180° South, 270° West.`,c[2]%90?`${B3(c[2])} is halfway between ${cName(c[2]-45)[0]} and ${cName(c[2]+45)[0]}.`:`${B3(c[2])} is one of the main points.`,`It is ${c[0]}.`],draw:{m:"bearing",p:{b:c[2]}}};}
+   if(t===2){const x=pick([rnd(1,9),rnd(1,9)*5,rnd(2,35)*10,rnd(11,99)]);
+     return {q:`You face North and turn ${x}° clockwise. Write the direction you are facing as a three-figure bearing.`,a:B3(x),v:[x],bear:true,
+       steps:[`Turning clockwise from North gives the bearing straight away: ${x}°.`,`Bearings always have three figures${x<100?`, so put ${x<10?'two zeros':'a zero'} in front`:''}.`,`${B3(x)}`],draw:{m:"bearing",p:{b:x}}};}
+   const c=pick(COMPASS),turn=pick([45,90,135,180]),cw=rnd(0,1),nd=((c[2]+(cw?turn:-turn))%360+360)%360,n=cName(nd);
+   return {q:`You face ${c[0]} and turn ${turn}° ${cw?'clockwise':'anticlockwise'}. Which compass point are you facing now?`,a:`${n[0]} (${B3(nd)})`,alts:[normW(n[0]),n[1].toLowerCase()],
+     steps:[`${c[0]} is ${B3(c[2])}.`,`${cw?'Clockwise means add':'Anticlockwise means take away'}: ${c[2]} ${cw?'+':'−'} ${turn} = ${c[2]+(cw?turn:-turn)}${(c[2]+(cw?turn:-turn))!==nd?` → ${(c[2]+(cw?turn:-turn))<0?'add':'take away'} 360 → ${nd}`:''}°.`,`${B3(nd)} is ${n[0]}.`],draw:{m:"bearing",p:{b:nd}}};
+ },
+ 5:()=>{
+   const t=rnd(0,4);
+   if(t===0){const a=rnd(4,34)*5,b=360-a,sp={ref:'N',side:-1,a};
+     return {q:`Find the bearing of B from A.`,svg:diag(sp),a:B3(b),v:[b],bear:true,
+       steps:[`The ${a}° is measured anticlockwise from North.`,`Bearings are measured clockwise, so find the rest of the full turn.`,`360 − ${a} = ${b}.`],draw:{m:"bearing",p:{b}}};}
+   if(t===1){const a=rnd(2,16)*5,side=pick([1,-1]),b=180+side*a,sp={ref:'S',side,a};
+     return {q:`Find the bearing of B from A.`,svg:diag(sp),a:B3(b),v:[b],bear:true,
+       steps:[`The ${a}° is measured from South. South is 180°.`,side>0?`B is round past South (towards West), so add: 180 + ${a} = ${b}.`:`B is before South (on the East side), so take away: 180 − ${a} = ${b}.`,`The bearing is ${B3(b)}.`],draw:{m:"bearing",p:{b}}};}
+   if(t===2){const a=rnd(2,16)*5,side=pick([1,-1]),ref=pick(['E','W']),r0=REF[ref],b=r0+side*a,sp={ref,side,a};
+     return {q:`Find the bearing of B from A.`,svg:diag(sp),a:B3(b),v:[b],bear:true,
+       steps:[`The ${a}° is measured from ${ref==='E'?'East':'West'}, which is ${B3(r0)}.`,side>0?`B is clockwise from ${ref==='E'?'East':'West'}, so add: ${r0} + ${a} = ${b}.`:`B is anticlockwise from ${ref==='E'?'East':'West'}, so take away: ${r0} − ${a} = ${b}.`,`The bearing is ${B3(b)}.`],draw:{m:"bearing",p:{b}}};}
+   if(t===3){const b=rnd(37,71)*5;
+     return {q:`You want to draw a bearing of ${B3(b)} with a semicircle protractor. How many degrees anticlockwise from North do you measure?`,a:`${360-b}°`,v:[360-b],
+       steps:[`A full turn is 360°.`,`The part you don't go round clockwise is 360 − ${b} = ${360-b}°.`,`Measure ${360-b}° anticlockwise from North.`],draw:{m:"bearing",p:{b}}};}
+   const a=pick([rnd(1,9)*5,rnd(2,17)*5+rnd(0,4)]),sp={ref:'N',side:1,a};
+   return {q:`Find the bearing of B from A.`,svg:diag(sp),a:B3(a),v:[a],bear:true,
+     steps:[`The angle is measured clockwise from North, so it is the bearing.`,`Write it with three figures.`,`${B3(a)}`],draw:{m:"bearing",p:{b:a}}};
+ },
+ 6:()=>{
+   const t=rnd(0,2), backOf=b=>b<180?b+180:b-180, how=b=>b<180?`${b} is less than 180, so add 180: ${b} + 180 = ${b+180}.`:`${b} is more than 180, so take away 180: ${b} − 180 = ${b-180}.`;
+   if(t===0){let b;do{b=rnd(1,71)*5;}while(b===180);const [x,y]=pick([['B','A'],['Q','P'],['the ship','the port'],['the summit','the car park']]);
+     return {q:`The bearing of ${x} from ${y} is ${B3(b)}. Find the bearing of ${y} from ${x}.`,a:B3(backOf(b)),v:[backOf(b)],bear:true,
+       steps:[`Going back is a half turn: 180°.`,how(b),`The back bearing is ${B3(backOf(b))}.`],draw:{m:"back",p:{b}}};}
+   if(t===1){const c=pick(COMPASS),b=c[2],bb=(b+180)%360;
+     return {q:`A boat is ${c[0]} of a lighthouse. What is the bearing of the lighthouse from the boat?`,a:B3(bb),v:[bb],bear:true,
+       steps:[`The bearing of the boat from the lighthouse is ${B3(b)}.`,b<180?`Add 180: ${b} + 180 = ${b+180}.`:`Take away 180: ${b} − 180 = ${b-180}.`,`The lighthouse is ${B3(bb)} (${cName(bb)[0]}) from the boat.`],draw:{m:"back",p:{b}}};}
+   let b;do{b=rnd(2,70)*5+rnd(0,4);}while(b===180);const [nm,he]=pick(PEOPLE);
+   return {q:`${nm} walks from the hostel to the loch on a bearing of ${B3(b)}. On what bearing must ${he} walk to go straight back?`,a:B3(backOf(b)),v:[backOf(b)],bear:true,
+     steps:[`Straight back is the back bearing: a half turn of 180°.`,how(b),`${cap(he)} walks on ${B3(backOf(b))}.`],draw:{m:"back",p:{b}}};
+ },
+ 7:()=>{
+   const t=rnd(0,3);
+   if(t===0){const s=pick([2,5,10,20]),c=pick([2,3,4,5,6,7,2.5,3.5,4.5]),d=r4(c*s),b=rnd(1,35)*10,v=pick(['ship','plane','yacht','helicopter']);
+     return {q:`A ${v} travels ${N(d)} km on a bearing of ${B3(b)}. On a scale drawing at 1 cm : ${s} km, how long is the line?`,a:`${N(c)} cm`,v:[c],
+       steps:[`Each 1 cm stands for ${s} km, so divide: ${N(d)} ÷ ${s} = ${N(c)}.`,`Draw a North line, measure ${B3(b)} clockwise and draw a line ${N(c)} cm long.`],draw:{m:"journey",p:{b1:b,d1:d,b2:0,d2:0,b3:0,d3:0,s}}};}
+   if(t===1){const s=pick([2,5,10,50]),m=pick([3.2,4.5,5.6,6.4,7.3,8.5,2.8]),r=r4(m*s);
+     return {q:`On a scale drawing at 1 cm : ${s} km, the line from the finish back to the start measures ${N(m)} cm. How far is that in real life?`,a:`${N(r)} km`,v:[r],
+       steps:[`Each 1 cm stands for ${s} km.`,`Multiply: ${N(m)} × ${s} = ${N(r)}.`]};}
+   if(t===2){const [p,q,h]=pick([[3,4,5],[6,8,10],[5,12,13]]),k=pick([1,2]),b1=pick([0,90,180,270]),b2=(b1+pick([90,270]))%360,s=h*k>13?2*k:k,[nm,he]=pick(PEOPLE);
+     const dn=['North','East','South','West'];
+     return {q:`${nm} walks ${p*k} km ${dn[b1/90]}, then ${q*k} km ${dn[b2/90]}. Make a scale drawing using 1 cm : ${s} km. How far is ${he} from the start?`,a:`${h*k} km`,v:[h*k],tol:0.3,
+       steps:[`Leg 1: ${p*k} ÷ ${s} = ${N(p*k/s)} cm on ${B3(b1)}. Leg 2: ${q*k} ÷ ${s} = ${N(q*k/s)} cm on ${B3(b2)}.`,`Join the end back to the start and measure it: ${N(h*k/s)} cm.`,`${N(h*k/s)} × ${s} = ${h*k} km.`],draw:{m:"journey",p:{b1,d1:p*k,b2,d2:q*k,b3:0,d3:0,s}}};}
+   let b;do{b=rnd(2,70)*5;}while(b===180);const bb=b<180?b+180:b-180,[x,y]=pick([['Glasgow','Stornoway'],['Oban','Barra'],['Aberdeen','Inverness'],['Prestwick','Benbecula']]);
+   return {q:`A plane flies from ${x} to ${y} on a bearing of ${B3(b)}. On what bearing must it fly to return straight to ${x}?`,a:B3(bb),v:[bb],bear:true,
+     steps:[`The return journey is the back bearing.`,b<180?`${b} + 180 = ${bb}.`:`${b} − 180 = ${bb}.`],draw:{m:"back",p:{b}}};
+ },
+ 8:()=>{
+   const t=rnd(0,3);
+   if(t===0){const k=rnd(0,2),c=rnd(5,9);let q,ans,why,draw;
+     if(k===0){const p=MODES.sss.rand();q=`AB = ${p.c} cm, AC = ${p.b} cm and BC = ${p.a} cm`;ans='SSS';why='You know all three sides, so use a ruler and compasses.';draw={m:'sss',p};}
+     else if(k===1){const p=MODES.sas.rand();q=`AB = ${p.c} cm, angle A = ${p.A}° and AC = ${p.b} cm`;ans='SAS';why='You know two sides and the angle between them (angle A is between AB and AC).';draw={m:'sas',p};}
+     else {const p=MODES.asa.rand();q=`AB = ${p.c} cm, angle A = ${p.A}° and angle B = ${p.B}°`;ans='ASA';why='You know two angles and the side between them (AB joins A and B).';draw={m:'asa',p};}
+     return {q:`You are asked to construct triangle ABC with ${q}. Is this SSS, SAS or ASA?`,a:ans,alts:[ans.toLowerCase()],
+       steps:[`S stands for a side, A stands for an angle.`,why,`It is ${ans}.`],draw};}
+   if(t===1){const p=MODES.asa.rand();const C=180-p.A-p.B;
+     return {q:`Triangle ABC has angle A = ${p.A}° and angle B = ${p.B}°. Before you construct it, work out angle C.`,a:`${C}°`,v:[C],
+       steps:[`The angles in a triangle add up to 180°.`,`${p.A} + ${p.B} = ${p.A+p.B}.`,`180 − ${p.A+p.B} = ${C}.`],draw:{m:'asa',p}};}
+   if(t===2){let s;const ok=rnd(0,1);do{s=[rnd(2,10),rnd(2,10),rnd(2,10)].sort((x,y)=>x-y);}while((s[0]+s[1]>s[2])!==!!ok);
+     const sh=shuffle(s);
+     return {q:`Can you construct a triangle with sides ${sh[0]} cm, ${sh[1]} cm and ${sh[2]} cm? Answer yes or no.`,a:ok?'Yes':'No',alts:ok?['yes','y']:['no','n'],
+       steps:[`The two shorter sides must add up to more than the longest side.`,`${s[0]} + ${s[1]} = ${s[0]+s[1]}, and the longest side is ${s[2]}.`,ok?`${s[0]+s[1]} is more than ${s[2]}, so yes, the arcs will cross.`:`${s[0]+s[1]} is not more than ${s[2]}, so no: the arcs won't cross.`],
+       draw:ok?{m:'sss',p:{c:s[2],b:s[1],a:s[0]}}:undefined};}
+   const sides=pick([[3,4,5],[5,6,7],[4,6,8],[6,7,8],[5,5,6]]),sc=pick([10,20,50]),real=sides.map(x=>x*sc),thing=pick(['field','garden','car park','sail']);
+   return {q:`A triangular ${thing} has sides ${real[0]} m, ${real[1]} m and ${real[2]} m. You construct it at 1 cm : ${sc} m. What three lengths do you draw?`,a:`${sides.join(' cm, ')} cm`,v:sides,
+     steps:[`Divide each real length by ${sc}.`,real.map((r,i)=>`${r} ÷ ${sc} = ${sides[i]}`).join(', ')+'.',`Draw the longest side as the base, then use compasses for the other two (SSS).`],draw:{m:'sss',p:{c:sides[2],b:sides[1],a:sides[0]}}};
+ }
+};
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();if(seen.has(g.q+g.a))continue;seen.add(g.q+g.a);out.push({...g,st});}
+  return out;
+}
+
+/* Checking a typed answer */
+function nums(s){return (String(s).replace(/(\d)[\s ,](?=\d{3}(?!\d))/g,'$1').match(/\d+(?:\.\d+)?/g)||[]);}
+function judge(g,s){
+  if(!String(s).trim()) return [false,'Type your answer first.'];
+  if(g.alts){const ok=g.alts.includes(normW(s))||g.alts.includes(normW(String(s).trim().split(/[\s,.]+/)[0]));
+    return ok?[true,'Correct: '+g.a]:[false,'Not yet. Check your working, or show a hint.'];}
+  const raw=nums(s), got=raw.map(Number), tol=g.tol||1e-6;
+  if(got.length<g.v.length) return [false,g.v.length>1?`Give all ${g.v.length} numbers.`:'Type a number.'];
+  const A=got.slice(0,g.v.length).sort((x,y)=>x-y), W=[...g.v].sort((x,y)=>x-y);
+  if(!A.every((x,i)=>Math.abs(x-W[i])<=tol)) return [false,'Not yet. Check your working, or show a hint.'];
+  if(g.bear && raw[0].split('.')[0].length<3) return [false,`Nearly! Bearings always have three figures, so write ${g.a}.`];
+  return [true,'Correct: '+g.a];
+}
+
+/* ---------- Sidebar ---------- */
+const seqWrap=document.getElementById('seqWrap');
+seqWrap.innerHTML=WEEKS.map(w=>`<p class="wk">${esc(w.label)}</p><ol class="steps" start="${w.from}">`+
+  STEPS.slice(w.from-1,w.to).map((st,k)=>{const n=w.from+k;return `<li><button class="step" data-view="${n}"><span class="num">${n}</span>
+    <span class="txt">${esc(st.s)}${st.eg?`<span class="eg">${esc(st.eg)}</span>`:''}</span></button></li>`;}).join('')+'</ol>').join('');
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';
+const qSel=new Set(STEPS.map((_,i)=>i+1));
+function showView(v){
+  view=v;
+  const isStep=v!=='all', vocabOn=v==='all'||VOCAB_STEPS.includes(v);
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===String(v))));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = s.dataset.for==='vocab' ? !vocabOn : (s.dataset.for==='step')!==isStep);
+  const jumps=isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],...(vocabOn?[['vocab','Word scramble']]:[]),['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['vocab','Word scramble'],['tasks','Rich tasks'],['talks','Spot the mistake'],['games','Games']];
+  document.getElementById('jump').innerHTML=jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('')+
+    (isStep?`<li class="stepnav">${v>1?`<button class="btn alt" data-go="${v-1}">← Step ${v-1}</button>`:''}${v<STEPS.length?`<button class="btn" data-go="${v+1}">Step ${v+1} →</button>`:''}</li>`:'');
+  const kicker=document.getElementById('kicker'),title=document.getElementById('title'),heroEg=document.getElementById('heroEg');
+  if(isStep){
+    const wk=WEEKS.find(w=>v>=w.from&&v<=w.to);
+    kicker.textContent=`Step ${v} of ${STEPS.length} · ${wk.label}`;
+    title.textContent=STEPS[v-1].s; heroEg.textContent=STEPS[v-1].eg||'';
+    renderExamples(v); renderScaffold(v); renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=`New questions for step ${v} every time.`;
+  } else {
+    kicker.textContent='S2 Term 2 · Weeks 4–6';
+    title.textContent='Scale Drawing and Bearings';
+    heroEg.textContent='Using map scales, drawing plans to scale, enlarging and reducing shapes, three-figure bearings and back bearings, scale drawings of journeys, and constructing triangles with a ruler, protractor and compasses.';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include.';
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g) location.hash='step-'+g.dataset.go;
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d+)$/);
+  const v=m&&+m[1]>=1&&+m[1]<=STEPS.length?+m[1]:'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples ---------- */
+function renderExamples(n){
+  document.getElementById('exs').innerHTML=(WE[n]||[]).map((ex,i)=>`
+    <div class="ex">
+      <div class="exq">${esc(ex.q)}</div>${ex.diag?diag(ex.diag):''}
+      <ol>${ex.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+      <div class="exa">Answer: ${esc(ex.a)}</div>
+      ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}
+      ${ex.draw?`<button class="btn alt try" data-ex="${i}">Show it step by step</button>`:''}
+    </div>`).join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ex]'); if(!t) return;
+  drLoad(WE[view][+t.dataset.ex].draw); document.getElementById('sc-draw').scrollIntoView();
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'),qsEl=document.getElementById('qs');
+STEPS.forEach((_,i)=>{const n=i+1,b=document.createElement('button');
+  b.className='chip';b.textContent=n;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${n}`);
+  b.onclick=()=>{qSel.has(n)?qSel.delete(n):qSel.add(n);b.setAttribute('aria-pressed',qSel.has(n));newChecks();};
+  chips.appendChild(b);});
+function newChecks(){
+  const steps=view==='all'?[...qSel]:[view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  qsEl.innerHTML=out.map(g=>`<li><span class="q">${g.q}</span>${g.svg||''}<span class="a">${g.a}</span>${view==='all'?`<span class="from">Step ${g.st}</span>`:''}</li>`).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(n){
+  const k=SCAFFOLD[n]||[], sc=document.getElementById('scaffold');
+  ['bd','draw'].forEach(id=>document.getElementById('sc-'+id).hidden=!k.includes(id));
+  k.forEach(id=>sc.appendChild(document.getElementById('sc-'+id)));   // show them in the order given
+  if(k.includes('draw')) drLoad(DRAW_START[n]);
+  if(k.includes('bd')) newBD();
+}
+
+/* Step-by-step drawing */
+const drMode=document.getElementById('drMode'),drFields=document.getElementById('drFields'),drSvg=document.getElementById('drSvg'),
+      drSteps=document.getElementById('drSteps'),drErr=document.getElementById('drErr');
+drMode.innerHTML=Object.entries(MODES).map(([k,m])=>`<option value="${k}">${m.name}</option>`).join('');
+let dr={m:'bearing',p:{},k:0,stages:[]};
+function drLoad(spec){
+  dr.m=spec.m; dr.p={...MODES[spec.m].def,...spec.p}; dr.k=0; drMode.value=spec.m;
+  drFields.innerHTML=MODES[dr.m].fields.map(([key,label,opts])=>`<label>${esc(label)}${opts
+    ?`<select data-k="${key}">${opts.map(([v,t])=>`<option value="${v}"${dr.p[key]===v?' selected':''}>${esc(t)}</option>`).join('')}</select>`
+    :`<input type="number" step="any" data-k="${key}" value="${dr.p[key]}">`}</label>`).join('');
+  drRender();
+}
+function drRender(){
+  const M=MODES[dr.m], err=M.check(dr.p);
+  drErr.textContent=err;
+  dr.stages=err?[]:M.stages(dr.p);
+  dr.k=Math.min(dr.k,Math.max(0,dr.stages.length-1));
+  drSvg.innerHTML=`<svg viewBox="0 0 480 380" role="img" aria-label="${esc(M.name)} drawing">`+dr.stages.slice(0,dr.k+1).map((s,i)=>`<g${i===dr.k?' class="now"':''}>${s.g}</g>`).join('')+'</svg>';
+  drSteps.innerHTML=dr.stages.slice(0,dr.k+1).map((s,i)=>`<li${i===dr.k?' class="now"':''}>${esc(s.t)}</li>`).join('');
+  document.getElementById('drBack').disabled=dr.k===0;
+  document.getElementById('drNext').disabled=document.getElementById('drAll').disabled=!dr.stages.length||dr.k>=dr.stages.length-1;
+}
+drFields.addEventListener('input',e=>{const el=e.target.closest('[data-k]');if(!el)return;
+  dr.p[el.dataset.k]=el.tagName==='SELECT'?el.value:parseFloat(el.value); dr.k=0; drRender();});
+drMode.onchange=()=>drLoad({m:drMode.value,p:{}});
+document.getElementById('drNext').onclick=()=>{dr.k++;drRender();};
+document.getElementById('drBack').onclick=()=>{dr.k--;drRender();};
+document.getElementById('drAll').onclick=()=>{dr.k=dr.stages.length-1;drRender();};
+document.getElementById('drNew').onclick=()=>drLoad({m:dr.m,p:MODES[dr.m].rand()});
+
+/* Break it down */
+let bd=null,shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIn=document.getElementById('bdIn'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  bd=GEN[view==='all'?rnd(1,STEPS.length):view](); shown=0;
+  bdQ.innerHTML=bd.q+(bd.svg||'');
+  bdSteps.innerHTML=''; bdIn.value=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+  document.getElementById('bdTip').textContent=bd.alts?'Type a word, e.g. South-west or SW.':bd.bear?'Write bearings with three figures, e.g. 045. You don\'t need to type the ° sign.'
+    :bd.v.length>1?'Type all the numbers, e.g. 8 by 6. You don\'t need to type the units.':'You don\'t need to type the units.';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.textContent=bd.steps[shown++];bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+document.getElementById('bdCheck').onclick=()=>{
+  const [ok,msg]=judge(bd,bdIn.value);
+  bdFb.textContent=msg; bdFb.className='feedback '+(ok?'ok':'no');
+  if(ok && bd.draw && (SCAFFOLD[view]||[]).includes('draw')) drLoad(bd.draw);
+};
+bdIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+function renderLinks(n){
+  const web=LINKS.filter(l=>l.steps.includes(n)).map(l=>`<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open ${esc(l.title)}</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(n)).map(f=>`<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${esc(encodeURI(f.path).replace(/\(/g,'%28').replace(/\)/g,'%29'))}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+`<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+function buildDeckMenu(v){
+  const opts=v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['rules','Rules'],['words','Key words']]
+    : [['step',`Step ${v} questions`],['rules','Rules'],...(VOCAB_STEPS.includes(v)?[['words','Key words']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='rules') return shuffle(RULES);
+  if(type==='words') return shuffle(WORDS);
+  const steps=type==='step'?[view]:STEPS.map((_,i)=>i+1);
+  return makeQs(steps,12).map(g=>({q:g.q,a:g.a,svg:g.svg}));
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i]; fcSetFlip(false); fcFront.innerHTML=esc(c.q)+(c.svg||'');
+  setTimeout(()=>{fcBack.innerHTML=esc(c.a);},250);
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+(left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){if(!fc.flipped)return;knew?fc.known++:fc.again.push(fc.deck[fc.i]);fc.i++;fcShow();}
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true); fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Word scramble (uses WORDS) ---------- */
+const wsDefs=document.getElementById('wsDefs'),wsTiles=document.getElementById('wsTiles'),wsDef=document.getElementById('wsDef'),
+      wsIn=document.getElementById('wsIn'),wsFb=document.getElementById('wsFb'),wsCount=document.getElementById('wsCount'),
+      wsDefBtn=document.getElementById('wsDefBtn'),wsList=document.getElementById('wsList');
+function scramble(word){
+  return word.toUpperCase().split(' ').map(w=>{
+    if(w.length<2) return w; let s,g=0; do{s=shuffle([...w]).join('');}while(s===w&&g++<50); return s;}).join(' ');
+}
+let ws={order:[],i:0,solved:0,defOn:false};
+function wsStart(){ws={order:shuffle(WORDS),i:0,solved:0,defOn:false};wsShow();wsBuildList();}
+function wsShow(){
+  const w=ws.order[ws.i];
+  wsTiles.innerHTML=scramble(w.q).split('').map(c=>c===' '?'<span class="gap"></span>':`<span class="t">${esc(c)}</span>`).join('');
+  wsDef.innerHTML=`<b>Definition:</b> ${esc(w.a)}`;
+  ws.defOn=wsDefs.checked; wsDefSync();
+  wsIn.value=''; wsFb.textContent=''; wsFb.className='feedback';
+  wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+}
+function wsDefSync(){wsDef.hidden=!ws.defOn;wsDefBtn.textContent=ws.defOn?'Hide the definition':'Show the definition';}
+const norm=s=>s.toUpperCase().replace(/[^A-Z]/g,'');
+document.getElementById('wsCheck').onclick=()=>{
+  const w=ws.order[ws.i];
+  if(!wsIn.value.trim()){wsFb.textContent='Type your word first.';wsFb.className='feedback no';return;}
+  if(norm(wsIn.value)===norm(w.q)){
+    if(!wsFb.classList.contains('ok')) ws.solved++;
+    wsFb.textContent=`Correct: ${w.q.toUpperCase()}`;wsFb.className='feedback ok';
+    ws.defOn=true;wsDefSync();
+    wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+  } else {wsFb.textContent='Not yet. Try the definition for a clue.';wsFb.className='feedback no';}
+};
+wsIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('wsCheck').click();});
+wsDefBtn.onclick=()=>{ws.defOn=!ws.defOn;wsDefSync();};
+document.getElementById('wsReveal').onclick=()=>{const w=ws.order[ws.i];wsFb.textContent=`The word is ${w.q.toUpperCase()}`;wsFb.className='feedback';ws.defOn=true;wsDefSync();};
+document.getElementById('wsNext').onclick=()=>{ws.i=(ws.i+1)%ws.order.length;if(ws.i===0){ws.order=shuffle(WORDS);ws.solved=0;}wsShow();};
+
+function wsBuildList(){
+  wsList.innerHTML=shuffle(WORDS).map(w=>`<li><div class="scr">${esc(scramble(w.q))}</div><div class="word">${esc(w.q.toUpperCase())}</div>${wsDefs.checked?`<div class="d">${esc(w.a)}</div>`:''}</li>`).join('');
+}
+wsDefs.onchange=()=>{ws.defOn=wsDefs.checked;wsDefSync();
+  wsList.querySelectorAll('li').forEach(li=>{const word=li.querySelector('.word').textContent,w=WORDS.find(x=>x.q.toUpperCase()===word);
+    let d=li.querySelector('.d'); if(wsDefs.checked&&!d){d=document.createElement('div');d.className='d';d.textContent=w.a;li.appendChild(d);} if(!wsDefs.checked&&d) d.remove();});};
+const modeOne=document.getElementById('wsModeOne'),modeAll=document.getElementById('wsModeAll');
+function wsMode(all){modeOne.setAttribute('aria-pressed',!all);modeAll.setAttribute('aria-pressed',all);
+  document.getElementById('wsOne').hidden=all;document.getElementById('wsAll').hidden=!all;wsCount.hidden=all;}
+modeOne.onclick=()=>wsMode(false); modeAll.onclick=()=>wsMode(true);
+document.getElementById('wsReshuffle').onclick=wsBuildList;
+const wsShowAll=document.getElementById('wsShowAll');
+wsShowAll.onclick=()=>{const on=wsList.classList.toggle('show');wsShowAll.setAttribute('aria-pressed',on);wsShowAll.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('wsFull').onclick=()=>{const el=document.getElementById('vocab');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+wsStart();
+
+/* ---------- Estimate the bearing ---------- */
+let eb=null,ebPts=0,ebDone=0;
+const ebIn=document.getElementById('ebIn'),ebFb=document.getElementById('ebFb');
+function ebDraw(show){
+  const A=[100,105],B=P(A,82,eb.b);
+  document.getElementById('ebSvg').innerHTML=`<svg viewBox="0 0 200 200" role="img" aria-label="A line from A to B">${north(A,82)}${ln(A,B,'thick')}${dot(A,'A',[-12,14])}${tx(P(A,95,eb.b),'B','lab')}${show?`<g class="now">${arcB(A,30,0,eb.b)}${angLab(A,50,0,eb.b,B3(eb.b))}</g>`:''}</svg>`;
+}
+function ebNew(){let b;do{b=rnd(5,355);}while(b%45===0);eb={b,done:false};ebDraw(false);ebIn.value='';ebFb.textContent='';ebFb.className='feedback';}
+document.getElementById('ebCheck').onclick=()=>{
+  if(eb.done) return;
+  const g=nums(ebIn.value).map(Number)[0];
+  if(g===undefined){ebFb.textContent='Type your estimate first.';ebFb.className='feedback no';return;}
+  eb.done=true; ebDone++;
+  const d=Math.min(Math.abs(g-eb.b),360-Math.abs(g-eb.b)), pts=d<=5?3:d<=15?2:d<=30?1:0; ebPts+=pts;
+  ebFb.textContent=`It was ${B3(eb.b)}. You were ${Math.round(d)}° away: ${pts} point${pts===1?'':'s'}.`;
+  ebFb.className='feedback '+(pts?'ok':'no'); ebDraw(true);
+  document.getElementById('ebScore').textContent=`Score: ${ebPts} points from ${ebDone} go${ebDone===1?'':'es'}`;
+};
+ebIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('ebCheck').click();});
+document.getElementById('ebNext').onclick=ebNew;
+ebNew();
+
+/* Diagrams written in the page itself */
+document.querySelectorAll('[data-diag]').forEach(el=>el.outerHTML=diag(JSON.parse(el.dataset.diag)));
+
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s2/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

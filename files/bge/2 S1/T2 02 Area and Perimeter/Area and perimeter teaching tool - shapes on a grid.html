@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area and perimeter: shapes on a grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B;
+  --fill:#FCD668; --fill2:#A9CBEA; --fill3:#A9D18E; --walk:#D93A3A;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.1rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+.wrap{padding:1.25rem clamp(1rem,2.5vw,2rem) 2.5rem;max-width:1500px;margin:0 auto}
+
+/* Control bar */
+.bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:.35rem}
+.grp .lab{font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end}
+.inl{display:flex;flex-direction:column;gap:.15rem;font-size:.8rem;color:var(--muted);max-width:7.5rem;line-height:1.2}
+.inl input{width:4.6rem;padding:.4rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.25rem;text-align:center}
+select{padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1rem;background:var(--paper)}
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn.big{font-size:1.15rem;padding:.65rem 1.3rem}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .85rem;font-weight:700;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--deep)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--bad);font-weight:700;font-size:.95rem;min-height:1.2rem;flex-basis:100%}
+.err:empty{display:none}
+
+/* Question + stepping */
+.qbar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin:1.25rem 0 1rem}
+.question{font-family:var(--head);font-weight:700;font-size:clamp(1.7rem,3.6vw,2.6rem);color:var(--deep);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:.2rem 2rem}
+.question .ans{color:var(--sea)}
+.steps-ctl{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto;align-items:center}
+.stepcount{font-family:var(--head);color:var(--muted);font-size:.95rem;margin-right:.3rem}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:1.25rem}
+@media (max-width:1000px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem 1.25rem;display:flex;flex-direction:column;min-width:0}
+.panel h2{font-size:1.2rem;color:var(--deep);border-bottom:2px solid var(--deep);padding-bottom:.35rem;margin-bottom:.9rem}
+.panel h2 small{font-family:var(--body);font-weight:400;color:var(--muted);font-size:.95rem;margin-left:.4rem}
+.stage{display:flex;justify-content:center}
+svg.board{width:100%;height:auto;max-height:72vh;display:block}
+svg.board .gl{stroke:#C3CFCE;stroke-width:1.2}
+svg.board .shape{fill:var(--fill);stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+svg.board .outline{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+svg.board .p1{fill:var(--fill)} svg.board .p2{fill:var(--fill2)}
+svg.board .outside{fill:#DDE9F3;stroke:none}
+svg.board .dash{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-dasharray:9 7}
+svg.board .walked{stroke:var(--walk);stroke-width:7;stroke-linecap:round;fill:none}
+svg.board .lb rect{fill:#fff;stroke:var(--ink);stroke-width:2}
+svg.board .lb.q rect{stroke:var(--walk);stroke-dasharray:5 4}
+svg.board .lb.c rect{stroke:var(--walk);stroke-width:3}
+svg.board .lb text{font-family:var(--head);font-size:21px;font-weight:600;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.board .lb.q text,svg.board .lb.c text{fill:#B32A2A}
+svg.board .num{font-family:var(--head);font-size:17px;font-weight:700;fill:var(--deep);text-anchor:middle;dominant-baseline:central}
+svg.board .rowtag{font-family:var(--head);font-size:16px;font-weight:600;fill:var(--sea);dominant-baseline:central}
+svg.board .pc{fill:#fff;stroke:var(--ink);stroke-width:2}
+svg.board .pt{font-family:var(--head);font-size:20px;font-weight:700;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.board .pa{font-family:var(--head);font-size:19px;font-weight:700;fill:var(--deep);text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px}
+svg.board .key rect{fill:var(--fill3);stroke:var(--ink);stroke-width:1.5}
+svg.board .key text{font-family:var(--head);font-size:11px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.board .dim{stroke:var(--ink);stroke-width:2}
+svg.board .ra{fill:none;stroke:var(--ink);stroke-width:2}
+svg.board .fade{opacity:0;animation:in .35s ease forwards}
+.say{list-style:none;margin:0;padding:0;font-size:1.12rem}
+.say li{padding:.35rem 0 .35rem .9rem;border-left:4px solid var(--line);margin:.3rem 0;animation:in .35s ease both}
+.say li.now{border-left-color:var(--sand)}
+.say li.answer{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.25rem;border-left-color:var(--sea)}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Mode tabs */
+.tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.tabs button{border:1.5px solid var(--deep);background:var(--paper);color:var(--deep);border-radius:999px;padding:.45rem 1.1rem;font-family:var(--head);font-weight:600;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--deep);color:#fff}
+
+/* Area mazes */
+.mzpick{display:flex;gap:.4rem;flex-wrap:wrap}
+.mzpick button{border:1.5px solid var(--deep);background:var(--paper);color:var(--deep);border-radius:8px;padding:.3rem .55rem;cursor:pointer;font-family:var(--head);font-weight:700;line-height:1.1;min-width:3rem}
+.mzpick button small{display:block;font-size:.62rem;color:var(--sand);letter-spacing:-.05em;-webkit-text-stroke:.4px var(--deep)}
+.mzpick button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.fb{font-weight:700;min-height:1.4rem}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+svg.board .mz-r{fill:#fff;stroke:var(--ink);stroke-width:3}
+svg.board .mz-r.hl{fill:var(--sand-soft);stroke-width:5}
+svg.board .mz-id{font-family:var(--head);font-size:15px;font-weight:700;fill:var(--muted)}
+svg.board .mz-a{font-family:var(--head);font-size:22px;font-weight:700;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+svg.board .mz-a.q{fill:#B32A2A} svg.board .mz-a.f{fill:var(--sea)}
+svg.board .mz-d{stroke:var(--ink);stroke-width:2}
+svg.board .mz-d.f{stroke:var(--sea)} svg.board .mz-d.q{stroke:var(--walk)}
+svg.board .lb.f rect{stroke:var(--sea);stroke-width:3}
+svg.board .lb.f text{fill:var(--sea)}
+
+.help{margin-top:1.25rem;color:var(--muted);font-size:.95rem}
+.help b{color:var(--ink)}
+body.embed{background:var(--paper)}
+body.embed .topbar,body.embed .help{display:none}
+body.embed .wrap{padding:0;max-width:none}
+body.embed .bar{background:var(--bg)}
+body.embed svg.board{max-height:none}
+@media (min-width:760px){
+  body.embed .panels{grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:.9rem}
+  body.embed .panel{padding:.9rem .9rem 1rem}
+  body.embed .say{font-size:1rem}
+  body.embed .qbar{margin:.9rem 0 .8rem}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S1-t2-area-and-perimeter">Hub</a> › <a href="Topic%20page%20-%20Area%20and%20Perimeter.html">Area and Perimeter</a> › Shapes on a grid</nav>
+</header>
+
+<div class="wrap">
+  <div class="tabs" role="tablist" aria-label="Activity">
+    <button role="tab" data-mode="grid" aria-selected="true">Shapes on a grid</button>
+    <button role="tab" data-mode="maze" aria-selected="false">Area mazes (Naoki Inaba puzzles)</button>
+  </div>
+
+  <div id="gridMode">
+  <div class="bar">
+    <div class="grp">
+      <span class="lab">Shape</span>
+      <select id="shape" aria-label="Shape">
+        <option value="rect">Rectangle</option>
+        <option value="tri">Triangle</option>
+        <option value="L">Compound: two rectangles</option>
+        <option value="house">Compound: rectangle and triangle</option>
+      </select>
+    </div>
+    <div class="grp">
+      <span class="lab">Find</span>
+      <div class="seg" role="group" aria-label="What to find">
+        <button data-find="area" aria-pressed="true">Area</button>
+        <button data-find="perim" aria-pressed="false">Perimeter</button>
+        <button data-find="both" aria-pressed="false">Both</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Type your numbers</span>
+      <div class="row" id="inputs"></div>
+    </div>
+    <div class="grp">
+      <span class="lab">Units</span>
+      <select id="units" aria-label="Units"><option value="cm">cm</option><option value="m">m</option></select>
+    </div>
+    <div class="grp">
+      <div class="row">
+        <button class="btn" id="go">Use these numbers</button>
+        <button class="btn" id="rand">New question</button>
+      </div>
+    </div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <div class="qbar">
+    <div class="question" id="question" aria-live="polite"></div>
+    <div class="steps-ctl">
+      <span class="stepcount" id="stepCount"></span>
+      <button class="btn alt" id="back">← Back</button>
+      <button class="btn big" id="next">Next step →</button>
+      <button class="btn alt" id="all">Show all</button>
+      <button class="btn alt" id="reset">Start again</button>
+    </div>
+  </div>
+
+  <div class="panels">
+    <section class="panel" aria-labelledby="hBoard">
+      <h2 id="hBoard">On the grid <small id="desc"></small></h2>
+      <div class="stage" id="board"></div>
+    </section>
+    <section class="panel" aria-labelledby="hSay">
+      <h2 id="hSay">Working</h2>
+      <ul class="say" id="say"></ul>
+    </section>
+  </div>
+
+  <p class="help"><b>Tips:</b> press <b>Next step</b> (or the space bar / right arrow) to build the working one step at a time, and the left arrow to go back. Each square on the grid is 1 cm by 1 cm, so it has an area of 1 cm². Use whole numbers so the shape fits the grid.</p>
+  </div>
+
+  <div id="mazeMode" hidden>
+    <div class="bar">
+      <div class="grp">
+        <span class="lab">Puzzle</span>
+        <div class="mzpick" id="mzPick" role="group" aria-label="Choose a puzzle"></div>
+      </div>
+      <div class="grp">
+        <span class="lab">Pupils' answer for ?</span>
+        <div class="row">
+          <label class="inl"><span>Answer</span><input id="mzAns" inputmode="numeric" aria-label="Answer for the question mark"></label>
+          <button class="btn" id="mzCheck">Check</button>
+        </div>
+      </div>
+      <div class="fb" id="mzFb" role="status"></div>
+    </div>
+
+    <div class="qbar">
+      <div class="question" id="mzQ" aria-live="polite"></div>
+      <div class="steps-ctl">
+        <span class="stepcount" id="mzCount"></span>
+        <button class="btn alt" id="mzBack">← Back</button>
+        <button class="btn big" id="mzNext">Next step →</button>
+        <button class="btn alt" id="mzAll">Show all</button>
+        <button class="btn alt" id="mzReset">Start again</button>
+      </div>
+    </div>
+
+    <div class="panels">
+      <section class="panel" aria-labelledby="hMaze">
+        <h2 id="hMaze">Area maze <small id="mzDesc"></small></h2>
+        <div class="stage" id="mzBoard"></div>
+      </section>
+      <section class="panel" aria-labelledby="hMzSay">
+        <h2 id="hMzSay">Working</h2>
+        <ul class="say" id="mzSay"></ul>
+      </section>
+    </div>
+
+    <p class="help"><b>Rules:</b> every shape is a rectangle. Area = length × breadth, so length = area ÷ breadth. Use the clues to find the missing number <b>?</b> — no fractions or decimals needed, and don't measure! Lengths found along the way appear in <b style="color:var(--sea)">blue</b>; the rectangle being used is shaded. These are extra puzzles in the style of the printed sheet (Naoki area mazes MTH 3-11b.pdf).</p>
+  </div>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const fmt=x=>{const r=Math.round(x*100)/100;return String(r);};
+const C=40;                       // size of one grid square in the drawing
+const SQ='²';
+
+/* ---------- Shapes ---------- */
+/* Each model: w,h (size in squares), poly (outline), edges (walk order), parts, A, P */
+const SHAPES={
+  rect:{name:'Rectangle',inputs:[['Length',1,15],['Width',1,12]],perim:true},
+  tri:{name:'Triangle',inputs:[['Base',2,14],['Height',1,12]],perim:false},
+  L:{name:'Compound shape',inputs:[['Width (whole shape)',2,15],['Height (whole shape)',2,12],['Width of the tall part',1,14],['Height of the wide part',1,11]],perim:true},
+  house:{name:'Compound shape',inputs:[['Width',2,14],['Wall height',1,10],['Total height',2,18]],perim:false}
+};
+
+function makeModel(Q){
+  const v=Q.v;
+  if(Q.s==='rect'){
+    const [L,W]=v;
+    return {w:L,h:W,poly:[[0,0],[L,0],[L,W],[0,W]],
+      edges:[{a:[0,0],b:[L,0],len:L,lab:'h'},{a:[L,0],b:[L,W],len:W,lab:'h'},{a:[L,W],b:[0,W],len:L,lab:'g'},{a:[0,W],b:[0,0],len:W,lab:'g'}],
+      A:L*W,P:2*(L+W),desc:`${L} ${Q.u} by ${W} ${Q.u}`};
+  }
+  if(Q.s==='tri'){
+    const [b,h,p]=v;
+    return {w:b,h:h,poly:[[0,h],[b,h],[p,0]],p,b,hh:h,
+      edges:[{a:[0,h],b:[b,h],len:b,lab:'g'},{a:[b,h],b:[p,0],len:0,lab:'h'},{a:[p,0],b:[0,h],len:0,lab:'h'}],
+      A:b*h/2,desc:p===0?'right-angled':''};
+  }
+  if(Q.s==='L'){
+    const [W,H,w2,h2]=v, m=H-h2, n=W-w2;
+    const T=pt=>[Q.fx?W-pt[0]:pt[0], Q.fy?H-pt[1]:pt[1]];
+    const E=(a,b,len,lab,expr)=>({a:T(a),b:T(b),len,lab,expr});
+    return {w:W,h:H,poly:[[0,0],[w2,0],[w2,m],[W,m],[W,H],[0,H]].map(T),
+      edges:[E([0,H],[0,0],H,'g'),E([0,0],[w2,0],w2,'g'),E([w2,0],[w2,m],m,'q',`${H} − ${h2}`),E([w2,m],[W,m],n,'q',`${W} − ${w2}`),E([W,m],[W,H],h2,'g'),E([W,H],[0,H],W,'g')],
+      parts:[{pts:[[0,0],[w2,0],[w2,m],[0,m]].map(T),A:w2*m,expr:`${w2} × ${m}`},{pts:[[0,m],[W,m],[W,H],[0,H]].map(T),A:W*h2,expr:`${W} × ${h2}`}],
+      split:[T([0,m]),T([w2,m])],A:w2*m+W*h2,P:2*(W+H),miss:[2,3]};
+  }
+  // house: rectangle with a triangle on top
+  const [W,H,TT]=v, t=TT-H;
+  return {w:W,h:TT,poly:[[0,TT],[0,t],[W/2,0],[W,t],[W,TT]],t,TT,H,W,
+    edges:[{a:[0,TT],b:[0,t],len:H,lab:'h'},{a:[0,t],b:[W/2,0],len:0,lab:'h'},{a:[W/2,0],b:[W,t],len:0,lab:'h'},{a:[W,t],b:[W,TT],len:H,lab:'g'},{a:[W,TT],b:[0,TT],len:W,lab:'g'}],
+    parts:[{pts:[[0,t],[W,t],[W,TT],[0,TT]],A:W*H,expr:`${W} × ${H}`},{pts:[[0,t],[W/2,0],[W,t]],A:W*t/2,expr:`½ × ${W} × ${t}`,at:[W*0.3,t*0.68]}],
+    split:[[0,t],[W,t]],A:W*H+W*t/2};
+}
+
+/* ---------- Steps: each step changes the drawing state and adds a line of working ---------- */
+function buildStages(Q,M){
+  const u=Q.u, S=[], f=Q.f;
+  const add=(say,fn,extra)=>S.push(Object.assign({say,fn:fn||(()=>{})},extra||{}));
+  const walk=(intro)=>{
+    const E=M.edges; let terms=[];
+    E.forEach((e,i)=>{
+      terms.push(fmt(e.len)); const sum=terms.reduce((p,q)=>p+ +q,0);
+      if(i===0) add(`${intro?intro+' ':''}Start at the dot and walk along the first side: ${fmt(e.len)} ${u}.`,st=>{st.walked=1;});
+      else if(i<E.length-1) add(`Walk along the next side: + ${fmt(e.len)} ${u}. Total so far: ${fmt(sum)} ${u}.`,st=>{st.walked=i+1;});
+      else add(`Walk back to the start: + ${fmt(e.len)} ${u}.`,st=>{st.walked=i+1;st.perimDone=true;},{answer:`Perimeter = ${terms.join(' + ')} = ${fmt(M.P)} ${u}`});
+    });
+  };
+  if(Q.s==='rect'){
+    const [L,W]=Q.v;
+    add(`This rectangle is ${L} ${u} long and ${W} ${u} wide. Each square is 1 ${u} by 1 ${u}.`);
+    if(f!=='perim'){
+      add(`Count the squares in one row: there are ${L}.`,st=>{st.rowNums=true;});
+      add(`There ${W===1?'is 1 row':'are '+W+' rows'} of ${L}.`,st=>{st.rowTags=true;});
+      add(`To find the area quickly, multiply the length and the width.`,st=>{st.areaDone=true;},{answer:`Area = length × width = ${L} × ${W} = ${fmt(M.A)} ${u}${SQ}`});
+    }
+    if(f!=='area'){
+      add(`Perimeter is the distance around the edge. Opposite sides of a rectangle are equal, so label the other two sides.`,st=>{st.rowNums=false;st.rowTags=false;st.lab[0]='g';st.lab[1]='g';});
+      walk('Imagine a tiny person walking around the edge.');
+    }
+  }
+  if(Q.s==='tri'){
+    const {b,hh:h,p}=M;
+    add(`The base is ${b} ${u}. The ${p===0?'side at 90° to the base':'perpendicular height (at 90° to the base)'} is ${h} ${u}.`);
+    add(`Draw a rectangle around the triangle. The rectangle's area is ${b} × ${h} = ${fmt(b*h)} ${u}${SQ}.`,st=>{st.box=true;});
+    add(p===0?`The triangle is exactly half of the rectangle. The other half is the same triangle turned round.`
+             :`The triangle is exactly half of the rectangle. The two shaded corner pieces fit together to make another triangle the same size.`,st=>{st.half=true;});
+    add(`Area of a triangle = half × base × height.`,st=>{st.areaDone=true;},{answer:`Area = ½ × ${b} × ${h} = ${fmt(M.A)} ${u}${SQ}`});
+  }
+  if(Q.s==='L'){
+    const [W,H,w2,h2]=Q.v, e2=M.edges[2], e3=M.edges[3];
+    add(`This compound shape is made from two rectangles. Two lengths are missing.`);
+    if(f!=='perim'){
+      add(`1) Divide the compound shape into rectangles ① and ②.`,st=>{st.split=true;st.parts=true;});
+      add(`2) Calculate the missing length: ${e2.expr} = ${fmt(e2.len)} ${u}.`,st=>{st.lab[2]='c';});
+      add(`Area of ① = ${M.parts[0].expr} = ${fmt(M.parts[0].A)} ${u}${SQ}`,st=>{st.pd[0]=true;});
+      add(`Area of ② = ${M.parts[1].expr} = ${fmt(M.parts[1].A)} ${u}${SQ}`,st=>{st.pd[1]=true;});
+      add(`Add the shape areas.`,st=>{st.areaDone=true;},{answer:`Area = ${fmt(M.parts[0].A)} + ${fmt(M.parts[1].A)} = ${fmt(M.A)} ${u}${SQ}`});
+    }
+    if(f!=='area'){
+      if(f==='perim') add(`Calculate the missing lengths: ${e2.expr} = ${fmt(e2.len)} ${u} and ${e3.expr} = ${fmt(e3.len)} ${u}.`,st=>{st.lab[2]='c';st.lab[3]='c';});
+      else add(`For the perimeter, calculate the other missing length: ${e3.expr} = ${fmt(e3.len)} ${u}.`,st=>{st.lab[3]='c';});
+      walk(`Perimeter: ‘walk’ around the outside.`);
+    }
+  }
+  if(Q.s==='house'){
+    const {W,H,t,TT}=M;
+    add(`This compound shape is a rectangle with a triangle on top. It is ${W} ${u} wide and ${TT} ${u} tall altogether.`);
+    add(`1) Divide it into a rectangle ① and a triangle ②.`,st=>{st.split=true;st.parts=true;});
+    add(`2) Calculate the height of the triangle: ${TT} − ${H} = ${t} ${u}.`,st=>{st.th='c';});
+    add(`Area of ① = ${W} × ${H} = ${fmt(W*H)} ${u}${SQ}`,st=>{st.pd[0]=true;});
+    add(`Area of ② = ½ × base × height = ½ × ${W} × ${t} = ${fmt(W*t/2)} ${u}${SQ}`,st=>{st.pd[1]=true;});
+    add(`Add the shape areas.`,st=>{st.areaDone=true;},{answer:`Area = ${fmt(W*H)} + ${fmt(W*t/2)} = ${fmt(M.A)} ${u}${SQ}`});
+  }
+  return S;
+}
+
+/* ---------- Drawing ---------- */
+function inside(pt,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const [xi,yi]=poly[i],[xj,yj]=poly[j];
+  if(((yi>pt[1])!==(yj>pt[1]))&&(pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi))c=!c;}return c;}
+function labelBox(cx,cy,text,cls){
+  const w=Math.max(44,text.length*12.5+18),h=34;
+  return `<g class="lb ${cls}"><rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" rx="8"/><text x="${cx}" y="${cy+1}">${text}</text></g>`;
+}
+function labelSize(text){return [Math.max(44,text.length*12.5+18),34];}
+
+function draw(Q,M,st){
+  const ml=Q.s==='house'?4:3, mr=3, mt=2, mb=2;
+  const cols=Math.ceil(M.w)+ml+mr, rows=Math.ceil(M.h)+mt+mb;
+  const X=x=>(x+ml)*C, Y=y=>(y+mt)*C, P=pt=>`${X(pt[0])},${Y(pt[1])}`;
+  const poly=pts=>pts.map(P).join(' ');
+  const u=Q.u;
+  let s=`<svg class="board" viewBox="0 0 ${cols*C} ${rows*C}" role="img" aria-label="${SHAPES[Q.s].name} drawn on a squared grid">`;
+  // grid
+  for(let i=0;i<=cols;i++) s+=`<line class="gl" x1="${i*C}" x2="${i*C}" y1="0" y2="${rows*C}"/>`;
+  for(let j=0;j<=rows;j++) s+=`<line class="gl" x1="0" x2="${cols*C}" y1="${j*C}" y2="${j*C}"/>`;
+  // key
+  s+=`<g class="key"><rect x="${(cols-1)*C+3}" y="3" width="${C-6}" height="${C-6}"/><text x="${(cols-.5)*C}" y="${C/2}">1 ${u}${SQ}</text></g>`;
+  // triangle: rectangle around it and the outside pieces
+  if(Q.s==='tri'&&st.half){
+    const {b,hh:h,p}=M;
+    if(p>0) s+=`<polygon class="outside fade" points="${poly([[0,0],[p,0],[0,h]])}"/>`;
+    if(p<b) s+=`<polygon class="outside fade" points="${poly([[p,0],[b,0],[b,h]])}"/>`;
+  }
+  // shape fill
+  if(st.parts&&M.parts){
+    M.parts.forEach((pt,i)=>{s+=`<polygon class="p${i+1}" points="${poly(pt.pts)}"/>`;});
+    s+=`<polygon class="outline" points="${poly(M.poly)}"/>`;
+  } else s+=`<polygon class="shape" points="${poly(M.poly)}"/>`;
+  // grid lines over the shape so squares can be counted
+  if(Q.s==='rect'){
+    const [L,W]=Q.v;
+    for(let i=1;i<L;i++) s+=`<line class="gl" style="stroke:#9A8B4F;stroke-width:1" x1="${X(i)}" x2="${X(i)}" y1="${Y(0)}" y2="${Y(W)}"/>`;
+    for(let j=1;j<W;j++) s+=`<line class="gl" style="stroke:#9A8B4F;stroke-width:1" x1="${X(0)}" x2="${X(L)}" y1="${Y(j)}" y2="${Y(j)}"/>`;
+    s+=`<polygon class="outline" points="${poly(M.poly)}"/>`;
+    if(st.rowNums) for(let i=0;i<L;i++) s+=`<text class="num fade" style="animation-delay:${i*0.08}s" x="${X(i+.5)}" y="${Y(.5)}">${i+1}</text>`;
+    if(st.rowTags) for(let j=0;j<W;j++) s+=`<text class="rowtag fade" style="animation-delay:${j*0.12}s" x="${X(L)+10}" y="${Y(j+.5)}">row ${j+1}</text>`;
+  }
+  if(Q.s==='tri'&&st.box){const {b,hh:h}=M; s+=`<rect class="dash fade" x="${X(0)}" y="${Y(0)}" width="${b*C}" height="${h*C}"/>`;}
+  // split line
+  if(st.split&&M.split) s+=`<line class="dash fade" x1="${X(M.split[0][0])}" y1="${Y(M.split[0][1])}" x2="${X(M.split[1][0])}" y2="${Y(M.split[1][1])}"/>`;
+  // walked edges
+  if(st.walked&&M.edges){
+    M.edges.slice(0,st.walked).forEach((e,i)=>{s+=`<line class="walked${i===st.walked-1?' fade':''}" x1="${X(e.a[0])}" y1="${Y(e.a[1])}" x2="${X(e.b[0])}" y2="${Y(e.b[1])}"/>`;});
+    const st0=M.edges[0].a, cur=M.edges[st.walked-1].b;
+    s+=`<circle cx="${X(st0[0])}" cy="${Y(st0[1])}" r="9" fill="var(--ink)"/>`;
+    if(st.walked<M.edges.length) s+=`<circle cx="${X(cur[0])}" cy="${Y(cur[1])}" r="11" fill="var(--sand)" stroke="var(--ink)" stroke-width="2.5"/>`;
+  }
+  // triangle height
+  if(Q.s==='tri'){
+    const {b,hh:h,p}=M;
+    if(p>0) s+=`<line class="dash" x1="${X(p)}" y1="${Y(0)}" x2="${X(p)}" y2="${Y(h)}"/>`;
+    const dir=p<b?1:-1, r=.45;
+    s+=`<polyline class="ra" points="${X(p+dir*r)},${Y(h)} ${X(p+dir*r)},${Y(h-r)} ${X(p)},${Y(h-r)}"/>`;
+    const txt=`${h} ${u}`, [bw]=labelSize(txt);
+    const lx = p===0 ? X(0)-bw/2-10 : X(p)+(p<b/2?1:-1)*(bw/2+10);
+    s+=labelBox(lx,Y(h/2),txt,'g');
+  }
+  // house: total height and triangle height
+  if(Q.s==='house'){
+    const {W,TT,t}=M, x0=X(0)-C*1.1;
+    s+=`<line class="dim" x1="${x0}" x2="${x0}" y1="${Y(0)}" y2="${Y(TT)}"/><line class="dim" x1="${x0-8}" x2="${x0+8}" y1="${Y(0)}" y2="${Y(0)}"/><line class="dim" x1="${x0-8}" x2="${x0+8}" y1="${Y(TT)}" y2="${Y(TT)}"/>`;
+    s+=labelBox(x0,Y(TT/2),`${TT} ${u}`,'g');
+    s+=`<line class="dash" x1="${X(W/2)}" y1="${Y(0)}" x2="${X(W/2)}" y2="${Y(t)}"/>`;
+    if(st.th){const txt=`${t} ${u}`,[bw]=labelSize(txt); s+=labelBox(X(W/2)+bw/2+8,Y(t/2),txt,'c');}
+  }
+  // side labels (pushed apart if two would overlap, e.g. in the corner of a compound shape)
+  const boxes=[];
+  M.edges.forEach((e,i)=>{
+    const lab=st.lab[i]; if(lab==='h') return;
+    const txt=lab==='q'?'?':`${fmt(e.len)} ${u}`, [bw,bh]=labelSize(txt);
+    const mx=(e.a[0]+e.b[0])/2,my=(e.a[1]+e.b[1])/2,dx=e.b[0]-e.a[0],dy=e.b[1]-e.a[1],L=Math.hypot(dx,dy);
+    let nx=dy/L,ny=-dx/L; if(inside([mx+nx*.05,my+ny*.05],M.poly)){nx=-nx;ny=-ny;}
+    const off=(Math.abs(nx)*bw/2+Math.abs(ny)*bh/2)+10;
+    boxes.push({txt,lab,bw,bh,cx:X(mx)+nx*off,cy:Y(my)+ny*off,ux:dx/L,uy:dy/L});
+  });
+  const hit=(p,q)=>Math.abs(p.cx-q.cx)<(p.bw+q.bw)/2+4&&Math.abs(p.cy-q.cy)<(p.bh+q.bh)/2+4;
+  boxes.forEach((b,i)=>{
+    for(let k=0;k<i;k++){let g=0; const q=boxes[k];
+      if(!hit(b,q)) continue;
+      // slide this label along its own side, away from the other label
+      const sgn=((b.cx-q.cx)*b.ux+(b.cy-q.cy)*b.uy)>=0?1:-1;
+      while(hit(b,q)&&g++<40){b.cx+=sgn*b.ux*4;b.cy+=sgn*b.uy*4;}
+    }
+  });
+  boxes.forEach(b=>{s+=labelBox(b.cx,b.cy,b.txt,b.lab);});
+  // part numbers
+  if(st.parts&&M.parts){
+    M.parts.forEach((pt,i)=>{
+      const n=pt.pts.length; let cx=pt.pts.reduce((a,q)=>a+q[0],0)/n, cy=pt.pts.reduce((a,q)=>a+q[1],0)/n;
+      if(pt.at){cx=pt.at[0];cy=pt.at[1];}
+      const yy=Y(cy)-(st.pd[i]?12:0);
+      s+=`<circle class="pc" cx="${X(cx)}" cy="${yy}" r="15"/><text class="pt" x="${X(cx)}" y="${yy+1}">${i+1}</text>`;
+      if(st.pd[i]) s+=`<text class="pa fade" x="${X(cx)}" y="${yy+30}">${fmt(pt.A)} ${u}${SQ}</text>`;
+    });
+  }
+  s+='</svg>';
+  return s;
+}
+
+/* ---------- State and driver ---------- */
+let Q={s:'rect',v:[3,2],f:'area',u:'cm',fx:0,fy:0}, M=null, S=[], step=0;
+function stateAt(n){
+  const st={lab:M.edges.map(e=>e.lab),walked:0,pd:[false,false]};
+  if(Q.s==='L'&&Q.f==='area') st.lab[3]='q';
+  if(Q.s==='house') st.th=null;
+  for(let i=0;i<=n;i++) S[i].fn(st);
+  return st;
+}
+function render(){
+  const st=stateAt(step), done=step>=S.length-1, u=Q.u;
+  document.getElementById('board').innerHTML=draw(Q,M,st);
+  const parts=[];
+  if(Q.f!=='perim') parts.push(`Area = ${st.areaDone?`<span class="ans">${fmt(M.A)} ${u}${SQ}</span>`:'?'}`);
+  if(Q.f!=='area') parts.push(`Perimeter = ${st.perimDone?`<span class="ans">${fmt(M.P)} ${u}</span>`:'?'}`);
+  document.getElementById('question').innerHTML=parts.map(p=>`<span>${p}</span>`).join('');
+  document.getElementById('say').innerHTML=S.slice(0,step+1).map((x,i)=>`<li class="${i===step?'now':''}">${x.say}</li>`+(x.answer?`<li class="answer">${x.answer}</li>`:'')).join('');
+  document.getElementById('desc').textContent=SHAPES[Q.s].name+(M.desc?': '+M.desc:'');
+  document.getElementById('stepCount').textContent=`Step ${step+1} of ${S.length}`;
+  document.getElementById('back').disabled=step===0;
+  document.getElementById('next').disabled=done;
+  document.getElementById('all').disabled=done;
+}
+function setFindButtons(){
+  const ok=SHAPES[Q.s].perim; if(!ok) Q.f='area';
+  document.querySelectorAll('[data-find]').forEach(b=>{b.disabled=!ok&&b.dataset.find!=='area';b.setAttribute('aria-pressed',b.dataset.find===Q.f);});
+}
+function buildInputs(){
+  const defs=SHAPES[Q.s].inputs;
+  let h=defs.map((d,i)=>`<label class="inl"><span>${d[0]}</span><input id="in${i}" inputmode="numeric" value="${Q.v[i]}"></label>`).join('');
+  if(Q.s==='tri') h+=`<label class="inl" style="max-width:none"><span>Type</span><select id="triType"><option value="r"${Q.v[2]===0?' selected':''}>Right-angled</option><option value="i"${Q.v[2]!==0?' selected':''}>Not right-angled</option></select></label>`;
+  document.getElementById('inputs').innerHTML=h;
+  document.querySelectorAll('#inputs input').forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('go').click();}}));
+}
+function load(q){
+  Q=Object.assign({},Q,q);
+  document.getElementById('shape').value=Q.s; document.getElementById('units').value=Q.u;
+  setFindButtons(); buildInputs();
+  M=makeModel(Q); S=buildStages(Q,M); step=0; render();
+}
+function check(s,v){   // returns an error message or ''
+  const d=SHAPES[s].inputs;
+  if(v.some(x=>x===null)) return 'Use whole numbers.';
+  for(let i=0;i<d.length;i++) if(v[i]<d[i][1]||v[i]>d[i][2]) return `${d[i][0]} must be from ${d[i][1]} to ${d[i][2]}.`;
+  if(s==='L'&&(v[2]>=v[0]||v[3]>=v[1])) return 'The tall part must be narrower than the whole shape, and the wide part must be lower than the whole shape.';
+  if(s==='house'&&(v[2]<=v[1]||v[2]-v[1]>8)) return 'The total height must be more than the wall height (and no more than 8 more).';
+  return '';
+}
+const parse=x=>{x=String(x).trim();return /^\d{1,2}$/.test(x)?+x:null;};
+document.getElementById('go').onclick=()=>{
+  const n=SHAPES[Q.s].inputs.length, v=[...Array(n)].map((_,i)=>parse(document.getElementById('in'+i).value));
+  const err=check(Q.s,v); document.getElementById('err').textContent=err; if(err) return;
+  if(Q.s==='tri'){const t=document.getElementById('triType').value; v[2]= t==='r'?0:Math.min(v[0]-1,Math.max(1,Math.round(v[0]*0.35)));}
+  load({v});
+};
+function randomQ(s){
+  if(s==='rect') return {v:[rnd(2,12),rnd(2,9)]};
+  if(s==='tri'){const b=rnd(2,12),h=rnd(2,9);return {v:[b,h,rnd(0,2)===0?0:rnd(1,b-1)]};}
+  if(s==='L'){const W=rnd(4,12),H=rnd(4,9);return {v:[W,H,rnd(1,W-2),rnd(1,H-2)],fx:rnd(0,1),fy:rnd(0,1)};}
+  const W=pick([4,6,8,10,12]),H=rnd(2,7);return {v:[W,H,H+rnd(1,5)]};
+}
+document.getElementById('rand').onclick=()=>{document.getElementById('err').textContent='';load(randomQ(Q.s));};
+document.getElementById('shape').onchange=e=>{document.getElementById('err').textContent='';const s=e.target.value;load(Object.assign({s},randomQ(s)));};
+document.getElementById('units').onchange=e=>load({u:e.target.value,v:Q.v});
+document.querySelectorAll('[data-find]').forEach(b=>b.onclick=()=>{if(!b.disabled)load({f:b.dataset.find});});
+
+document.getElementById('next').onclick=()=>{if(step<S.length-1){step++;render();}};
+document.getElementById('back').onclick=()=>{if(step>0){step--;render();}};
+document.getElementById('all').onclick=()=>{step=S.length-1;render();};
+document.getElementById('reset').onclick=()=>{step=0;render();};
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  const mz=MODE==='maze'?'mz':'';
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();document.getElementById(mz?'mzNext':'next').click();}
+  if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById(mz?'mzBack':'back').click();}
+});
+
+/* ---------- Area mazes (Naoki Inaba style) ----------
+   Coordinates in cm with y going UP; drawn to scale. Lengths and areas are worked out from the coordinates.
+   rects: a = 'g' area given, 'q' the area to find, '' hidden until a step shows "area:<id>"
+   dims:  p = [x1,y1,x2,y2] where the dimension line is drawn, at = side for the label,
+          k = 'g' given, 'f' found by a step, 'q' the length to find
+   steps: hl = rectangles to shade, show = dims / "area:<id>" revealed, say = the working */
+const MAZES=[
+ {stars:1,rects:[{id:'A',x:0,y:0,w:4,h:5,a:'g'},{id:'B',x:4,y:0,w:6,h:5,a:'q'}],
+  dims:[{id:'wA',p:[0,-1,4,-1],at:'below',k:'g'},{id:'wB',p:[4,-1,10,-1],at:'below',k:'g'},{id:'h',p:[-1,0,-1,5],at:'left',k:'f'}],
+  steps:[{hl:['A'],show:['h'],say:'A has area 20 cm² and length 4 cm. Height = 20 ÷ 4 = 5 cm.'},
+         {hl:['B'],show:['area:B'],say:'B is the same height as A, so B is 6 cm by 5 cm. Area = 6 × 5 = 30 cm².'}]},
+ {stars:1,rects:[{id:'A',x:0,y:6,w:8,h:3,a:'g'},{id:'B',x:0,y:0,w:8,h:6,a:'g'}],
+  dims:[{id:'hA',p:[-1,6,-1,9],at:'left',k:'g'},{id:'w',p:[0,10,8,10],at:'above',k:'f'},{id:'hB',p:[-1,0,-1,6],at:'left',k:'q'}],
+  steps:[{hl:['A'],show:['w'],say:'A has area 24 cm² and height 3 cm. Length = 24 ÷ 3 = 8 cm.'},
+         {hl:['B'],show:['hB'],say:'B is also 8 cm long. Height = 48 ÷ 8 = 6 cm.'}]},
+ {stars:2,rects:[{id:'A',x:0,y:0,w:3,h:7,a:'g'},{id:'B',x:3,y:0,w:5,h:7,a:'g'},{id:'C',x:8,y:0,w:4,h:7,a:'q'}],
+  dims:[{id:'wA',p:[0,-1,3,-1],at:'below',k:'g'},{id:'tot',p:[0,8,12,8],at:'above',k:'g'},{id:'h',p:[-1,0,-1,7],at:'left',k:'f'},
+        {id:'wB',p:[3,-1,8,-1],at:'below',k:'f'},{id:'wC',p:[8,-1,12,-1],at:'below',k:'f'}],
+  steps:[{hl:['A'],show:['h'],say:'A has area 21 cm² and length 3 cm. Height = 21 ÷ 3 = 7 cm. All three rectangles have this height.'},
+         {hl:['B'],show:['wB'],say:'B has area 35 cm² and height 7 cm. Length = 35 ÷ 7 = 5 cm.'},
+         {hl:['C'],show:['wC'],say:'The whole length is 12 cm, so C is 12 − 3 − 5 = 4 cm long.'},
+         {hl:['C'],show:['area:C'],say:'C is 4 cm by 7 cm. Area = 4 × 7 = 28 cm².'}]},
+ {stars:2,rects:[{id:'A',x:0,y:0,w:5,h:8,a:'g'},{id:'B',x:5,y:0,w:4,h:6,a:'g'}],
+  dims:[{id:'hA',p:[-1,0,-1,8],at:'left',k:'g'},{id:'tot',p:[0,-1,9,-1],at:'below',k:'g'},{id:'wA',p:[0,9,5,9],at:'above',k:'f'},
+        {id:'wB',p:[5,7,9,7],at:'above',k:'f'},{id:'hB',p:[10,0,10,6],at:'right',k:'q'}],
+  steps:[{hl:['A'],show:['wA'],say:'A has area 40 cm² and height 8 cm. Length = 40 ÷ 8 = 5 cm.'},
+         {hl:['B'],show:['wB'],say:'The whole length is 9 cm, so B is 9 − 5 = 4 cm long.'},
+         {hl:['B'],show:['hB'],say:'B has area 24 cm² and length 4 cm. Height = 24 ÷ 4 = 6 cm.'}]},
+ {stars:2,rects:[{id:'A',x:0,y:6,w:5,h:4,a:'g'},{id:'B',x:5,y:6,w:3,h:4,a:'g'},{id:'C',x:0,y:0,w:5,h:6,a:'g'},{id:'D',x:5,y:0,w:3,h:6,a:'q'}],
+  dims:[{id:'hT',p:[-1,6,-1,10],at:'left',k:'g'},{id:'wL',p:[0,11,5,11],at:'above',k:'f'},{id:'wR',p:[5,11,8,11],at:'above',k:'f'},{id:'hB',p:[-1,0,-1,6],at:'left',k:'f'}],
+  steps:[{hl:['A'],show:['wL'],say:'A has area 20 cm² and height 4 cm. Length = 20 ÷ 4 = 5 cm.'},
+         {hl:['B'],show:['wR'],say:'B is in the same row, so its height is 4 cm too. Length = 12 ÷ 4 = 3 cm.'},
+         {hl:['C'],show:['hB'],say:'C is in the same column as A, so it is 5 cm long. Height = 30 ÷ 5 = 6 cm.'},
+         {hl:['D'],show:['area:D'],say:'D is 3 cm long (like B) and 6 cm high (like C). Area = 3 × 6 = 18 cm².'}]},
+ {stars:3,rects:[{id:'A',x:0,y:4,w:6,h:5,a:'g'},{id:'B',x:0,y:0,w:10,h:4,a:'g'}],
+  dims:[{id:'hA',p:[-1,4,-1,9],at:'left',k:'g'},{id:'over',p:[6,5,10,5],at:'above',k:'g'},{id:'wA',p:[0,10,6,10],at:'above',k:'f'},
+        {id:'wB',p:[0,-1,10,-1],at:'below',k:'f'},{id:'hB',p:[-1,0,-1,4],at:'left',k:'q'}],
+  steps:[{hl:['A'],show:['wA'],say:'A has area 30 cm² and height 5 cm. Length = 30 ÷ 5 = 6 cm.'},
+         {hl:['B'],show:['wB'],say:'B sticks out 4 cm further than A, so B is 6 + 4 = 10 cm long.'},
+         {hl:['B'],show:['hB'],say:'B has area 40 cm² and length 10 cm. Height = 40 ÷ 10 = 4 cm.'}]},
+ {stars:3,rects:[{id:'A',x:0,y:6,w:10,h:2,a:'g'},{id:'B',x:3,y:0,w:4,h:6,a:'q'}],
+  dims:[{id:'hA',p:[-1,6,-1,8],at:'left',k:'g'},{id:'gL',p:[0,5.3,3,5.3],at:'below',k:'g'},{id:'gR',p:[7,5.3,10,5.3],at:'below',k:'g'},
+        {id:'hB',p:[11,0,11,6],at:'right',k:'g'},{id:'wA',p:[0,9,10,9],at:'above',k:'f'},{id:'wB',p:[3,-1,7,-1],at:'below',k:'f'}],
+  steps:[{hl:['A'],show:['wA'],say:'A has area 20 cm² and height 2 cm. Length = 20 ÷ 2 = 10 cm.'},
+         {hl:['B'],show:['wB'],say:'Take away the 3 cm on each side: B is 10 − 3 − 3 = 4 cm long.'},
+         {hl:['B'],show:['area:B'],say:'B is 4 cm by 6 cm. Area = 4 × 6 = 24 cm².'}]},
+ {stars:4,rects:[{id:'A',x:0,y:0,w:4,h:9,a:'g'},{id:'B',x:4,y:5,w:7,h:4,a:'g'},{id:'C',x:4,y:0,w:7,h:5,a:'q'}],
+  dims:[{id:'wA',p:[0,-1,4,-1],at:'below',k:'g'},{id:'tot',p:[0,-2.3,11,-2.3],at:'below',k:'g'},{id:'hA',p:[-1,0,-1,9],at:'left',k:'f'},
+        {id:'w',p:[4,10,11,10],at:'above',k:'f'},{id:'hB',p:[12,5,12,9],at:'right',k:'f'},{id:'hC',p:[12,0,12,5],at:'right',k:'f'}],
+  steps:[{hl:['A'],show:['hA'],say:'A has area 36 cm² and length 4 cm. Height = 36 ÷ 4 = 9 cm.'},
+         {hl:['B','C'],show:['w'],say:'The whole length is 11 cm, so B and C are 11 − 4 = 7 cm long.'},
+         {hl:['B'],show:['hB'],say:'B has area 28 cm² and length 7 cm. Height = 28 ÷ 7 = 4 cm.'},
+         {hl:['C'],show:['hC'],say:'B and C together are as tall as A, so C is 9 − 4 = 5 cm high.'},
+         {hl:['C'],show:['area:C'],say:'C is 7 cm by 5 cm. Area = 7 × 5 = 35 cm².'}]},
+ {stars:4,rects:[{id:'A',x:0,y:6,w:3,h:3,a:'q'},{id:'B',x:0,y:2,w:6,h:4,a:'g'},{id:'C',x:0,y:0,w:9,h:2,a:'g'}],
+  dims:[{id:'hC',p:[-1,0,-1,2],at:'left',k:'g'},{id:'tot',p:[10,0,10,9],at:'right',k:'g'},{id:'s1',p:[6,3,9,3],at:'above',k:'g'},{id:'s2',p:[3,7,6,7],at:'above',k:'g'},
+        {id:'wC',p:[0,-1,9,-1],at:'below',k:'f'},{id:'wB',p:[0,-2.3,6,-2.3],at:'below',k:'f'},{id:'hB',p:[-1,2,-1,6],at:'left',k:'f'},
+        {id:'hA',p:[-1,6,-1,9],at:'left',k:'f'},{id:'wA',p:[0,10,3,10],at:'above',k:'f'}],
+  steps:[{hl:['C'],show:['wC'],say:'C has area 18 cm² and height 2 cm. Length = 18 ÷ 2 = 9 cm.'},
+         {hl:['B'],show:['wB'],say:'B is 3 cm shorter than C: 9 − 3 = 6 cm long.'},
+         {hl:['B'],show:['hB'],say:'B has area 24 cm² and length 6 cm. Height = 24 ÷ 6 = 4 cm.'},
+         {hl:['A'],show:['hA'],say:'The whole shape is 9 cm tall, so A is 9 − 2 − 4 = 3 cm high.'},
+         {hl:['A'],show:['wA'],say:'A is 3 cm shorter than B: 6 − 3 = 3 cm long.'},
+         {hl:['A'],show:['area:A'],say:'A is 3 cm by 3 cm. Area = 3 × 3 = 9 cm².'}]},
+ {stars:5,rects:[{id:'A',x:0,y:0,w:3,h:8,a:'g'},{id:'B',x:3,y:4,w:5,h:4,a:'g'},{id:'D',x:8,y:4,w:4,h:4,a:'g'},{id:'C',x:3,y:0,w:9,h:4,a:'q'}],
+  dims:[{id:'hA',p:[-1,0,-1,8],at:'left',k:'g'},{id:'hD',p:[13,4,13,8],at:'right',k:'g'},{id:'wA',p:[0,-1,3,-1],at:'below',k:'f'},
+        {id:'wB',p:[3,9,8,9],at:'above',k:'f'},{id:'wD',p:[8,9,12,9],at:'above',k:'f'},{id:'wC',p:[3,-1,12,-1],at:'below',k:'f'},{id:'hC',p:[13,0,13,4],at:'right',k:'f'}],
+  steps:[{hl:['A'],show:['wA'],say:'A has area 24 cm² and height 8 cm. Length = 24 ÷ 8 = 3 cm.'},
+         {hl:['D'],show:['wD'],say:'D has area 16 cm² and height 4 cm. Length = 16 ÷ 4 = 4 cm.'},
+         {hl:['B'],show:['wB'],say:'B is in the same row as D, so it is 4 cm high. Length = 20 ÷ 4 = 5 cm.'},
+         {hl:['C'],show:['wC'],say:'C is as long as B and D together: 5 + 4 = 9 cm.'},
+         {hl:['C'],show:['hC'],say:'A is 8 cm tall and the top row is 4 cm, so C is 8 − 4 = 4 cm high.'},
+         {hl:['C'],show:['area:C'],say:'C is 9 cm by 4 cm. Area = 9 × 4 = 36 cm².'}]}
+];
+let MODE='grid', MZ=0, mzStep=0;
+const dimLen=d=>Math.round(Math.hypot(d.p[2]-d.p[0],d.p[3]-d.p[1]));
+function mzTarget(P){
+  const r=P.rects.find(r=>r.a==='q'); if(r) return {kind:'area',val:r.w*r.h,unit:'cm'+SQ};
+  return {kind:'length',val:dimLen(P.dims.find(d=>d.k==='q')),unit:'cm'};
+}
+function mzDraw(P,n){
+  const shown=new Set(), hl=new Set(n>0?P.steps[n-1].hl:[]);
+  P.steps.slice(0,n).forEach(s=>s.show.forEach(x=>shown.add(x)));
+  const xs=[],ys=[];
+  P.rects.forEach(r=>{xs.push(r.x,r.x+r.w);ys.push(r.y,r.y+r.h);});
+  P.dims.forEach(d=>{xs.push(d.p[0],d.p[2]);ys.push(d.p[1],d.p[3]);});
+  const x0=Math.min(...xs)-2.2,x1=Math.max(...xs)+2.2,y0=Math.min(...ys)-1.4,y1=Math.max(...ys)+1.4;
+  const X=x=>(x-x0)*C, Y=y=>(y1-y)*C;
+  let s=`<svg class="board" viewBox="0 0 ${(x1-x0)*C} ${(y1-y0)*C}" role="img" aria-label="Area maze made of rectangles">`;
+  P.rects.forEach(r=>{
+    s+=`<rect class="mz-r${hl.has(r.id)?' hl':''}" x="${X(r.x)}" y="${Y(r.y+r.h)}" width="${r.w*C}" height="${r.h*C}"/>`;
+    s+=`<text class="mz-id" x="${X(r.x)+8}" y="${Y(r.y+r.h)+18}">${r.id}</text>`;
+    const cx=X(r.x+r.w/2), cy=Y(r.y+r.h/2), found=shown.has('area:'+r.id);
+    if(r.a==='g') s+=`<text class="mz-a" x="${cx}" y="${cy}">${r.w*r.h} cm${SQ}</text>`;
+    else if(found) s+=`<text class="mz-a f fade" x="${cx}" y="${cy}">${r.w*r.h} cm${SQ}</text>`;
+    else if(r.a==='q') s+=`<text class="mz-a q" x="${cx}" y="${cy}">? cm${SQ}</text>`;
+  });
+  P.dims.forEach(d=>{
+    const found=shown.has(d.id);
+    if(d.k==='f'&&!found) return;
+    const cls=found?'f':d.k, [ax,ay,bx,by]=[X(d.p[0]),Y(d.p[1]),X(d.p[2]),Y(d.p[3])], vert=ax===bx;
+    const tick=(x,y)=>vert?`<line class="mz-d ${cls}" x1="${x-8}" x2="${x+8}" y1="${y}" y2="${y}"/>`:`<line class="mz-d ${cls}" x1="${x}" x2="${x}" y1="${y-8}" y2="${y+8}"/>`;
+    s+=`<g${found?' class="fade"':''}><line class="mz-d ${cls}" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>${tick(ax,ay)}${tick(bx,by)}`;
+    const txt=d.k==='q'&&!found?'? cm':`${dimLen(d)} cm`, [bw,bh]=labelSize(txt), mx=(ax+bx)/2, my=(ay+by)/2;
+    const off={left:[-bw/2-6,0],right:[bw/2+6,0],above:[0,-bh/2-4],below:[0,bh/2+4]}[d.at];
+    s+=labelBox(mx+off[0],my+off[1],txt,cls)+'</g>';
+  });
+  return s+'</svg>';
+}
+function mzRender(){
+  const P=MAZES[MZ], n=mzStep, T=mzTarget(P), done=n>=P.steps.length;
+  document.getElementById('mzBoard').innerHTML=mzDraw(P,n);
+  document.getElementById('mzQ').innerHTML=`<span>Find the missing ${T.kind}</span><span>? = ${done?`<span class="ans">${T.val} ${T.unit}</span>`:'?'}</span>`;
+  document.getElementById('mzDesc').textContent=`Puzzle ${MZ+1} · ${'★'.repeat(P.stars)}`;
+  const intro='Look for a rectangle where you know two of the three things: length, breadth, area. That is your starting point.';
+  document.getElementById('mzSay').innerHTML=`<li class="${n===0?'now':''}">${intro}</li>`+P.steps.slice(0,n).map((x,i)=>`<li class="${i===n-1?'now':''}">${x.say}</li>`).join('')+(done?`<li class="answer">? = ${T.val} ${T.unit}</li>`:'');
+  document.getElementById('mzCount').textContent=`Step ${n+1} of ${P.steps.length+1}`;
+  document.getElementById('mzBack').disabled=n===0;
+  document.getElementById('mzNext').disabled=done;
+  document.getElementById('mzAll').disabled=done;
+  document.querySelectorAll('#mzPick button').forEach((b,i)=>b.setAttribute('aria-pressed',i===MZ));
+}
+function mzLoad(i){
+  MZ=Math.max(0,Math.min(MAZES.length-1,i)); mzStep=0;
+  document.getElementById('mzAns').value=''; const fb=document.getElementById('mzFb'); fb.textContent=''; fb.className='fb';
+  mzRender();
+}
+document.getElementById('mzPick').innerHTML=MAZES.map((P,i)=>`<button aria-pressed="false" aria-label="Puzzle ${i+1}, ${P.stars} star">${i+1}<small>${'★'.repeat(P.stars)}</small></button>`).join('');
+document.querySelectorAll('#mzPick button').forEach((b,i)=>b.onclick=()=>mzLoad(i));
+document.getElementById('mzNext').onclick=()=>{if(mzStep<MAZES[MZ].steps.length){mzStep++;mzRender();}};
+document.getElementById('mzBack').onclick=()=>{if(mzStep>0){mzStep--;mzRender();}};
+document.getElementById('mzAll').onclick=()=>{mzStep=MAZES[MZ].steps.length;mzRender();};
+document.getElementById('mzReset').onclick=()=>{mzStep=0;mzRender();};
+document.getElementById('mzCheck').onclick=()=>{
+  const T=mzTarget(MAZES[MZ]), m=document.getElementById('mzAns').value.match(/\d+/), fb=document.getElementById('mzFb');
+  if(!m){fb.textContent='Type a whole number.';fb.className='fb no';return;}
+  const ok=+m[0]===T.val;
+  fb.textContent=ok?`Correct! ? = ${T.val} ${T.unit}`:'Not yet. Press Next step for a hint.';
+  fb.className='fb '+(ok?'ok':'no');
+};
+document.getElementById('mzAns').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('mzCheck').click();}});
+function setMode(m){
+  MODE=m==='maze'?'maze':'grid';
+  document.getElementById('gridMode').hidden=MODE!=='grid';
+  document.getElementById('mazeMode').hidden=MODE!=='maze';
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-selected',b.dataset.mode===MODE));
+  if(typeof sendHeight==='function') sendHeight();
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+mzLoad(0);
+
+/* Start from a link like ...html#s=L&v=4,4,2,2&f=area&fx=1  (add "embed" when shown inside the topic page)
+   s = rect | tri | L | house;  f = area | perim | both;  u = cm | m;  fx / fy = 1 to flip the compound shape
+   Area mazes: ...html#mode=maze&p=3 opens puzzle 3 */
+function fromHash(first){
+  const h=location.hash.slice(1);
+  document.body.classList.toggle('embed',/(^|&)embed(&|$)/.test(h));
+  const p={}; h.split('&').forEach(kv=>{const [k,val]=kv.split('=');if(val!==undefined)p[k]=decodeURIComponent(val);});
+  if(p.mode==='maze'){setMode('maze');mzLoad((+p.p||1)-1);if(first)load({});return;}
+  if(p.s) setMode('grid');
+  if(p.s&&SHAPES[p.s]&&p.v){
+    const v=p.v.split(',').map(Number), err=check(p.s,v.slice(0,SHAPES[p.s].inputs.length));
+    if(!err&&!(p.s==='tri'&&!(v[2]>=0&&v[2]<=v[0]))){
+      load({s:p.s,v,f:['area','perim','both'].includes(p.f)?p.f:'area',u:p.u==='m'?'m':'cm',fx:+p.fx===1?1:0,fy:+p.fy===1?1:0});return;}
+  }
+  if(first) load({});
+}
+window.addEventListener('hashchange',()=>fromHash(false));
+fromHash(true);
+/* Tell the topic page how tall this is, so its frame fits without scrolling */
+function sendHeight(){ if(window.parent!==window){ try{ window.parent.postMessage({toolHeight:Math.ceil(document.querySelector('.wrap').getBoundingClientRect().bottom+window.scrollY)},'*'); }catch(e){} } }
+if('ResizeObserver' in window) new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s1/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

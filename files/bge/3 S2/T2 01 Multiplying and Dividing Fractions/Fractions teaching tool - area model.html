@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multiplying and dividing fractions: area model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --blue:#4B57E0; --blue-l:#C3C8F6; --red:#E84C4C; --red-l:#FFBDBD; --purp:#A0109F; --purp-l:#E4B8E6;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.1rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+.wrap{padding:1.25rem clamp(1rem,2.5vw,2rem) 2.5rem;max-width:1500px;margin:0 auto}
+
+/* Fractions written stacked */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.08;font-size:.8em;margin:0 .08em;font-variant-numeric:tabular-nums}
+.fr>span{padding:0 .18em;white-space:nowrap}
+.fr>span+span{border-top:.09em solid currentColor}
+.mx{white-space:nowrap}
+.mx .fr{margin-left:.06em}
+
+/* Control bar */
+.bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:.35rem}
+.grp .lab{font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.row input{width:6.2rem;padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.2rem;text-align:center}
+.row select{padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.05rem;background:var(--paper)}
+.row select.op{font-size:1.3rem}
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn.big{font-size:1.15rem;padding:.65rem 1.3rem}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .85rem;font-weight:700;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--deep)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.err{color:#B23B3B;font-weight:700;font-size:.95rem;min-height:1.2rem}
+.hintline{font-size:.85rem;color:var(--muted)}
+
+/* Question + stepping */
+.qbar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin:1.25rem 0 1rem}
+.question{font-family:var(--head);font-weight:700;font-size:clamp(2.2rem,5vw,3.4rem);color:var(--deep);white-space:nowrap}
+.question .ans{color:var(--sea)}
+.steps-ctl{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto;align-items:center}
+.stepcount{font-family:var(--head);color:var(--muted);font-size:.95rem;margin-right:.3rem}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:1fr;gap:1.25rem}
+@media (min-width:1100px){.panels{grid-template-columns:3fr 2fr}}
+.panels.one{grid-template-columns:1fr}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem 1.25rem;display:flex;flex-direction:column;min-width:0}
+.panel h2{font-size:1.2rem;color:var(--deep);border-bottom:2px solid var(--deep);padding-bottom:.35rem;margin-bottom:.9rem}
+.stage{display:flex;align-items:center;justify-content:safe center;padding:.25rem 0;overflow-x:auto}
+svg.am{width:100%;height:auto;display:block;max-width:820px;margin:0 auto}
+svg.am text{font-family:var(--head);text-anchor:middle}
+svg.am .pop{animation:pop .35s ease both}
+@keyframes pop{from{opacity:0}to{opacity:1}}
+.say{list-style:none;margin:.75rem 0 0;padding:0;font-size:1.12rem}
+.say li{padding:.35rem 0 .35rem .9rem;border-left:4px solid var(--line);margin:.3rem 0;animation:in .35s ease both}
+.say li.now{border-left-color:var(--sand)}
+.say li.answer{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.3rem;border-left-color:var(--sea)}
+.say .fr{font-size:.85em}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:3px;border:1.5px solid var(--ink);vertical-align:-.1em;margin-right:.35em}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Written method */
+.wm{font-family:var(--head);font-weight:600;font-size:1.65rem;color:var(--deep);min-height:4rem}
+.wm .wl{padding:.3rem 0;animation:in .35s ease both;white-space:nowrap;overflow-x:auto}
+.wm .wl.now{background:var(--sand-soft);border-radius:8px;padding-left:.4rem;margin-left:-.4rem}
+.kcf{display:inline-flex;gap:.35em;align-items:flex-start}
+.kcf>span{display:inline-flex;flex-direction:column;align-items:center}
+.kcf small{font-family:var(--body);font-size:.5em;font-weight:700;color:var(--sea);margin-top:.15em}
+.tip{background:var(--sand-soft);border-radius:8px;padding:.5rem .8rem;margin-top:.6rem;font-size:1rem}
+
+.help{margin-top:1.25rem;color:var(--muted);font-size:.95rem}
+.help b{color:var(--ink)}
+body.embed{background:var(--paper)}
+body.embed .topbar,body.embed .help{display:none}
+body.embed .wrap{padding:0;max-width:none}
+body.embed .bar{background:var(--bg)}
+body.embed .panel{padding:.9rem .9rem 1rem}
+body.embed .qbar{margin:.9rem 0 .8rem}
+body.embed .say{font-size:1.02rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S2-t2-multiplying-and-dividing-fractions">Hub</a> › <a href="Topic%20page%20-%20Multiplying%20and%20Dividing%20Fractions.html">Multiplying and Dividing Fractions</a> › Area model</nav>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="grp">
+      <span class="lab">Type a question</span>
+      <div class="row">
+        <input id="inA" value="1/3" aria-label="First number" autocomplete="off">
+        <select id="inOp" class="op" aria-label="Multiply or divide"><option value="x" selected>×</option><option value="d">÷</option></select>
+        <input id="inB" value="3/5" aria-label="Second number" autocomplete="off">
+        <button class="btn" id="go">Use these numbers</button>
+      </div>
+      <span class="hintline">Type 3/5, a whole number like 4, or a mixed number like 1 1/3</span>
+    </div>
+    <div class="grp">
+      <span class="lab">Or make one up</span>
+      <div class="row">
+        <select id="kind" aria-label="Type of question">
+          <option value="mix">Any type</option>
+          <option value="fw">Fraction × whole number</option>
+          <option value="ff">Fraction × fraction</option>
+          <option value="div">Fraction ÷ fraction</option>
+          <option value="wdiv">Whole number ÷ fraction</option>
+          <option value="mmx">Mixed numbers ×</option>
+          <option value="mmd">Mixed numbers ÷</option>
+        </select>
+        <button class="btn" id="rand">New question</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Show</span>
+      <div class="seg" role="group" aria-label="What to show">
+        <button data-show="both" aria-pressed="true">Both</button>
+        <button data-show="am" aria-pressed="false">Area model</button>
+        <button data-show="wm" aria-pressed="false">Written method</button>
+      </div>
+    </div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <div class="qbar">
+    <div class="question" id="question" aria-live="polite"></div>
+    <div class="steps-ctl">
+      <span class="stepcount" id="stepCount"></span>
+      <button class="btn alt" id="back">← Back</button>
+      <button class="btn big" id="next">Next step →</button>
+      <button class="btn alt" id="all">Show all</button>
+      <button class="btn alt" id="reset">Start again</button>
+    </div>
+  </div>
+
+  <div class="panels" id="panels">
+    <section class="panel" id="pAm" aria-labelledby="hAm">
+      <h2 id="hAm">Area model</h2>
+      <div class="stage" id="amStage"></div>
+      <ul class="say" id="amSay"></ul>
+    </section>
+    <section class="panel" id="pWm" aria-labelledby="hWm">
+      <h2 id="hWm">Written method</h2>
+      <div class="wm" id="wmLines"></div>
+      <ul class="say" id="wmSay"></ul>
+      <div class="tip" id="wmTip" hidden></div>
+    </section>
+  </div>
+
+  <p class="help"><b>Tips:</b> press <b>Next step</b> (or the space bar / right arrow) to build the model one step at a time. <b>Blue</b> shows the first number, <b>red</b> shows the second, and <b>purple</b> is where they overlap. Denominators can be up to 12.</p>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const red=(n,d)=>{const g=gcd(n,d)||1;return [n/g,d/g];};
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+/* Markup: {3/5} is a fraction, {2_1/3} is a mixed number. M() turns it into stacked fractions. */
+function M(s){return String(s).replace(/\{(?:(\d+)_)?([^{}\/]+)\/([^{}]+)\}/g,(m,w,n,d)=>`${w?`<span class="mx">${w}`:''}<span class="fr"><span>${n}</span><span>${d}</span></span>${w?'</span>':''}`);}
+/* A value n/d in its simplest form, as a whole number, fraction or mixed number */
+function fm(n,d){[n,d]=red(n,d);if(d===1)return String(n);if(n<d)return `{${n}/${d}}`;return `{${Math.floor(n/d)}_${n%d}/${d}}`;}
+/* A typed number {w,n,d}: whole part w, fraction n/d (n=0 for a whole number) */
+const imp=x=>[x.w*x.d+x.n,x.d];
+const show=x=>x.n===0?String(x.w):x.w===0?`{${x.n}/${x.d}}`:`{${x.w}_${x.n}/${x.d}}`;
+const toNum=(n,d)=>{[n,d]=red(n,d);return d===1?{w:n,n:0,d:1}:n<d?{w:0,n,d}:{w:Math.floor(n/d),n:n%d,d};};
+const isFrac=x=>x.w===0&&x.n>0;                 // a fraction (proper or top-heavy)
+const isProper=x=>x.w===0&&x.n>0&&x.n<x.d;
+const isWhole=x=>x.n===0;
+const isMixed=x=>x.w>0&&x.n>0;
+
+const C={blue:'#4B57E0',blueL:'#C3C8F6',red:'#E84C4C',redL:'#FFBDBD',purp:'#A0109F',purpL:'#E4B8E6',ink:'#17262E',deep:'#0E3A42',sea:'#1C6670',seaL:'#BFE3E6',sand:'#F3C64F',muted:'#55666E'};
+const sw=c=>`<i class="sw" style="background:${c}"></i>`;
+
+/* Draw a number (whole, fraction or mixed) in SVG, centred on x, y */
+function sv(x,y,v,fs,fill){
+  const cw=fs*0.6, T=(tx,ty,t,f)=>`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="${f.toFixed(1)}" font-weight="700" fill="${fill}">${t}</text>`;
+  if(v.n===0) return T(x,y+fs*0.36,v.w,fs);
+  const fw=Math.max(String(v.n).length,String(v.d).length)*cw*0.85+fs*0.3, ww=v.w?String(v.w).length*cw+fs*0.12:0, x0=x-(ww+fw)/2;
+  let s=v.w?T(x0+ww/2-fs*0.05,y+fs*0.36,v.w,fs):'';
+  const fx=x0+ww+fw/2;
+  s+=T(fx,y-fs*0.16,v.n,fs*0.82)+`<line x1="${(fx-fw/2+1).toFixed(1)}" x2="${(fx+fw/2-1).toFixed(1)}" y1="${y}" y2="${y}" stroke="${fill}" stroke-width="${(fs*0.08).toFixed(1)}"/>`+T(fx,y+fs*0.8,v.d,fs*0.82);
+  return s;
+}
+const R=(x,y,w,h,fill,extra='')=>`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${fill}" ${extra}/>`;
+const L=(x1,y1,x2,y2,w=1.5,c=C.ink,extra='')=>`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${c}" stroke-width="${w}" ${extra}/>`;
+const TX=(x,y,t,fs,fill,w=700,anchor='middle')=>`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${fs}" font-weight="${w}" fill="${fill}" text-anchor="${anchor}">${t}</text>`;
+
+/* ---------- State ---------- */
+let Q=null, step=0, MODEL=null;
+const qMark=(A,op,B)=>`${show(A)} ${op==='x'?'×':'÷'} ${show(B)}`;
+
+/* =====================================================================
+   1. Fraction × whole number: n squares, shade the fraction in each,
+      count the parts, then put them together into whole squares
+   ===================================================================== */
+function buildFW(A,B){
+  const fracFirst=!isWhole(A), F=fracFirst?A:B, n=fracFirst?B.w:A.w, a=F.n, b=F.d;
+  const qm=qMark(A,'x',B), tot=n*a, k=Math.floor(tot/b), r=tot%b, ans=fm(tot,b);
+  const regroup=tot>=b;
+  const area=[
+    {say:`${qm} means ${n} lots of {${a}/${b}}. Each square is 1 whole, split into ${b} equal parts.`},
+    {say:`${sw(C.blue)}Shade {${a}/${b}} in each square: ${plural(a,'part')} out of ${b}.`},
+    {say:`Count the shaded parts: ${n} × ${a} = ${tot}. Each part is {1/${b}}, so that is {${tot}/${b}}.`}
+  ];
+  if(regroup) area.push({say: r?`Put the parts together to fill whole squares: ${plural(k,'whole square')} and {${r}/${b}} of a square.`:`Put the parts together: they fill exactly ${plural(k,'whole square')}.`});
+  if(gcd(r,b)>1 && r) area.push({say:`Simplify: {${r}/${b}} = ${fm(r,b)}.`});
+  area[area.length-1].answer=true;
+
+  const written=[
+    {h:`${qm} = ${fracFirst?`{${a}/${b}} × {${n}/1}`:`{${n}/1} × {${a}/${b}}`}`, say:'Write the whole number as a fraction over 1.'},
+    {h:`= {${fracFirst?a+' × '+n:n+' × '+a}/${fracFirst?b+' × 1':'1 × '+b}}`, say:'Multiply across: multiply the numerators, then multiply the denominators.'},
+    {h:`= {${tot}/${b}}`, say:`${fracFirst?a+' × '+n:n+' × '+a} = ${tot}`}
+  ];
+  if(regroup){
+    written.push({h:`= ${r?`{${k}_${r}/${b}}`:k}`, say:`Change the top-heavy fraction to a mixed number: ${tot} ÷ ${b} = ${k}${r?` remainder ${r}`:''}.`});
+    if(r&&gcd(r,b)>1) written.push({h:`= ${ans}`, say:'Simplify if necessary.'});
+  } else if(gcd(tot,b)>1) written.push({h:`= ${ans}`, say:'Simplify if necessary.'});
+  written[written.length-1].answer=true;
+  const g=gcd(n,b);
+  const tip=g>1?`Tip: you can simplify first. ${n} and ${b} can both be divided by ${g}, so ${fracFirst?`{${a}/${b/g}} × ${n/g}`:`${n/g} × {${a}/${b/g}}`} = ${fm(tot,b)}.`:'';
+
+  function draw(lv){
+    const W=820, S=Math.min(130,Math.floor(760/(n+(n-1)*0.16))), gap=Math.round(S*0.16), cw=S/b;
+    const row=(cnt)=>{const tw=cnt*S+(cnt-1)*gap;return (W-tw)/2;};
+    const y1=16, y2=y1+S+92, H=regroup?y2+S+48:y1+S+48;
+    const fs=Math.max(11,Math.min(22,cw*0.55,S*0.22));
+    let s=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Area model">`;
+    const x0=row(n);
+    for(let j=0;j<n;j++){
+      const x=x0+j*(S+gap);
+      if(lv>=1) for(let c=0;c<a;c++){ s+=R(x+c*cw,y1,cw,S,C.blue,`class="${lv===1?'pop':''}"`);
+        if(lv>=2 && cw>=11) s+=TX(x+c*cw+cw/2,y1+S/2+fs*0.36,j*a+c+1,fs.toFixed(0),'#fff'); }
+      for(let c=1;c<b;c++) s+=L(x+c*cw,y1,x+c*cw,y1+S,1.4);
+      s+=R(x,y1,S,S,'none',`stroke="${C.ink}" stroke-width="2.6"`);
+      if(lv>=1) s+=sv(x+S/2,y1+S+30,{w:0,n:a,d:b},Math.min(24,S*0.26+6),C.blue);
+    }
+    if(regroup && lv>=3){
+      const m=Math.ceil(tot/b), xb=row(m);
+      s+=TX(W/2,y2-14,'Put the parts together',15,C.muted,600);
+      for(let t=0;t<m;t++){
+        const x=xb+t*(S+gap), cols=Math.min(b,tot-t*b);
+        for(let c=0;c<cols;c++){ s+=R(x+c*cw,y2,cw,S,C.blue,'class="pop"');
+          if(cw>=11) s+=TX(x+c*cw+cw/2,y2+S/2+fs*0.36,t*b+c+1,fs.toFixed(0),'#fff'); }
+        for(let c=1;c<b;c++) s+=L(x+c*cw,y2,x+c*cw,y2+S,1.4);
+        s+=R(x,y2,S,S,'none',`stroke="${C.ink}" stroke-width="2.6"`);
+        const lab = cols===b ? {w:1,n:0,d:1} : toNum(cols,b);
+        s+=sv(x+S/2,y2+S+28,lab,Math.min(24,S*0.26+6),C.deep);
+      }
+    }
+    return s+'</svg>';
+  }
+  return {area,written,draw,ans,tip};
+}
+
+/* =====================================================================
+   2. Fraction × fraction: one square, blue columns, red rows, purple overlap
+   ===================================================================== */
+function buildFF(A,B){
+  const a=A.n,b=A.d,c=B.n,d=B.d, p=a*c, q=b*d, ans=fm(p,q), qm=qMark(A,'x',B), simp=gcd(p,q)>1;
+  const area=[
+    {say:`${qm} means {${a}/${b}} of {${c}/${d}}. Start with 1 whole square.`},
+    {say:`${sw(C.blue)}Split the square into ${b} columns and shade ${a}. The blue part is {${a}/${b}}.`},
+    {say:`${sw(C.red)}Split the square into ${d} rows and shade ${c}. The red part is {${c}/${d}}.`},
+    {say:`${sw(C.purp)}The overlap is {${a}/${b}} of {${c}/${d}}. It has ${a} × ${c} = ${plural(p,'small part')}.`},
+    {say:`The whole square has ${b} × ${d} = ${q} small parts. So the overlap is {${p}/${q}} of the whole square.`}
+  ];
+  if(simp) area.push({say:`Simplify: {${p}/${q}} = ${ans}.`});
+  area[area.length-1].answer=true;
+  const written=[
+    {h:`${qm} = {${a} × ${c}/${b} × ${d}}`, say:'Multiply across: multiply the numerators and multiply the denominators.'},
+    {h:`= {${p}/${q}}`, say:`${a} × ${c} = ${p} and ${b} × ${d} = ${q}.`}
+  ];
+  if(simp) written.push({h:`= ${ans}`, say:`Simplify if necessary: divide the top and bottom by ${gcd(p,q)}.`});
+  written[written.length-1].answer=true;
+  const g1=gcd(a,d), g2=gcd(c,b), bits=[];
+  if(g1>1) bits.push(`the numerator ${a} and the denominator ${d} can both be divided by ${g1}`);
+  if(g2>1) bits.push(`the numerator ${c} and the denominator ${b} can both be divided by ${g2}`);
+  const tip=bits.length?`Tip: you can simplify first. ${bits.join(', and ')}, so it becomes {${a/g1}/${b/g2}} × {${c/g2}/${d/g1}} = ${ans}.`:'';
+
+  function draw(lv){
+    const W=820, S=300, x0=200, y0=22, H=S+90, cw=S/b, rh=S/d;
+    let s=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Area model">`;
+    const ry0=y0+(d-c)*rh;   // red rows are the bottom c rows
+    if(lv===1||lv===2) s+=R(x0,y0,a*cw,S,C.blue,lv===1?'class="pop"':'');
+    if(lv===2) s+=R(x0,ry0,S,c*rh,C.red,'opacity=".55" class="pop"');
+    if(lv>=3){
+      s+=R(x0,y0,a*cw,S,C.blueL)+R(x0,ry0,S,c*rh,C.redL)+R(x0,ry0,a*cw,c*rh,C.purp,'class="pop"');
+    }
+    if(lv>=1) for(let i=1;i<b;i++) s+=L(x0+i*cw,y0,x0+i*cw,y0+S,1.6);
+    if(lv>=2) for(let i=1;i<d;i++) s+=L(x0,y0+i*rh,x0+S,y0+i*rh,1.6);
+    s+=R(x0,y0,S,S,'none',`stroke="${C.ink}" stroke-width="3"`);
+    if(lv>=3) s+=`<rect x="${x0-7}" y="${(ry0-7).toFixed(1)}" width="${(a*cw+14).toFixed(1)}" height="${(c*rh+14).toFixed(1)}" rx="12" fill="none" stroke="${C.deep}" stroke-width="2.5" stroke-dasharray="8 6" class="pop"/>`;
+    if(lv>=4){ const fs=Math.min(20,cw*0.5,rh*0.6); if(fs>=10){ let k=0;
+      for(let r=0;r<c;r++) for(let cc=0;cc<a;cc++){k++; s+=TX(x0+cc*cw+cw/2,ry0+r*rh+rh/2+fs*0.36,k,fs.toFixed(0),'#fff');}}}
+    if(lv>=1) s+=sv(x0+a*cw/2,y0+S+36,{w:0,n:a,d:b},26,C.blue);
+    if(lv>=2) s+=sv(x0-46,ry0+c*rh/2,{w:0,n:c,d:d},26,C.red);
+    if(lv>=4){ const xr=x0+S+120;
+      s+=TX(xr-40,y0+S/2+10,'=',30,C.deep)+sv(xr+10,y0+S/2,{w:0,n:p,d:q},32,C.purp);
+      if(lv>=5&&simp) s+=TX(xr+80,y0+S/2+10,'=',30,C.deep)+sv(xr+140,y0+S/2,toNum(p,q),32,C.purp);
+      s+=TX(xr+10,y0+S/2-62,'overlap',16,C.muted,600);
+    }
+    return s+'</svg>';
+  }
+  return {area,written,draw,ans,tip};
+}
+
+/* =====================================================================
+   3. Mixed numbers ×: a rectangle A wide and B tall, split into
+      whole and fraction parts (up to four smaller rectangles)
+   ===================================================================== */
+function buildMM(A,B){
+  const [NA,DA]=imp(A), [NB,DB]=imp(B), qm=qMark(A,'x',B);
+  const wa=Math.floor(NA/DA), ra=NA%DA, wb=Math.floor(NB/DB), rb=NB%DB;
+  const P=NA*NB, Qd=DA*DB, ans=fm(P,Qd);
+  const fa=ra?`{${ra}/${DA}}`:'', fb=rb?`{${rb}/${DB}}`:'';
+  // parts: [x from, width (n,d), y from, height (n,d), colour, text]
+  const parts=[];
+  if(wa&&wb) parts.push({x:0,w:[wa,1],y:0,h:[wb,1],col:C.seaL,txt:`${wa} × ${wb} = ${wa*wb}`,v:[wa*wb,1]});
+  if(wa&&rb) parts.push({x:0,w:[wa,1],y:wb,h:[rb,DB],col:C.redL,txt:`${wa} × ${fb} = ${fm(wa*rb,DB)}`,v:[wa*rb,DB]});
+  if(ra&&wb) parts.push({x:wa,w:[ra,DA],y:0,h:[wb,1],col:C.blueL,txt:`${fa} × ${wb} = ${fm(ra*wb,DA)}`,v:[ra*wb,DA]});
+  if(ra&&rb) parts.push({x:wa,w:[ra,DA],y:wb,h:[rb,DB],col:C.purp,txt:`${fa} × ${fb} = ${fm(ra*rb,DA*DB)}`,v:[ra*rb,DA*DB],ff:true});
+  const sideA=wa&&ra?`${show(A)} = ${wa} + ${fa}`:'', sideB=wb&&rb?`${show(B)} = ${wb} + ${fb}`:'';
+  const area=[{say:`Draw a rectangle ${show(A)} wide and ${show(B)} tall. Its area is ${qm}.`}];
+  area.push({say:(sideA||sideB)?`Split each side into its whole part and its fraction part: ${[sideA,sideB].filter(Boolean).join(' and ')}.`:'Split the rectangle at the whole numbers.'});
+  parts.forEach(pt=>area.push({say:`${sw(pt.col)}${pt.txt}`}));
+  // add the parts
+  const den=parts.reduce((m,pt)=>lcm(m,red(...pt.v)[1]),1);
+  const conv=parts.map(pt=>{const [n,d]=red(...pt.v);return den===1?String(n):`{${n*den/d}/${den}}`;});
+  const sumN=P*den/Qd;
+  let addTxt=`Add the parts: ${parts.map(pt=>fm(...pt.v)).join(' + ')}`;
+  if(parts.length>1 && den>1) addTxt+=` = ${conv.join(' + ')} = {${sumN}/${den}}`;
+  if(parts.length>1 && (den===1||fm(sumN,den)!==`{${sumN}/${den}}`)) addTxt+=` = ${ans}`;
+  area.push({say:addTxt+'.',answer:true});
+
+  const conv1=[A,B].filter(x=>!isFrac(x)).map(x=>isWhole(x)?`write ${x.w} as {${x.w}/1}`:`${x.w} × ${x.d} + ${x.n} = ${x.w*x.d+x.n}, so ${show(x)} = {${x.w*x.d+x.n}/${x.d}}`);
+  const written=[
+    {h:`${qm} = {${NA}/${DA}} × {${NB}/${DB}}`, say: conv1.length?`Change to top-heavy fractions: ${conv1.join('; ')}.`:'Both numbers are already top-heavy fractions.'},
+    {h:`= {${NA} × ${NB}/${DA} × ${DB}}`, say:'Multiply across: multiply the numerators and multiply the denominators.'},
+    {h:`= {${P}/${Qd}}`, say:`${NA} × ${NB} = ${P} and ${DA} × ${DB} = ${Qd}.`}
+  ];
+  if(ans!==`{${P}/${Qd}}`) written.push({h:`= ${ans}`, say:'Simplify, and change back to a mixed number if it is top-heavy.'});
+  written[written.length-1].answer=true;
+  const tip='The area model and the written method give the same answer. In the written method, change mixed numbers to top-heavy fractions first.';
+
+  function draw(lv){
+    const Av=NA/DA, Bv=NB/DB, U=Math.min(160,600/Av,360/Bv), W=820, x0=Math.max(90,(W-Av*U)/2), y0=58, w=Av*U, h=Bv*U, H=y0+h+30;
+    const X=v=>x0+v*U, Y=v=>y0+v*U;
+    let s=`<svg class="am" viewBox="0 0 ${W} ${Math.max(H,200).toFixed(0)}" role="img" aria-label="Area model">`;
+    const shown=Math.max(0,lv-1); // number of parts coloured
+    parts.forEach((pt,i)=>{ if(i<shown){
+      const px=X(pt.x), py=Y(pt.y), pw=U*pt.w[0]/pt.w[1], ph=U*pt.h[0]/pt.h[1];
+      s+=R(px,py,pw,ph,pt.col,i===shown-1?'class="pop"':'');
+      const fs=Math.min(26,pw*0.3,ph*0.36);
+      if(fs>=12){ const [n,d]=red(...pt.v); s+=sv(px+pw/2,py+ph/2,toNum(n,d),fs,pt.ff?'#fff':C.deep); }
+    }});
+    // unit grid (dashed) and fraction subdivisions
+    for(let i=1;i<Math.ceil(Av);i++) s+=L(X(i),y0,X(i),y0+h,1.2,C.muted,'stroke-dasharray="5 5"');
+    for(let j=1;j<Math.ceil(Bv);j++) s+=L(x0,Y(j),x0+w,Y(j),1.2,C.muted,'stroke-dasharray="5 5"');
+    if(lv>=1){
+      if(ra) for(let k=1;k<ra;k++) s+=L(X(wa+k/DA),y0,X(wa+k/DA),y0+h,0.9,C.muted,'opacity=".6"');
+      if(rb) for(let k=1;k<rb;k++) s+=L(x0,Y(wb+k/DB),x0+w,Y(wb+k/DB),0.9,C.muted,'opacity=".6"');
+      if(wa&&ra) s+=L(X(wa),y0-14,X(wa),y0+h,3,C.deep);
+      if(wb&&rb) s+=L(x0-14,Y(wb),x0+w,Y(wb),3,C.deep);
+    }
+    s+=R(x0,y0,w,h,'none',`stroke="${C.ink}" stroke-width="3"`);
+    // side labels
+    if(lv===0){ s+=sv(x0+w/2,y0-26,A,24,C.blue)+sv(x0-42,y0+h/2,B,24,C.red); }
+    else {
+      if(wa) s+=sv(X(wa/2),y0-26,{w:wa,n:0,d:1},22,C.blue);
+      if(ra) s+=sv(X(wa+ra/DA/2),y0-26,{w:0,n:ra,d:DA},20,C.blue);
+      if(wb) s+=sv(x0-42,Y(wb/2),{w:wb,n:0,d:1},22,C.red);
+      if(rb) s+=sv(x0-42,Y(wb+rb/DB/2),{w:0,n:rb,d:DB},20,C.red);
+    }
+    return s+'</svg>';
+  }
+  return {area,written,draw,ans,tip};
+}
+
+/* =====================================================================
+   4. Dividing: how many of the second fit into the first?
+      Use the same small parts for both, then make groups.
+   ===================================================================== */
+function buildDIV(A,B){
+  const [P,Qn]=imp(A), [Rn,S]=imp(B), qm=qMark(A,'d',B);
+  const X=P*S, Y=Rn*Qn, k=Math.floor(X/Y), r=X%Y, ans=fm(X,Y);
+  const m1=Math.max(1,Math.ceil(P/Qn)), m2=Math.max(1,Math.ceil(Rn/S));
+  const area=[
+    {say:`${qm} asks: how many lots of ${show(B)} fit into ${show(A)}?`},
+    {say:`${sw(C.blue)}${show(A)}${isMixed(A)?` = {${P}/${Qn}}`:''}: ${Qn===1?`shade ${plural(P,'whole square')}`:`split into ${Qn} columns and shade ${P}`}.`},
+    {say:`${sw(C.red)}${show(B)}${isMixed(B)?` = {${Rn}/${S}}`:''}: ${S===1?`shade ${plural(Rn,'whole square')}`:`split into ${S} rows and shade ${Rn}`}.`},
+    {say:`Use the same small parts for both: split every square into ${Qn===1?`${S} rows`:S===1?`${Qn} columns`:`${Qn} columns and ${S} rows`}. Each small part is {1/${Qn*S}}.`},
+    {say:`Count the small parts: ${show(A)} is ${X} small parts and ${show(B)} is ${Y} small parts.`},
+    {say: X>=Y?`${sw(C.sand)}How many groups of ${Y} fit into ${X}? ${plural(k,'whole group')}${r?`, and ${r} part${r>1?'s':''} left over, which is {${r}/${Y}} of a group`:''}.`
+              :`${sw(C.sand)}Not even one whole group of ${Y} fits. ${X} parts out of ${Y} is {${X}/${Y}} of a group.`},
+    {say:`So ${qm} = ${X} ÷ ${Y}${fm(X,Y)!==`{${X}/${Y}}`?` = {${X}/${Y}}`:''} = ${ans}.`, answer:true}
+  ];
+  const written=[];
+  const Af=`{${P}/${Qn}}`, Bf=`{${Rn}/${S}}`;
+  if(!isFrac(A)||!isFrac(B)) written.push({h:`${qm} = ${Af} ÷ ${Bf}`, say:'Change mixed numbers and whole numbers to top-heavy fractions.'});
+  written.push({h:`${written.length?'=':qm+' ='} <span class="kcf"><span>${Af}<small>Keep</small></span><span>×<small>Change</small></span><span>{${S}/${Rn}}<small>Flip</small></span></span>`, say:'Keep the first fraction, change ÷ to ×, flip the second fraction.'});
+  written.push({h:`= {${P} × ${S}/${Qn} × ${Rn}}`, say:'Then multiply across.'});
+  written.push({h:`= {${X}/${Y}}`, say:`${P} × ${S} = ${X} and ${Qn} × ${Rn} = ${Y}. These are the same numbers of small parts as in the area model.`});
+  if(ans!==`{${X}/${Y}}`) written.push({h:`= ${ans}`, say:'Simplify if necessary.'});
+  written[written.length-1].answer=true;
+  const tip= Rn<S ? `Dividing by a number less than 1 makes the answer bigger: lots of small pieces fit in.` : Rn>S ? `Dividing by a number bigger than 1 makes the answer smaller.` : '';
+
+  function draw(lv){
+    const W=820, gap=14, mx=Math.max(m1,m2), Sq=Math.min(mx<=2?200:150,Math.floor((W-150-(mx-1)*gap)/mx)), lx=Math.max(110,(W-(mx*(Sq+gap)-gap))/2);
+    const y1=14, y2=y1+Sq+56, H=y2+Sq+46;
+    const cw=Sq/Qn, rh=Sq/S, full=lv>=3;
+    let s=`<svg class="am" viewBox="0 0 ${W} ${H}" role="img" aria-label="Area model">`;
+    const GA='#8790F0', GB=C.sand, LEFT='#E2E5FB';
+    // dividend: column by column, top to bottom
+    for(let t=0;t<m1;t++){
+      const x=lx+t*(Sq+gap);
+      for(let c=0;c<Qn;c++) for(let rr=0;rr<S;rr++){
+        const idx=t*Qn*S+c*S+rr; if(idx>=X||lv<1) continue;
+        let col=C.blue;
+        if(lv>=5){ const g=Math.floor(idx/Y); col = g<k ? (g%2?GB:GA) : LEFT; }
+        s+=R(x+c*cw,y1+rr*rh,cw,rh,col,lv===1?'class="pop"':'');
+        if(lv>=5 && idx%Y===0 && Math.floor(idx/Y)<k && Math.min(cw,rh)>=13) s+=TX(x+c*cw+cw/2,y1+rr*rh+rh/2+5,Math.floor(idx/Y)+1,Math.min(15,Math.min(cw,rh)*0.7).toFixed(0),C.deep);
+      }
+      for(let c=1;c<Qn;c++) s+=L(x+c*cw,y1,x+c*cw,y1+Sq,1.4);
+      if(full) for(let rr=1;rr<S;rr++) s+=L(x,y1+rr*rh,x+Sq,y1+rr*rh,1,C.ink,'opacity=".7"');
+      s+=R(x,y1,Sq,Sq,'none',`stroke="${C.ink}" stroke-width="2.6"`);
+    }
+    if(lv>=1) s+=sv(lx-55,y1+Sq/2,A,26,C.blue);
+    if(lv>=4) s+=TX(lx+(m1*(Sq+gap)-gap)/2,y1+Sq+30,`${X} small parts`,16,C.blue,700);
+    if(lv>=2){
+      for(let t=0;t<m2;t++){
+        const x=lx+t*(Sq+gap);
+        for(let rr=0;rr<S;rr++) for(let c=0;c<Qn;c++){
+          const idx=t*Qn*S+rr*Qn+c; if(idx>=Y) continue;
+          s+=R(x+c*cw,y2+rr*rh,cw,rh,C.red,lv===2?'class="pop"':'');
+        }
+        for(let rr=1;rr<S;rr++) s+=L(x,y2+rr*rh,x+Sq,y2+rr*rh,1.4);
+        if(full) for(let c=1;c<Qn;c++) s+=L(x+c*cw,y2,x+c*cw,y2+Sq,1,C.ink,'opacity=".7"');
+        s+=R(x,y2,Sq,Sq,'none',`stroke="${C.ink}" stroke-width="2.6"`);
+      }
+      s+=sv(lx-55,y2+Sq/2,B,26,C.red);
+      if(lv>=4) s+=TX(lx+(m2*(Sq+gap)-gap)/2,y2+Sq+30,`${Y} small parts = 1 group`,16,C.red,700);
+    }
+    return s+'</svg>';
+  }
+  return {area,written,draw,ans,tip};
+}
+
+/* ---------- Choosing the model ---------- */
+function check(A,op,B){
+  const big=[A,B].some(x=>x.d>12); if(big) return 'Use denominators up to 12.';
+  if(op==='x'){
+    if(isWhole(A)&&isWhole(B)) return 'Use at least one fraction.';
+    if((isWhole(A)&&A.w===0)||(isWhole(B)&&B.w===0)) return 'Use numbers bigger than 0.';
+    const m=modeOf(A,op,B);
+    if(m==='fw' && Math.max(A.w,B.w)>12) return 'Use a whole number up to 12.';
+    if(m==='mm' && (imp(A)[0]/imp(A)[1]>5 || imp(B)[0]/imp(B)[1]>4)) return 'For mixed numbers, keep the first one up to 5 and the second up to 4.';
+  } else {
+    if(isWhole(A)&&isWhole(B)) return 'Use at least one fraction.';
+    if((isWhole(A)&&A.w===0)||(isWhole(B)&&B.w===0)) return 'Use numbers bigger than 0.';
+    if(imp(A)[0]/imp(A)[1]>8) return 'Keep the first number up to 8.';
+    if(imp(B)[0]/imp(B)[1]>4) return 'Keep the second number up to 4.';
+    if(imp(A)[1]*imp(B)[1]>144) return 'Those denominators make too many small parts. Try smaller ones.';
+  }
+  return '';
+}
+function modeOf(A,op,B){
+  if(op==='d') return 'div';
+  if((isProper(A)&&isWhole(B))||(isWhole(A)&&isProper(B))) return 'fw';
+  if(isProper(A)&&isProper(B)) return 'ff';
+  return 'mm';
+}
+
+/* ---------- Narration and drawing ---------- */
+function sayList(id,stages,upto,ansLine){
+  const n=Math.min(upto,stages.length-1);
+  document.getElementById(id).innerHTML=stages.slice(0,n+1).map((s,i)=>`<li class="${i===n?'now':''}">${M(s.say)}</li>`).join('')+
+    (stages[n].answer?`<li class="answer">Answer: ${M(ansLine)}</li>`:'');
+}
+const maxStep=()=>Math.max(MODEL.area.length,MODEL.written.length)-1;
+function render(){
+  const done=step>=maxStep(), qm=qMark(Q.A,Q.op,Q.B), ansLine=`${qm} = ${MODEL.ans}`;
+  document.getElementById('question').innerHTML=M(qm)+' = '+(done?`<span class="ans">${M(MODEL.ans)}</span>`:'?');
+  const ai=Math.min(step,MODEL.area.length-1);
+  document.getElementById('amStage').innerHTML=MODEL.draw(ai);
+  sayList('amSay',MODEL.area,ai,ansLine);
+  const wi=Math.min(step,MODEL.written.length-1);
+  document.getElementById('wmLines').innerHTML=MODEL.written.slice(0,wi+1).map((w,i)=>`<div class="wl${i===wi?' now':''}">${M(w.h)}</div>`).join('');
+  sayList('wmSay',MODEL.written,wi,ansLine);
+  const tip=document.getElementById('wmTip'); tip.hidden=!(MODEL.tip&&wi===MODEL.written.length-1); tip.innerHTML=M(MODEL.tip||'');
+  document.getElementById('stepCount').textContent=`Step ${step+1} of ${maxStep()+1}`;
+  document.getElementById('back').disabled=step===0;
+  document.getElementById('next').disabled=done;
+  document.getElementById('all').disabled=done;
+}
+function load(A,op,B){
+  Q={A,op,B}; step=0;
+  const mode=modeOf(A,op,B);
+  MODEL={fw:buildFW,ff:buildFF,mm:buildMM,div:buildDIV}[mode](A,B); MODEL.mode=mode;
+  document.getElementById('inA').value=txt(A); document.getElementById('inOp').value=op; document.getElementById('inB').value=txt(B);
+  render();
+}
+const txt=x=>x.n===0?String(x.w):x.w===0?`${x.n}/${x.d}`:`${x.w} ${x.n}/${x.d}`;
+
+/* ---------- Inputs ---------- */
+function parseNum(s){
+  s=String(s).trim().replace(/_/g,' ').replace(/\s+/g,' ');
+  let m;
+  if((m=s.match(/^(\d{1,2})$/))) return {w:+m[1],n:0,d:1};
+  if((m=s.match(/^(\d{1,3}) ?\/ ?(\d{1,2})$/))){const n=+m[1],d=+m[2];if(d<1||n<1)return null;if(d===1)return {w:n,n:0,d:1};if(n%d===0)return {w:n/d,n:0,d:1};return {w:0,n,d};}
+  if((m=s.match(/^(\d{1,2}) (\d{1,2}) ?\/ ?(\d{1,2})$/))){const w=+m[1],n=+m[2],d=+m[3];if(d<2||n<1||n>=d)return null;return {w,n,d};}
+  return null;
+}
+document.getElementById('go').onclick=()=>{
+  const A=parseNum(document.getElementById('inA').value), B=parseNum(document.getElementById('inB').value), op=document.getElementById('inOp').value, err=document.getElementById('err');
+  if(!A||!B){err.textContent='Type a fraction like 3/5, a whole number, or a mixed number like 1 1/3.';return;}
+  const e=check(A,op,B); if(e){err.textContent=e;return;}
+  err.textContent=''; load(A,op,B);
+};
+['inA','inB'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('go').click();}}));
+
+/* ---------- Make one up ---------- */
+function properR(dlo,dhi){const d=rnd(dlo,dhi);let n;do{n=rnd(1,d-1);}while(gcd(n,d)!==1);return {w:0,n,d};}
+function mixedR(wmax,dmax){const x=properR(2,dmax);x.w=rnd(1,wmax);return x;}
+function makeUp(k){
+  if(k==='mix') k=pick(['fw','ff','div','wdiv','mmx','mmd']);
+  if(k==='fw'){const F=properR(2,9),n={w:rnd(2,8),n:0,d:1};return rnd(0,1)?[F,'x',n]:[n,'x',F];}
+  if(k==='ff') return [properR(2,8),'x',properR(2,8)];
+  if(k==='div') return [properR(2,6),'d',properR(2,6)];
+  if(k==='wdiv') return [{w:rnd(1,4),n:0,d:1},'d',properR(2,5)];
+  if(k==='mmx') return [mixedR(2,4),'x',mixedR(2,4)];
+  let A,B; do{A=mixedR(3,4);B=mixedR(1,4);}while(imp(A)[1]*imp(B)[1]>144);
+  return [A,'d',B];
+}
+document.getElementById('rand').onclick=()=>{
+  let t,g=0; do{t=makeUp(document.getElementById('kind').value);}while(g++<20 && Q && qMark(...t)===qMark(Q.A,Q.op,Q.B));
+  document.getElementById('err').textContent=''; load(...t);
+};
+
+/* ---------- Stepping ---------- */
+document.getElementById('next').onclick=()=>{if(step<maxStep()){step++;render();}};
+document.getElementById('back').onclick=()=>{if(step>0){step--;render();}};
+document.getElementById('all').onclick=()=>{step=maxStep();render();};
+document.getElementById('reset').onclick=()=>{step=0;render();};
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();document.getElementById('next').click();}
+  if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById('back').click();}
+});
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-show]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const v=b.dataset.show;
+  document.getElementById('pAm').hidden=v==='wm'; document.getElementById('pWm').hidden=v==='am';
+  document.getElementById('panels').classList.toggle('one',v!=='both');
+});
+
+/* Start from a link like ...html#q=1/3,x,3/5  or  #q=1_1/3,d,2/3  (add "embed" when shown inside the topic page) */
+function fromHash(first){
+  document.body.classList.toggle('embed',/embed/.test(location.hash));
+  const m=location.hash.match(/q=([\d_\/]+),([xd]),([\d_\/]+)/);
+  if(m){const A=parseNum(m[1]),B=parseNum(m[3]); if(A&&B&&!check(A,m[2],B)){load(A,m[2],B);return;}}
+  if(first) load({w:0,n:1,d:3},'x',{w:0,n:3,d:5});
+}
+window.addEventListener('hashchange',()=>fromHash(false));
+fromHash(true);
+/* Tell the topic page how tall this is, so its frame fits without scrolling */
+function sendHeight(){ if(window.parent!==window){ try{ window.parent.postMessage({toolHeight:Math.ceil(document.querySelector('.wrap').getBoundingClientRect().bottom+window.scrollY)},'*'); }catch(e){} } }
+if('ResizeObserver' in window) new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s2/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

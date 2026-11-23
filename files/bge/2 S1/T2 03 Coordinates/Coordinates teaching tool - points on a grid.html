@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coordinates: points on a grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#BFE3E0; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --up:#C2410C; --mirror:#B23B3B; --fill:#FCD668;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.1rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+.wrap{padding:1.25rem clamp(1rem,2.5vw,2rem) 2.5rem;max-width:1500px;margin:0 auto}
+
+/* Control bar */
+.bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:1rem 1.6rem;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:.35rem}
+.grp .lab{font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.row input{width:4.8rem;padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.2rem;text-align:center}
+.row input.wide{width:min(19rem,80vw);text-align:left;font-size:1.05rem}
+.row select{padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1rem;background:var(--paper)}
+.row .t{font-family:var(--head);font-size:1.3rem;color:var(--deep)}
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn.big{font-size:1.15rem;padding:.65rem 1.3rem}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .85rem;font-weight:700;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--deep)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.err{color:#B23B3B;font-weight:700;font-size:.95rem;min-height:1.2rem;flex-basis:100%}
+
+/* Question + stepping */
+.qbar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin:1.25rem 0 1rem}
+.question{font-family:var(--head);font-weight:700;font-size:clamp(1.6rem,3.6vw,2.6rem);color:var(--deep);font-variant-numeric:tabular-nums}
+.question .ans{color:var(--sea)}
+.steps-ctl{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto;align-items:center}
+.stepcount{font-family:var(--head);color:var(--muted);font-size:.95rem;margin-right:.3rem}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:1.25rem}
+@media (max-width:900px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem 1.25rem;display:flex;flex-direction:column;min-width:0}
+.panel h2{font-size:1.2rem;color:var(--deep);border-bottom:2px solid var(--deep);padding-bottom:.35rem;margin-bottom:.9rem}
+.panel h2 small{font-family:var(--body);font-weight:400;font-size:.9rem;color:var(--muted);margin-left:.4rem}
+.stage{display:flex;justify-content:center}
+svg.board{width:100%;height:auto;max-height:74vh;display:block}
+svg.board .gl{stroke:#C9D5D4;stroke-width:1.2}
+svg.board .gu{stroke:#8FA5A4;stroke-width:1.6}
+svg.board .axis{stroke:var(--ink);stroke-width:2.6}
+svg.board .num{font-family:var(--head);font-size:var(--fs,16px);fill:var(--ink);dominant-baseline:central}
+svg.board .axl{font-family:var(--head);font-size:calc(20px * var(--k,1));font-weight:700;fill:var(--ink);font-style:italic;dominant-baseline:central;text-anchor:middle}
+svg.board .sv rect{fill:var(--sand);stroke:#C99C25;stroke-width:1.5}
+svg.board .sv text{font-family:var(--head);font-size:calc(13px * var(--k,1));font-weight:700;fill:var(--deep);text-anchor:middle;dominant-baseline:central}
+svg.board .ar{stroke-width:5;stroke-linecap:round;fill:none}
+svg.board .ar.x{stroke:var(--sea)} svg.board .ar.y{stroke:var(--up)}
+svg.board .arl{font-family:var(--head);font-size:calc(17px * var(--k,1));font-weight:700;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px}
+svg.board .guide{stroke:var(--deep);stroke-width:2;stroke-dasharray:6 5;fill:none}
+svg.board .pt{fill:var(--deep)}
+svg.board .cross{stroke:var(--deep);stroke-width:3.2;stroke-linecap:round}
+svg.board .pl{font-family:var(--head);font-size:calc(19px * var(--k,1));font-weight:700;fill:var(--deep);dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:5px}
+svg.board .pl.img{fill:var(--sea)}
+svg.board .shape{fill:var(--fill);fill-opacity:.6;stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+svg.board .open{fill:none;stroke:var(--ink);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+svg.board .image{fill:var(--sea-soft);fill-opacity:.75;stroke:var(--deep);stroke-width:3;stroke-linejoin:round}
+svg.board .mirror{stroke:var(--mirror);stroke-width:4;stroke-dasharray:12 8}
+svg.board .ml{font-family:var(--head);font-size:calc(15px * var(--k,1));font-weight:700;fill:var(--mirror);paint-order:stroke;stroke:#fff;stroke-width:5px}
+svg.board .ctr{fill:var(--mirror)}
+svg.board .ray{stroke:var(--mirror);stroke-width:2;stroke-dasharray:5 5}
+svg.board .arc{fill:none;stroke:var(--mirror);stroke-width:2.6}
+svg.board .cnt{font-family:var(--head);font-size:calc(15px * var(--k,1));font-weight:700;fill:var(--up);text-anchor:middle;dominant-baseline:central;paint-order:stroke;stroke:#fff;stroke-width:4px}
+svg.board .perp{stroke:var(--up);stroke-width:2.4;stroke-dasharray:6 4}
+svg.board .fade{animation:in .35s ease both}
+.say{list-style:none;margin:0;padding:0;font-size:1.12rem}
+.say li{padding:.35rem 0 .35rem .9rem;border-left:4px solid var(--line);margin:.3rem 0;animation:in .35s ease both}
+.say li.now{border-left-color:var(--sand)}
+.say li.answer{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.25rem;border-left-color:var(--sea)}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.key{display:flex;flex-wrap:wrap;gap:.4rem 1rem;font-size:.9rem;color:var(--muted);margin-top:.9rem}
+.key span::before{content:"";display:inline-block;width:1.2rem;height:.3rem;border-radius:2px;margin-right:.35rem;vertical-align:middle;background:var(--c)}
+
+.help{margin-top:1.25rem;color:var(--muted);font-size:.95rem}
+.help b{color:var(--ink)}
+body.embed{background:var(--paper)}
+body.embed .topbar,body.embed .help{display:none}
+body.embed .wrap{padding:0;max-width:none}
+body.embed .bar{background:var(--bg)}
+body.embed svg.board{max-height:none}
+@media (min-width:760px){
+  body.embed .panels{grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:.9rem}
+  body.embed .panel{padding:.9rem .9rem 1rem}
+  body.embed .say{font-size:1rem}
+  body.embed .qbar{margin:.9rem 0 .8rem}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S1-t2-coordinates">Hub</a> › <a href="Topic%20page%20-%20Coordinates.html">Coordinates</a> › Points on a grid</nav>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="grp">
+      <span class="lab">Show</span>
+      <div class="seg" role="group" aria-label="What to show">
+        <button data-mode="plot" aria-pressed="true">Plot a point</button>
+        <button data-mode="read" aria-pressed="false">Read a point</button>
+        <button data-mode="tr" aria-pressed="false">Move a shape</button>
+        <button data-mode="sym" aria-pressed="false">Symmetry</button>
+      </div>
+    </div>
+    <div class="grp" id="gGrid">
+      <span class="lab">Grid</span>
+      <div class="seg" role="group" aria-label="Grid">
+        <button data-grid="one" aria-pressed="false">First quadrant</button>
+        <button data-grid="four" aria-pressed="true">Four quadrants</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Each square is worth</span>
+      <div class="row">
+        <select id="scale" aria-label="Each square is worth">
+          <option value="1">1</option>
+          <option value="0.5">0.5 (½)</option>
+          <option value="0.25">0.25 (¼)</option>
+          <option value="0.2">0.2 (⅕)</option>
+          <option value="1/3">⅓</option>
+          <option value="2">2</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+    </div>
+    <div class="grp" id="gFmt">
+      <span class="lab">Write numbers as</span>
+      <div class="seg" role="group" aria-label="Decimals or fractions">
+        <button data-fmt="dec" aria-pressed="true">Decimals</button>
+        <button data-fmt="frac" aria-pressed="false">Fractions</button>
+      </div>
+    </div>
+
+    <div class="grp" id="gPt">
+      <span class="lab">Type the point</span>
+      <div class="row"><span class="t">P(</span><input id="inX" value="-3" aria-label="x coordinate"><span class="t">,</span><input id="inY" value="2" aria-label="y coordinate"><span class="t">)</span></div>
+    </div>
+    <div class="grp" id="gTr" hidden>
+      <span class="lab">Corners and move</span>
+      <div class="row">
+        <input class="wide" id="inTrPts" value="(1, 1) (3, 1) (1, 4)" aria-label="Corners of the shape">
+        <select id="trType" aria-label="Transformation">
+          <option value="tr">Translate</option>
+          <option value="rx">Reflect in the x-axis</option>
+          <option value="ry">Reflect in the y-axis</option>
+          <option value="r180">Rotate 180° about (0, 0)</option>
+          <option value="r90c">Rotate 90° clockwise about (0, 0)</option>
+          <option value="r90a">Rotate 90° anticlockwise about (0, 0)</option>
+        </select>
+      </div>
+      <div class="row" id="trMove">
+        <input id="inDx" value="4" aria-label="Squares across"><select id="dxDir" aria-label="Right or left"><option value="1">right</option><option value="-1">left</option></select>
+        <input id="inDy" value="2" aria-label="Squares up or down"><select id="dyDir" aria-label="Up or down"><option value="1">up</option><option value="-1" selected>down</option></select>
+      </div>
+    </div>
+    <div class="grp" id="gSym" hidden>
+      <span class="lab">Half shape and mirror line</span>
+      <div class="row">
+        <input class="wide" id="inSymPts" value="(0, 4) (-3, 2) (-3, -1) (0, -2)" aria-label="Corners of the half shape">
+      </div>
+      <div class="row">
+        <select id="symDir" aria-label="Mirror line direction"><option value="v">Mirror line up and down, through x =</option><option value="h">Mirror line side to side, through y =</option></select>
+        <input id="inSymA" value="0" aria-label="Where the mirror line crosses the axis">
+      </div>
+    </div>
+    <div class="grp">
+      <div class="row">
+        <button class="btn" id="go">Use these numbers</button>
+        <button class="btn" id="rand">New question</button>
+      </div>
+    </div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <div class="qbar">
+    <div class="question" id="question" aria-live="polite"></div>
+    <div class="steps-ctl">
+      <span class="stepcount" id="stepCount"></span>
+      <button class="btn alt" id="back">← Back</button>
+      <button class="btn big" id="next">Next step →</button>
+      <button class="btn alt" id="all">Show all</button>
+      <button class="btn alt" id="reset">Start again</button>
+    </div>
+  </div>
+
+  <div class="panels">
+    <section class="panel" aria-labelledby="hBoard">
+      <h2 id="hBoard">On the grid <small id="desc"></small></h2>
+      <div class="stage" id="board"></div>
+    </section>
+    <section class="panel" aria-labelledby="hSay">
+      <h2 id="hSay">Working</h2>
+      <ul class="say" id="say"></ul>
+      <div class="key" id="key"></div>
+    </section>
+  </div>
+
+  <p class="help"><b>Tips:</b> press <b>Next step</b> (or the space bar / right arrow) to build the working one step at a time, and the left arrow to go back. Coordinates are (x, y): <b>along the corridor, then up the stairs</b>. Change <b>Each square is worth</b> to practise fractional and decimal coordinates; you can type numbers like 1.5, 1½, 1 1/2 or 3/2. Type corners in brackets, e.g. (1, 1) (3, 1) (1, 4).</p>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const N=v=>v<0?'−'+(-v):String(v);
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const LET=['A','B','C','D','E','F'];
+
+/* ---------- Scale and numbers ----------
+   Every point is stored as whole squares; the scale turns squares into values. */
+const SC={'1':[1,1],'0.5':[1,2],'0.25':[1,4],'0.2':[1,5],'1/3':[1,3],'2':[2,1],'5':[5,1],'10':[10,1]};
+const FR={'1/2':'½','1/4':'¼','3/4':'¾','1/3':'⅓','2/3':'⅔','1/5':'⅕','2/5':'⅖','3/5':'⅗','4/5':'⅘'};
+const GL={'½':[1,2],'¼':[1,4],'¾':[3,4],'⅓':[1,3],'⅔':[2,3],'⅕':[1,5],'⅖':[2,5],'⅗':[3,5],'⅘':[4,5]};
+let ST={m:'plot',s:'1',f:'dec',g:'four',t:'tr'};
+const sc=()=>SC[ST.s];
+const spu=()=>sc()[0]===1?sc()[1]:1;      // squares per 1 unit (1 for scales 1, 2, 5, 10)
+function V(sq){
+  const [a,b]=sc(); let n=sq*a,d=b; const g=gcd(Math.abs(n),d)||1; n/=g; d/=g;
+  if(d===1) return N(n);
+  if(ST.f==='dec' && d!==3) return N(+(n/d).toFixed(4));
+  const w=Math.floor(Math.abs(n)/d), r=Math.abs(n)%d;
+  return (n<0?'−':'')+(w||'')+FR[r+'/'+d];
+}
+const P=(x,y)=>`(${V(x)}, ${V(y)})`;
+const sq=n=>`${n} square${n===1?'':'s'}`;
+function parseVal(s){
+  s=String(s).trim().replace(/[−–]/g,'-').replace(/^\+/,'').replace(/\s+/g,' ');
+  let m;
+  if((m=s.match(/^(-?)(\d*) ?([½¼¾⅓⅔⅕⅖⅗⅘])$/))){const [p,q]=GL[m[3]];const v=(+(m[2]||0))*q+p;return [m[1]?-v:v,q];}
+  if((m=s.match(/^(-?)(\d+) (\d+)\/(\d+)$/))){const q=+m[4];if(!q)return null;const v=+m[2]*q+ +m[3];return [m[1]?-v:v,q];}
+  if((m=s.match(/^(-?)(\d+)\/(\d+)$/))){const q=+m[3];if(!q)return null;return [(m[1]?-1:1)*+m[2],q];}
+  if(/^-?\d+(\.\d+)?$/.test(s)){const dp=(s.split('.')[1]||'').length,q=10**dp;return [Math.round(parseFloat(s)*q),q];}
+  return null;
+}
+function toSq(s){const r=parseVal(s); if(!r) return null; const [a,b]=sc(); const v=r[0]*b/(r[1]*a); return Math.abs(v-Math.round(v))<1e-9?Math.round(v):NaN;}
+function parsePts(s){
+  const out=[], re=/\(([^()]*)\)/g; let m;
+  while((m=re.exec(s))){const parts=m[1].split(','); if(parts.length!==2) return null; const x=toSq(parts[0]),y=toSq(parts[1]); if(x===null||y===null) return null; if(isNaN(x)||isNaN(y)) return NaN; out.push([x,y]);}
+  return out;
+}
+
+/* ---------- Grid size ---------- */
+const MAXSQ=13;   // furthest from the origin, in squares
+function baseExt(g){
+  const u=spu();
+  if(g==='one'){const f=u>1?u*Math.max(3,Math.ceil(6/u)):6; return {x0:0,x1:f,y0:0,y1:f};}
+  const h=u>1?u*Math.max(2,Math.ceil(5/u)):5; return {x0:-h,x1:h,y0:-h,y1:h};
+}
+function fitExt(pts,g){
+  const e=baseExt(g), u=spu();
+  pts.forEach(([x,y])=>{e.x0=Math.min(e.x0,x-1);e.x1=Math.max(e.x1,x+1);e.y0=Math.min(e.y0,y-1);e.y1=Math.max(e.y1,y+1);});
+  if(g==='one'){e.x0=Math.min(e.x0,0);e.y0=Math.min(e.y0,0);}
+  if(u>1){e.x0=Math.floor(e.x0/u)*u;e.y0=Math.floor(e.y0/u)*u;e.x1=Math.ceil(e.x1/u)*u;e.y1=Math.ceil(e.y1/u)*u;}
+  return e;
+}
+
+/* ---------- Draw the grid ---------- */
+function grid(e){
+  const nx=e.x1-e.x0, ny=e.y1-e.y0, u=spu();
+  const c=Math.max(18,Math.min(54,Math.floor(Math.min(700/nx,600/ny))));
+  const L=52,T=34,R=40,B=60, W=L+nx*c+R, H=T+ny*c+B;
+  const X=x=>L+(x-e.x0)*c, Y=y=>T+(e.y1-y)*c;
+  const ax=(e.x0<=0&&e.x1>=0)?0:e.x0, ay=(e.y0<=0&&e.y1>=0)?0:e.y0;
+  const k=Math.max(1,W/560), fs=Math.round((c>=40?17:c>=28?15:13)*k);
+  let s=`<svg class="board" viewBox="0 0 ${W} ${H}" style="--fs:${fs}px;--k:${k.toFixed(2)}" role="img" aria-label="Coordinate grid">
+  <defs>
+    <marker id="ahk" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink)"/></marker>
+    <marker id="ahx" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--sea)"/></marker>
+    <marker id="ahy" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--up)"/></marker>
+    <marker id="ahm" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--mirror)"/></marker>
+  </defs>`;
+  for(let x=e.x0;x<=e.x1;x++) s+=`<line class="${u>1&&x%u===0?'gu':'gl'}" x1="${X(x)}" x2="${X(x)}" y1="${Y(e.y0)}" y2="${Y(e.y1)}"/>`;
+  for(let y=e.y0;y<=e.y1;y++) s+=`<line class="${u>1&&y%u===0?'gu':'gl'}" x1="${X(e.x0)}" x2="${X(e.x1)}" y1="${Y(y)}" y2="${Y(y)}"/>`;
+  const x0a=e.x0<0?X(e.x0)-16:X(e.x0), y0a=e.y0<0?Y(e.y0)+16:Y(e.y0);
+  s+=`<line class="axis" x1="${x0a}" x2="${X(e.x1)+18}" y1="${Y(ay)}" y2="${Y(ay)}" marker-end="url(#ahk)"${e.x0<0?' marker-start="url(#ahk)"':''}/>`;
+  s+=`<line class="axis" x1="${X(ax)}" x2="${X(ax)}" y1="${y0a}" y2="${Y(e.y1)-18}" marker-end="url(#ahk)"${e.y0<0?' marker-start="url(#ahk)"':''}/>`;
+  s+=`<text class="axl" x="${X(e.x1)+30}" y="${Y(ay)}">x</text><text class="axl" x="${X(ax)+18}" y="${Y(e.y1)-20}">y</text>`;
+  const every = u>1 ? u : (c<26?2:1);
+  for(let x=e.x0;x<=e.x1;x++){ if(x%every||x===ax&&ax===0) continue;
+    s+=`<text class="num" text-anchor="middle" x="${X(x)}" y="${Y(ay)+18}">${V(x)}</text>`; }
+  for(let y=e.y0;y<=e.y1;y++){ if(y%every||y===ay&&ay===0) continue;
+    s+=`<text class="num" text-anchor="end" x="${X(ax)-8}" y="${Y(y)}">${V(y)}</text>`; }
+  if(ax===0&&ay===0) s+=`<text class="num" text-anchor="end" x="${X(0)-7}" y="${Y(0)+17}">0</text>`;
+  return {s,X,Y,c,e,ax,ay};
+}
+const arrowLine=(x1,y1,x2,y2,cls,mk)=>`<line class="ar ${cls} fade" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#${mk})"/>`;
+function cross(x,y,cls=''){return `<g class="fade ${cls}"><line class="cross" x1="${x-8}" y1="${y-8}" x2="${x+8}" y2="${y+8}"/><line class="cross" x1="${x-8}" y1="${y+8}" x2="${x+8}" y2="${y-8}"/></g>`;}
+function dot(x,y,cls='pt',r=6){return `<circle class="${cls} fade" cx="${x}" cy="${y}" r="${r}"/>`;}
+function label(x,y,t,dx,dy,cls='pl',fill){return `<text class="${cls} fade"${fill?` fill="${fill}"`:''} x="${x+dx}" y="${y+dy}" text-anchor="${dx<0?'end':dx>0?'start':'middle'}">${t}</text>`;}
+// label offset pointing away from a centre
+function away(px,py,cx,cy,d=16){let vx=px-cx,vy=py-cy;const l=Math.hypot(vx,vy)||1;vx/=l;vy/=l;if(l===1&&!vx&&!vy){vx=-.7;vy=-.7;}return [Math.round(vx*d+(vx<-.3?-2:vx>.3?2:0)),Math.round(vy*d)];}
+
+/* ---------- Questions and stages ---------- */
+let Q=null, step=0;
+function scaleSay(){
+  const u=spu(), [a]=sc();
+  if(u>1) return `Check the scale first: ${u} squares make 1, so each square is worth ${V(1)}.`;
+  if(a>1) return `Check the scale first: the numbers go up in ${a}s, so each square is worth ${a}.`;
+  return null;
+}
+const mult=n=>ST.s==='1'?'':`: ${n} × ${V(1)} = ${V(n)}`;
+const divi=v=>ST.s==='1'?'':` That is ${V(v)} ÷ ${V(1)} = ${sq(v)}.`;
+
+function buildPoint(read){
+  const [x,y]=Q.pts[0], st=[], ss=scaleSay();
+  st.push({k:'start',say: read?'Where is P? Start at the origin, (0, 0).':`Plot P${P(x,y)}. Start at the origin, (0, 0).`});
+  if(ss) st.push({k:'scale',say:ss});
+  const ax=Math.abs(x), ay=Math.abs(y);
+  if(read){
+    st.push({k:'along',say: x===0?'How far along? P is on the y-axis, so x = 0.':`How far along? P is ${sq(ax)} ${x>0?'right':'left'} of the origin${mult(ax)}, so x = ${V(x)}.${x<0?' Left means x is negative.':''}`});
+    st.push({k:'up',say: y===0?'How far up or down? P is on the x-axis, so y = 0.':`How far up or down? P is ${sq(ay)} ${y>0?'up':'down'}${mult(ay)}, so y = ${V(y)}.${y<0?' Down means y is negative.':''}`});
+    st.push({k:'mark',say:`Write it along first, then up: P${P(x,y)}.`,answer:true});
+  } else {
+    st.push({k:'along',say: x===0?'Along the x-axis first: x is 0, so don’t go along at all.':`Along the x-axis first: ${V(ax)} ${x>0?'right':'left'}.${divi(ax)}${x<0?' Negative x: go left.':''}`});
+    st.push({k:'up',say: y===0?'Then up or down: y is 0, so stay on the x-axis.':`Then up or down the y-axis: ${V(ay)} ${y>0?'up':'down'}.${divi(ay)}${y<0?' Negative y: go down.':''}`});
+    st.push({k:'mark',say:`Mark the point with a cross and label it P${P(x,y)}.`,answer:true});
+  }
+  Q.stages=st; Q.answer=`P${P(x,y)}`;
+  Q.title=read?'Where is P?':`Plot P${P(x,y)}`;
+  Q.ext=fitExt([[x,y]],ST.g);
+}
+
+function imageOf([x,y]){
+  switch(Q.t){
+    case 'tr': return [x+Q.dx,y+Q.dy];
+    case 'rx': return [x,-y];
+    case 'ry': return [-x,y];
+    case 'r180': return [-x,-y];
+    case 'r90c': return [y,-x];
+    case 'r90a': return [-y,x];
+  }
+}
+function moveWords(dx,dy){
+  const p=[]; if(dx) p.push(`${V(Math.abs(dx))} ${dx>0?'right':'left'}`); if(dy) p.push(`${V(Math.abs(dy))} ${dy>0?'up':'down'}`);
+  return p.join(' and ')||'0';
+}
+function buildTr(){
+  const pts=Q.pts, im=pts.map(imageOf); Q.img=im;
+  const nm=LET.slice(0,pts.length).join(''), nm2=LET.slice(0,pts.length).map(l=>l+'′').join('');
+  const st=[{k:'start',say:`Shape ${nm}: ${pts.map((p,i)=>LET[i]+P(...p)).join(', ')}.`}];
+  const ss=scaleSay(); if(ss) st.push({k:'scale',say:ss});
+  let rule;
+  if(Q.t==='tr'){
+    const a=[]; if(Q.dx) a.push(`${Q.dx>0?'add':'take'} ${V(Math.abs(Q.dx))} ${Q.dx>0?'to':'from'} x`); if(Q.dy) a.push(`${Q.dy>0?'add':'take'} ${V(Math.abs(Q.dy))} ${Q.dy>0?'to':'from'} y`);
+    rule=`Translation (sliding): move ${moveWords(Q.dx,Q.dy)}. So ${a.join(' and ')}.`;
+    Q.title=`Translate ${nm} ${moveWords(Q.dx,Q.dy)}`;
+  } else if(Q.t==='rx'||Q.t==='ry'){
+    const ax=Q.t==='rx'?'x':'y';
+    rule=`Reflection (flipping) in the ${ax}-axis. Each point stays the same distance from the mirror line, on the other side. The ${ax==='x'?'y':'x'} sign changes.`;
+    Q.title=`Reflect ${nm} in the ${ax}-axis`;
+  } else {
+    const half=Q.t==='r180', dir=Q.t==='r90c'?'clockwise':'anticlockwise';
+    rule= half?'Rotation (turning): a half turn (180°) about the origin. Trace the shape, put your pencil point on (0, 0) and turn the paper. For a half turn, both signs change.'
+              :`Rotation (turning): a quarter turn (90°) ${dir} about the origin. Trace the shape, put your pencil point on (0, 0) and turn the paper a quarter turn ${dir}.`;
+    Q.title= half?`Rotate ${nm} 180° about (0, 0)`:`Rotate ${nm} 90° ${dir} about (0, 0)`;
+  }
+  st.push({k:'rule',say:rule});
+  pts.forEach((p,i)=>{
+    let extra='';
+    if(Q.t==='rx'){const n=Math.abs(p[1]); extra= n?` (${sq(n)} from the mirror line, ${sq(n)} on the other side)`:' (on the mirror line, so it stays)';}
+    if(Q.t==='ry'){const n=Math.abs(p[0]); extra= n?` (${sq(n)} from the mirror line, ${sq(n)} on the other side)`:' (on the mirror line, so it stays)';}
+    st.push({k:'v',i,say:`${LET[i]}${P(...p)} → ${LET[i]}′${P(...im[i])}${extra}`});
+  });
+  st.push({k:'img',say:`Join ${nm2}. The image is the same size and shape${Q.t==='tr'?' and the same way round':''}.${Q.t.startsWith('r9')?' Check: each corner is still the same distance from the centre.':''}`,answer:true});
+  Q.stages=st; Q.answer=im.map((p,i)=>`${LET[i]}′${P(...p)}`).join(', ');
+  Q.ext=fitExt([...pts,...im,[0,0]],'four');
+}
+
+function buildSym(){
+  const v=Q.lk==='v', a=Q.la, pts=Q.pts;
+  const ref=([x,y])=>v?[2*a-x,y]:[x,2*a-y];
+  Q.img=pts.map(ref);
+  const on=pts.filter(p=>(v?p[0]:p[1])===a), off=pts.map((p,i)=>[p,i]).filter(([p])=>(v?p[0]:p[1])!==a);
+  const st=[{k:'start',say:`Complete the shape so that the dashed line is a line of symmetry. The mirror line goes ${v?'up and down':'side to side'} through ${v?'x':'y'} = ${V(a)}.`}];
+  const ss=scaleSay(); if(ss) st.push({k:'scale',say:ss});
+  if(on.length) st.push({k:'on',say:`${on.map(p=>P(...p)).join(' and ')} ${on.length>1?'are':'is'} on the mirror line, so ${on.length>1?'they stay':'it stays'} where ${on.length>1?'they are':'it is'}.`});
+  off.forEach(([p,i])=>{
+    const d=(v?p[0]:p[1])-a, n=Math.abs(d);
+    const side=v?(d<0?'left of':'right of'):(d<0?'below':'above'), opp=v?(d<0?'right of':'left of'):(d<0?'above':'below');
+    st.push({k:'v',i,say:`Corner ${P(...p)} is ${sq(n)} ${side} the line, so the new corner is ${sq(n)} ${opp} it: ${P(...Q.img[i])}.`});
+  });
+  st.push({k:'img',say:'Join the new corners in the same order. Both halves match exactly.',answer:true});
+  const nw=off.map(([,i])=>P(...Q.img[i]));
+  Q.stages=st; Q.answer=`New corners: ${nw.join(', ')}`;
+  Q.title='Complete the symmetrical shape';
+  const ln=v?[[a,0]]:[[0,a]];
+  Q.ext=fitExt([...pts,...Q.img,...ln],'four');
+}
+
+function build(){
+  if(Q.m==='plot') buildPoint(false);
+  if(Q.m==='read') buildPoint(true);
+  if(Q.m==='tr') buildTr();
+  if(Q.m==='sym') buildSym();
+}
+
+/* ---------- Render ---------- */
+function render(){
+  build();
+  const n=Math.min(step,Q.stages.length-1), shown=Q.stages.slice(0,n+1), has=k=>shown.some(s=>s.k===k);
+  const G=grid(Q.ext), {X,Y,c}=G; let s=G.s;
+  const keys=[];
+  if(has('scale') && (spu()>1 || sc()[0]>1)){
+    const u=spu(), y=Y(G.ay)+38;
+    const top=u>1?u:1;
+    for(let k=1;k<=top;k++){ if(u===1 && k>1) break;
+      const t=V(k), w=Math.max(30,t.length*9+12);
+      s+=`<g class="sv fade"><rect x="${X(k)-w/2}" y="${y-11}" width="${w}" height="22" rx="6"/><text x="${X(k)}" y="${y}">${t}</text></g>`; }
+  }
+  if(Q.m==='plot'||Q.m==='read'){
+    const [x,y]=Q.pts[0], px=X(x), py=Y(y);
+    if(Q.m==='read') s+=cross(px,py)+(has('mark')?'':label(px,py,'P',12,-14));
+    s+=`<circle cx="${X(0)}" cy="${Y(0)}" r="7" fill="var(--sand)" stroke="var(--deep)" stroke-width="2.5"/>`;
+    if(has('along')){
+      if(x) s+=arrowLine(X(0),Y(0),px-(x>0?6:-6),Y(0),'x','ahx')+label((X(0)+px)/2,Y(0),`${V(Math.abs(x))} ${x>0?'right':'left'}`,0,-16,'arl','var(--sea)');
+      if(Q.m==='read') s+=`<line class="guide fade" x1="${px}" y1="${py}" x2="${px}" y2="${Y(0)}"/>`;
+    }
+    if(has('up') && y){
+      s+=arrowLine(px,Y(0),px,py+(y>0?8:-8),'y','ahy');
+      s+=label(px,(Y(0)+py)/2,`${V(Math.abs(y))} ${y>0?'up':'down'}`,x<0?-12:12,0,'arl','var(--up)');
+    }
+    if(has('mark')){
+      if(Q.m==='plot') s+=cross(px,py);
+      s+=label(px,py,`P${P(x,y)}`,x<0?-14:14,y<0?16:-16);
+    }
+    keys.push(['var(--sea)','along the x-axis first'],['var(--up)','then up or down']);
+  }
+  if(Q.m==='tr'){
+    const pts=Q.pts, im=Q.img;
+    const cx=pts.reduce((a,p)=>a+X(p[0]),0)/pts.length, cy=pts.reduce((a,p)=>a+Y(p[1]),0)/pts.length;
+    const cx2=im.reduce((a,p)=>a+X(p[0]),0)/im.length, cy2=im.reduce((a,p)=>a+Y(p[1]),0)/im.length;
+    if(has('rule')){
+      if(Q.t==='rx') s+=`<line class="mirror fade" x1="${X(Q.ext.x0)}" x2="${X(Q.ext.x1)}" y1="${Y(0)}" y2="${Y(0)}"/><text class="ml fade" x="${X(Q.ext.x0)+6}" y="${Y(0)-10}">mirror line</text>`;
+      if(Q.t==='ry') s+=`<line class="mirror fade" y1="${Y(Q.ext.y0)}" y2="${Y(Q.ext.y1)}" x1="${X(0)}" x2="${X(0)}"/><text class="ml fade" x="${X(0)+8}" y="${Y(Q.ext.y1)+16}">mirror line</text>`;
+      if(Q.t.startsWith('r')&&Q.t!=='rx'&&Q.t!=='ry') s+=`<circle class="ctr fade" cx="${X(0)}" cy="${Y(0)}" r="8"/><text class="ml fade" text-anchor="end" x="${X(0)-12}" y="${Y(0)-12}">centre</text>`;
+    }
+    if(has('img')) s+=`<polygon class="image fade" points="${im.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+    s+=`<polygon class="shape" points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+    pts.forEach((p,i)=>{const [dx,dy]=away(X(p[0]),Y(p[1]),cx,cy); s+=label(X(p[0]),Y(p[1]),LET[i],dx,dy);});
+    shown.filter(t=>t.k==='v').forEach(t=>{
+      const i=t.i,[x,y]=pts[i],[x2,y2]=im[i], cur=t===shown[n];
+      if(Q.t==='tr'){
+        if(Q.dx) s+=arrowLine(X(x),Y(y),X(x2)-(Q.dx>0?7:-7),Y(y),'x','ahx');
+        if(Q.dy) s+=arrowLine(X(x2),Y(y),X(x2),Y(y2)+(Q.dy>0?7:-7),'y','ahy');
+      } else if(Q.t==='rx'||Q.t==='ry'){
+        if(x!==x2||y!==y2) s+=`<line class="perp fade" x1="${X(x)}" y1="${Y(y)}" x2="${X(x2)}" y2="${Y(y2)}"/>`;
+        const n1=Q.t==='rx'?Math.abs(y):Math.abs(x);
+        if(n1&&cur){ const mx=Q.t==='rx'?X(x):X(0), my=Q.t==='rx'?Y(0):Y(y);
+          s+=`<text class="cnt fade" x="${(X(x)+mx)/2+(Q.t==='rx'?16:0)}" y="${(Y(y)+my)/2+(Q.t==='ry'?-12:0)}">${n1}</text><text class="cnt fade" x="${(X(x2)+mx)/2+(Q.t==='rx'?16:0)}" y="${(Y(y2)+my)/2+(Q.t==='ry'?-12:0)}">${n1}</text>`; }
+      } else if(x||y){
+        s+=`<line class="ray fade" x1="${X(0)}" y1="${Y(0)}" x2="${X(x)}" y2="${Y(y)}"/><line class="ray fade" x1="${X(0)}" y1="${Y(0)}" x2="${X(x2)}" y2="${Y(y2)}"/>`;
+        const r=Math.min(Math.hypot(X(x)-X(0),Y(y)-Y(0)),Math.hypot(X(x2)-X(0),Y(y2)-Y(0)))*0.55;
+        const a1=Math.atan2(Y(y)-Y(0),X(x)-X(0)), a2=Math.atan2(Y(y2)-Y(0),X(x2)-X(0));
+        const sweep=Q.t==='r90a'?0:1;
+        s+=`<path class="arc fade" marker-end="url(#ahm)" d="M${X(0)+r*Math.cos(a1)},${Y(0)+r*Math.sin(a1)} A${r},${r} 0 0 ${sweep} ${X(0)+r*Math.cos(a2)},${Y(0)+r*Math.sin(a2)}"/>`;
+      }
+      s+=dot(X(x2),Y(y2),'pt',5);
+      const [ldx,ldy]=away(X(x2),Y(y2),cx2,cy2);
+      s+=label(X(x2),Y(y2),LET[i]+'′',ldx,ldy,'pl img');
+    });
+    keys.push(['var(--fill)','shape (object)'],['var(--sea-soft)','image']);
+    if(Q.t==='tr') keys.push(['var(--sea)','across'],['var(--up)','up or down']);
+  }
+  if(Q.m==='sym'){
+    const v=Q.lk==='v', a=Q.la, pts=Q.pts, im=Q.img, e=Q.ext;
+    const ends=(v?pts[0][0]:pts[0][1])===a && (v?pts[pts.length-1][0]:pts[pts.length-1][1])===a;
+    if(has('img')){
+      const full=[...pts,...[...im].reverse()];
+      s+=`<polygon class="image fade" points="${full.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+    }
+    s+= ends?`<polygon class="shape" points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`
+            :`<polyline class="open" points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+    s+= v?`<line class="mirror" x1="${X(a)}" x2="${X(a)}" y1="${Y(e.y0)-6}" y2="${Y(e.y1)+6}"/>`
+         :`<line class="mirror" y1="${Y(a)}" y2="${Y(a)}" x1="${X(e.x0)-6}" x2="${X(e.x1)+6}"/>`;
+    pts.forEach(p=>s+=`<circle class="pt" cx="${X(p[0])}" cy="${Y(p[1])}" r="5"/>`);
+    shown.filter(t=>t.k==='v').forEach(t=>{
+      const [x,y]=pts[t.i],[x2,y2]=im[t.i], cur=t===shown[n];
+      s+=`<line class="perp fade" x1="${X(x)}" y1="${Y(y)}" x2="${X(x2)}" y2="${Y(y2)}"/>`;
+      const k=Math.abs(v?x-a:y-a);
+      if(cur){ const mx=v?X(a):X(x), my=v?Y(y):Y(a);
+        s+=`<text class="cnt fade" x="${(X(x)+mx)/2}" y="${(Y(y)+my)/2-(v?13:0)}" dx="${v?0:16}">${k}</text><text class="cnt fade" x="${(X(x2)+mx)/2}" y="${(Y(y2)+my)/2-(v?13:0)}" dx="${v?0:16}">${k}</text>`; }
+      s+=dot(X(x2),Y(y2),'pt',6);
+    });
+    keys.push(['var(--mirror)','mirror line'],['var(--up)','count the squares']);
+  }
+  s+='</svg>';
+  document.getElementById('board').innerHTML=s;
+  document.getElementById('say').innerHTML=shown.map((t,i)=>`<li class="${i===n?'now':''}">${t.say}</li>`).join('')+(Q.stages[n].answer?`<li class="answer">${Q.answer}</li>`:'');
+  document.getElementById('key').innerHTML=keys.map(([c,t])=>`<span style="--c:${c}">${t}</span>`).join('');
+  const done=n>=Q.stages.length-1;
+  document.getElementById('question').innerHTML=esc(Q.title)+(Q.m==='read'?` <span class="ans">${done?Q.answer:''}</span>`:'');
+  document.getElementById('desc').textContent=ST.s==='1'?'':`(each square is worth ${V(1)})`;
+  document.getElementById('stepCount').textContent=`Step ${n+1} of ${Q.stages.length}`;
+  document.getElementById('back').disabled=n===0;
+  document.getElementById('next').disabled=done;
+  document.getElementById('all').disabled=done;
+  sendHeight();
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Inputs ---------- */
+const $=id=>document.getElementById(id);
+const err=t=>{$('err').textContent=t||'';};
+function syncInputs(){
+  if(!Q) return;
+  if(Q.m==='plot'||Q.m==='read'){$('inX').value=V(Q.pts[0][0]).replace('−','-');$('inY').value=V(Q.pts[0][1]).replace('−','-');}
+  const list=pts=>pts.map(p=>`(${V(p[0]).replace(/−/g,'-')}, ${V(p[1]).replace(/−/g,'-')})`).join(' ');
+  if(Q.m==='tr'){$('inTrPts').value=list(Q.pts);$('trType').value=Q.t;
+    $('inDx').value=V(Math.abs(Q.dx||0));$('dxDir').value=(Q.dx||0)<0?'-1':'1';$('inDy').value=V(Math.abs(Q.dy||0));$('dyDir').value=(Q.dy||0)<0?'-1':'1';}
+  if(Q.m==='sym'){$('inSymPts').value=list(Q.pts);$('symDir').value=Q.lk;$('inSymA').value=V(Q.la).replace('−','-');}
+}
+function showGroups(){
+  const m=ST.m;
+  $('gPt').hidden=!(m==='plot'||m==='read'); $('gGrid').hidden=!(m==='plot'||m==='read');
+  $('gTr').hidden=m!=='tr'; $('gSym').hidden=m!=='sym';
+  $('trMove').hidden=$('trType').value!=='tr';
+  $('gFmt').hidden=spu()===1;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===m));
+  document.querySelectorAll('[data-grid]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.grid===ST.g));
+  document.querySelectorAll('[data-fmt]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fmt===ST.f));
+  $('scale').value=ST.s;
+}
+const tooBig=pts=>pts.some(p=>Math.abs(p[0])>MAXSQ||Math.abs(p[1])>MAXSQ);
+const notOnGrid=()=>`With this scale every point must land where grid lines cross: each square is worth ${V(1)}.`;
+function load(q){
+  // q: {m, pts, t, dx, dy, lk, la}
+  Q=q; step=0; ST.m=q.m; if(q.t) ST.t=q.t;
+  build();
+  const all=[...Q.pts,...(Q.img||[])];
+  if(tooBig(all)){err(`That doesn’t fit on the grid. Keep every point within ${V(MAXSQ)} of the origin.`);return false;}
+  err(''); showGroups(); syncInputs(); render(); return true;
+}
+function readTyped(){
+  const m=ST.m;
+  if(m==='plot'||m==='read'){
+    const x=toSq($('inX').value), y=toSq($('inY').value);
+    if(x===null||y===null){err('Type numbers like 3, −2, 1.5, 1½ or 1 1/2.');return;}
+    if(isNaN(x)||isNaN(y)){err(notOnGrid());return;}
+    return load({m,pts:[[x,y]]});
+  }
+  if(m==='tr'){
+    const pts=parsePts($('inTrPts').value), t=$('trType').value;
+    if(pts!==pts){err(notOnGrid());return;}
+    if(!pts||pts.length<3||pts.length>5){err('Type 3 to 5 corners in brackets, e.g. (1, 1) (3, 1) (1, 4).');return;}
+    let dx=0,dy=0;
+    if(t==='tr'){dx=toSq($('inDx').value);dy=toSq($('inDy').value);
+      if(dx===null||dy===null){err('Type how far to move, e.g. 4 right and 2 down.');return;}
+      if(isNaN(dx)||isNaN(dy)){err(notOnGrid());return;}
+      dx*=+$('dxDir').value; dy*=+$('dyDir').value;
+      if(!dx&&!dy){err('Move the shape at least one square.');return;}}
+    return load({m,pts,t,dx,dy});
+  }
+  if(m==='sym'){
+    const pts=parsePts($('inSymPts').value), lk=$('symDir').value, la=toSq($('inSymA').value);
+    if(pts!==pts||Number.isNaN(la)){err(notOnGrid());return;}
+    if(!pts||pts.length<2||pts.length>7){err('Type 2 to 7 corners in brackets, e.g. (0, 4) (−3, 2) (0, −2).');return;}
+    if(la===null){err('Type where the mirror line crosses the axis, e.g. 0 or 2.');return;}
+    const d=pts.map(p=>(lk==='v'?p[0]:p[1])-la);
+    if(d.some(v=>v<0)&&d.some(v=>v>0)){err('Keep the half shape on one side of the mirror line.');return;}
+    if(d.every(v=>v===0)){err('Put at least one corner off the mirror line.');return;}
+    return load({m,pts,lk,la});
+  }
+}
+
+/* ---------- Make up a question ---------- */
+function randQ(){
+  const m=ST.m, u=spu();
+  if(m==='plot'||m==='read'){
+    const e=baseExt(ST.g); let x,y,g=0;
+    do{
+      if(ST.g==='one'){x=rnd(1,e.x1-1);y=rnd(1,e.y1-1);}
+      else{x=rnd(e.x0+1,e.x1-1);y=rnd(e.y0+1,e.y1-1);}
+      g++;
+    }while(g<200 && ((x===0&&y===0) || (u>1&&x%u===0&&y%u===0) || (Q&&Q.pts&&Q.pts[0][0]===x&&Q.pts[0][1]===y) || (ST.g==='four'&&x>=0&&y>=0&&rnd(0,2)>0)));
+    return load({m,pts:[[x,y]]});
+  }
+  if(m==='tr'){
+    const t=$('trType').value, k=u>1?u:1;
+    const A=[rnd(1,2),rnd(1,2)], B=[A[0]+rnd(2,3),A[1]+pick([0,0,1])], C=[A[0]+pick([0,0,1]),A[1]+rnd(2,3)];
+    let pts=[A,B,C];
+    if(t==='tr'){const sx=pick([1,-1]),sy=pick([1,-1]);pts=pts.map(([x,y])=>[sx*x-(sx<0?0:2),sy*y-(sy<0?0:2)]);
+      let dx,dy; do{dx=rnd(-5,5);dy=rnd(-5,5);}while(!dx||(Math.abs(dx)+Math.abs(dy)<3));
+      return load({m,pts,t,dx,dy});}
+    const q=pick([[1,1],[-1,1],[1,-1],[-1,-1]]); pts=pts.map(([x,y])=>[q[0]*x,q[1]*y]);
+    return load({m,pts,t});
+  }
+  if(m==='sym'){
+    const lk=pick(['v','h']), la=rnd(-2,2), side=pick([-1,1]), k=rnd(2,3);
+    let along=shuffle([-4,-3,-2,-1,0,1,2,3,4]).slice(0,k+2).sort((a,b)=>b-a);
+    const pts=along.map((w,i)=>{const d=(i===0||i===along.length-1)?0:side*rnd(1,4);return lk==='v'?[la+d,w]:[w,la+d];});
+    return load({m,pts,lk,la});
+  }
+}
+
+/* ---------- Buttons ---------- */
+$('go').onclick=readTyped;
+$('rand').onclick=randQ;
+document.querySelectorAll('.bar input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();readTyped();}}));
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{ST.m=b.dataset.mode;showGroups();randQ();});
+document.querySelectorAll('[data-grid]').forEach(b=>b.onclick=()=>{ST.g=b.dataset.grid;showGroups();randQ();});
+document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{ST.f=b.dataset.fmt;showGroups();syncInputs();render();});
+$('scale').onchange=()=>{ST.s=$('scale').value; if(ST.s==='1/3') ST.f='frac'; showGroups(); randQ();};
+$('trType').onchange=()=>{showGroups();randQ();};
+$('next').onclick=()=>{if(step<Q.stages.length-1){step++;render();}};
+$('back').onclick=()=>{if(step>0){step--;render();}};
+$('all').onclick=()=>{step=Q.stages.length-1;render();};
+$('reset').onclick=()=>{step=0;render();};
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();$('next').click();}
+  if(e.key==='ArrowLeft'){e.preventDefault();$('back').click();}
+});
+
+/* Start from a link like
+   ...html#m=plot&x=-3&y=2                         plot a point (m=read to read one; g=one for the first quadrant)
+   ...html#m=read&x=1.5&y=2.5&s=0.5&g=one         s = what each square is worth (1, 0.5, 0.25, 0.2, 1/3, 2, 5, 10); f=frac for fractions
+   ...html#m=tr&t=tr&p=1,1;3,1;1,4&dx=4&dy=-2     t = tr, rx, ry, r180, r90c, r90a
+   ...html#m=sym&l=v&a=0&p=0,4;-3,2;-3,-1;0,-2    l = v (up and down) or h (side to side), a = where it crosses the axis
+   Add "embed" to the hash when it is shown inside the topic page. */
+function fromHash(first){
+  document.body.classList.toggle('embed',/embed/.test(location.hash));
+  const h=new URLSearchParams(location.hash.slice(1).replace(/^embed&?/,'').replace(/&embed/,''));
+  const m=h.get('m');
+  if(h.get('s')&&SC[h.get('s')]) ST.s=h.get('s'); else if(m) ST.s='1';
+  ST.f=h.get('f')==='frac'||ST.s==='1/3'?'frac':'dec';
+  if(h.get('g')) ST.g=h.get('g')==='one'?'one':'four'; else if(m) ST.g='four';
+  const pp=s=>(s||'').split(';').map(t=>t.split(',').map(toSq));
+  let ok=false;
+  if(m==='plot'||m==='read'){const x=toSq(h.get('x')),y=toSq(h.get('y')); if(x!==null&&y!==null&&!isNaN(x)&&!isNaN(y)){ST.m=m;ok=load({m,pts:[[x,y]]});}}
+  if(m==='tr'){const pts=pp(h.get('p')),t=h.get('t')||'tr'; if(pts.length>=3&&pts.every(p=>p.length===2&&p.every(Number.isInteger))){ST.m=m;$('trType').value=t;ok=load({m,pts,t,dx:toSq(h.get('dx')||'0')||0,dy:toSq(h.get('dy')||'0')||0});}}
+  if(m==='sym'){const pts=pp(h.get('p')),la=toSq(h.get('a')||'0'); if(pts.length>=2&&pts.every(p=>p.length===2&&p.every(Number.isInteger))&&Number.isInteger(la)){ST.m=m;ok=load({m,pts,lk:h.get('l')==='h'?'h':'v',la});}}
+  if(!ok && (first||m)){ if(!m) {ST.m='plot';ST.g='four';ST.s='1';} if(!load({m:'plot',pts:[[-3,2]]})) randQ(); }
+}
+window.addEventListener('hashchange',()=>fromHash(false));
+/* Tell the topic page how tall this is, so its frame fits without scrolling */
+function sendHeight(){ if(window.parent!==window){ try{ window.parent.postMessage({toolHeight:Math.ceil(document.querySelector('.wrap').getBoundingClientRect().bottom+window.scrollY)},'*'); }catch(e){} } }
+if('ResizeObserver' in window) new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+fromHash(true);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s1/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

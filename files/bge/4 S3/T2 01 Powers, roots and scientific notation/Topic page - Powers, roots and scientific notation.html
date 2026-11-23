@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Powers, roots and scientific notation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#DCEDEC; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B; --neg:#B4532A; --neg-soft:#F8E1D6;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.wk{font-family:var(--head);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A9C4C3;margin:1rem .3rem .3rem}
+.wk:first-of-type{margin-top:0}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.95rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem;max-width:65ch}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none;align-items:center}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--head);font-size:1.4rem;font-weight:700;color:var(--deep)}
+.ex .exq.long{font-family:var(--body);font-size:1.05rem;font-weight:700;line-height:1.4}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.2rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem;counter-reset:q}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.2rem;background:#FBFCFC}
+.qs.wordy{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+@media (max-width:560px){.qs.wordy{grid-template-columns:1fr}}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-family:var(--head);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums}
+.qs .q.long{font-family:var(--body);font-size:1.1rem;font-weight:400;line-height:1.4}
+.qs .a{font-family:var(--head);font-size:1.6rem;color:var(--sea);font-weight:700;visibility:hidden}
+.qs .a.long{font-size:1.15rem}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q,#qPanel:fullscreen .qs .a{font-size:2.6rem}
+#qPanel:fullscreen .qs .q.long,#qPanel:fullscreen .qs .a.long{font-size:1.6rem}
+
+/* Scaffolds */
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.nl-scroll{overflow-x:auto;padding-bottom:.25rem}
+svg.nl{display:block;width:100%;min-width:720px;height:auto}
+svg.nl .tick{stroke:var(--ink);stroke-width:1.5}
+svg.nl .lbl{font-family:var(--head);font-size:14px;fill:var(--ink);text-anchor:middle}
+svg.nl .lbl.neg{fill:var(--neg)}
+svg.nl .lbl.zero{font-weight:700;font-size:15px}
+svg.nl .axis{stroke:var(--ink);stroke-width:2}
+svg.nl .hop{fill:none;stroke-width:3;stroke-linecap:round}
+svg.nl .hop.up{stroke:var(--sea)}
+svg.nl .hop.down{stroke:var(--neg)}
+svg.nl .hoplbl{font-family:var(--head);font-weight:700;font-size:15px;text-anchor:middle}
+svg.nl .dot{stroke:#fff;stroke-width:2}
+.nl-q{font-family:var(--head);font-size:2rem;font-weight:700;color:var(--deep)}
+.nl-say{min-height:1.6rem;font-size:1.05rem;margin:.4rem 0 .8rem}
+.nl-say b{color:var(--sea)}
+.nl-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.8rem}
+.nl-row input,.nl-row select{width:5.5rem;padding:.4rem .5rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.05rem}
+.nl-row select{width:auto}
+.own{border-top:1px dashed var(--line);margin-top:1rem;padding-top:.8rem}
+.own p{margin:0;color:var(--muted);font-size:.95rem}
+.tool-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.tool-head .btn{text-decoration:none;white-space:nowrap}
+#toolFrame{display:block;width:100%;height:1150px;border:0;margin-top:.25rem}
+.ord-pool{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+.ord-pool button{min-width:4rem;padding:.55rem .8rem;border-radius:10px;border:2px solid var(--deep);background:var(--paper);font-family:var(--head);font-weight:700;font-size:1.4rem;color:var(--deep);cursor:pointer;box-shadow:0 3px 0 var(--deep)}
+.ord-pool button:disabled{visibility:hidden}
+.ord-done{font-family:var(--head);font-size:1.5rem;font-weight:600;color:var(--deep);min-height:2.2rem;margin-top:.5rem}
+.bd-q{font-family:var(--head);font-size:2rem;font-weight:700;color:var(--deep)}
+.bd-q.long{font-family:var(--body);font-size:1.25rem;line-height:1.45;max-width:60ch}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.3rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer input{width:9rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+.signs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;margin-bottom:1rem}
+.sign{border-radius:8px;padding:.6rem .8rem;font-family:var(--head);font-weight:600}
+.sign.p{background:var(--sea-soft);color:var(--deep)}
+.sign.n{background:var(--neg-soft);color:#6E2E12}
+.sign small{display:block;font-family:var(--body);font-weight:400;font-size:.85rem}
+.tt-scroll{overflow-x:auto}
+.tt{border-collapse:collapse;font-family:var(--head);font-variant-numeric:tabular-nums;min-width:600px}
+.tt th,.tt td{width:2.7rem;height:2.3rem;text-align:center;border:1px solid var(--line);font-size:.92rem}
+.tt th{background:var(--deep);color:#fff;font-weight:600}
+.tt td{cursor:pointer}
+.tt td.pos{background:var(--sea-soft)}
+.tt td.neg{background:var(--neg-soft);color:#6E2E12}
+.tt td.zero{background:#EEF1F1;color:var(--muted)}
+.tt td.pick{outline:3px solid var(--sand);outline-offset:-3px;font-weight:700}
+.tt.hide td{color:transparent}
+.tt.hide td.pick{color:var(--deep)}
+.tt-out{font-family:var(--head);font-size:1.4rem;font-weight:600;color:var(--deep);min-height:2.2rem;margin-top:.75rem}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(580px,100%);height:250px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1.15rem,2.6vw,1.7rem);color:var(--deep);line-height:1.35;max-width:28ch;white-space:pre-line}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card p.task{color:var(--ink)}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card details{margin-top:auto;font-size:.95rem}
+.card summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+table.magic{border-collapse:collapse;margin:.3rem 0;font-family:var(--head);font-weight:700;font-size:1.1rem}
+table.magic td{width:2.8rem;height:2.6rem;text-align:center;border:2px solid var(--deep)}
+.pattern{font-family:var(--head);font-variant-numeric:tabular-nums;margin:.2rem 0;line-height:1.6}
+
+/* Word scramble */
+.ws-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-bottom:1rem}
+.ws-top .fc-count{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .9rem;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.tog{display:inline-flex;gap:.4rem;align-items:center;font-size:.95rem;color:var(--muted);cursor:pointer}
+.tog input{width:1.1rem;height:1.1rem;accent-color:var(--sea)}
+.ws-one{text-align:center}
+.ws-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.5rem 0 1rem}
+.ws-tiles .gap{width:1.2rem}
+.ws-tiles span.t{width:2.6rem;height:3rem;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:1.6rem;color:var(--deep);box-shadow:0 3px 0 #C99C25}
+.ws-def{background:var(--sand-soft);border-radius:8px;padding:.6rem .9rem;max-width:52ch;margin:0 auto 1rem;text-align:left}
+.ws-def b{font-family:var(--head);color:var(--deep)}
+.ws-ans{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.ws-ans input{width:min(16rem,100%);padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem;text-transform:uppercase}
+.ws-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;counter-reset:w}
+.ws-list li{counter-increment:w;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;background:#FBFCFC}
+.ws-list li::before{content:counter(w);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem;display:block}
+.ws-list .scr{font-family:var(--head);font-weight:700;font-size:1.45rem;letter-spacing:.12em;color:var(--deep)}
+.ws-list .word{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.15rem;visibility:hidden}
+.ws-list.show .word{visibility:visible}
+.ws-list .d{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+#vocab:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#vocab:fullscreen .ws-list .scr{font-size:2rem}
+
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+/* Powers and roots additions */
+.sc-stack{display:flex;flex-direction:column;gap:1rem}
+.sq-scroll{overflow-x:auto}
+.sqt{border-collapse:collapse;font-family:var(--head);font-variant-numeric:tabular-nums;min-width:520px}
+.sqt th,.sqt td{min-width:2.9rem;height:2.4rem;padding:0 .4rem;text-align:center;border:1px solid var(--line);font-size:.98rem}
+.sqt th{background:var(--deep);color:#fff;font-weight:600}
+.sqt th.rowh{background:var(--sea-soft);color:var(--deep)}
+.sqt td{cursor:pointer;background:#FBFCFC}
+.sqt td.pick{outline:3px solid var(--sand);outline-offset:-3px;font-weight:700;background:var(--sand-soft)}
+.sqt.hide td{color:transparent}
+.sqt.hide td.pick{color:var(--deep)}
+.ord-pool button{font-size:1.25rem}
+.hinge{border-left-color:var(--sea)}
+.hinge .opts{list-style:none;margin:.4rem 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-family:var(--head)}
+.hinge .opts b{color:var(--sea)}
+.hinge details{margin-top:.4rem}
+.hinge summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.kind-h{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.big-task{font-family:var(--head);font-weight:600;color:var(--deep);margin:.2rem 0;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S3-t2-powers-roots-and-scientific-notation">Hub</a> › S3 Term 2 › Powers, roots and scientific notation</nav>
+</header>
+
+<div class="layout">
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <div id="seqWrap"></div>
+    <div class="whole">
+      <button class="step" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, rich tasks and games</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step. Then try the quick check.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub"></p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <p class="sub" id="qAsk" style="margin:-.25rem 0 .8rem;font-weight:700;color:var(--deep)"></p>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+      <div class="sc-stack">
+
+      <!-- Teaching tool -->
+      <div class="panel scaffold" id="sc-tool">
+        <div class="tool-head">
+          <div><h3>Step-by-step teaching tool</h3>
+            <p class="sub">Type your own numbers or press <b>New question</b>, then press <b>Next step</b> to build the picture and the working one step at a time.</p></div>
+          <a class="btn alt" id="toolOpen" href="#" target="_blank" rel="noopener">Open full size ↗</a>
+        </div>
+        <iframe id="toolFrame" title="Powers, roots and scientific notation teaching tool"></iframe>
+      </div>
+
+      <!-- Squares and cubes table -->
+      <div class="panel scaffold" id="sc-table">
+        <h3>Squares and cubes</h3>
+        <p class="sub">Press a square or cube number to see the fact and the root that goes with it. Hide the numbers to test yourself.</p>
+        <div class="controls"><button class="btn alt" id="sqHide" aria-pressed="false">Hide the numbers</button></div>
+        <div class="sq-scroll"><table class="sqt" id="sqTable"></table></div>
+        <div class="tt-out" id="sqOut" aria-live="polite"></div>
+      </div>
+
+      <!-- Ordering -->
+      <div class="panel scaffold" id="sc-ord">
+        <h3>Put them in order</h3>
+        <p class="sub">Press the numbers from smallest to biggest. Compare the powers of 10 first. If the powers are the same, compare the front numbers.</p>
+        <div class="ord-pool" id="ordPool"></div>
+        <div class="ord-done" id="ordDone" aria-live="polite"></div>
+        <div class="feedback" id="ordFb" role="status"></div>
+        <button class="btn alt" id="ordNew">New numbers</button>
+      </div>
+
+      <!-- Break it down -->
+      <div class="panel scaffold" id="sc-bd">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time. You can type scientific notation as 3.4 × 10^6 or 3.4x10^6.</p>
+        <div class="bd-q" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <label for="bdIn">Your answer</label>
+          <input id="bdIn" inputmode="text" autocomplete="off">
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+      </div>
+    </section>
+
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <section class="block" id="vocab" data-for="vocab" aria-labelledby="ws-title">
+      <div class="block-head"><h2 id="ws-title">Word scramble</h2><p>Unscramble the key words for this topic.</p></div>
+      <div class="panel">
+        <div class="ws-top">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="wsModeOne" aria-pressed="true">One at a time</button>
+            <button id="wsModeAll" aria-pressed="false">Whole list</button>
+          </div>
+          <label class="tog"><input type="checkbox" id="wsDefs"> Show the definitions</label>
+          <span class="fc-count" id="wsCount" aria-live="polite"></span>
+        </div>
+
+        <div class="ws-one" id="wsOne">
+          <div class="ws-tiles" id="wsTiles" aria-label="Scrambled letters"></div>
+          <div class="ws-def" id="wsDef" hidden></div>
+          <div class="ws-ans">
+            <label for="wsIn" class="sr">Your word</label>
+            <input id="wsIn" autocomplete="off" spellcheck="false" placeholder="Type the word">
+            <button class="btn" id="wsCheck">Check</button>
+            <button class="btn alt" id="wsDefBtn">Show the definition</button>
+            <button class="btn alt" id="wsReveal">Reveal</button>
+            <button class="btn alt" id="wsNext">Next word</button>
+          </div>
+          <div class="feedback" id="wsFb" role="status"></div>
+        </div>
+
+        <div id="wsAll" hidden>
+          <div class="controls">
+            <div class="btn-row" style="margin-left:0">
+              <button class="btn" id="wsReshuffle">New scramble</button>
+              <button class="btn alt" id="wsShowAll" aria-pressed="false">Show answers</button>
+              <button class="btn alt" id="wsFull">Full screen</button>
+            </div>
+          </div>
+          <ol class="ws-list" id="wsList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Think hard, explain your reasoning.</p></div>
+      <div class="cards" id="taskCards"></div>
+    </section>
+
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Games and activities</h2><p>Quick practice for the whole class or on your own.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Teaching tool</span><h3>Powers, roots and scientific notation</h3><p>Squares and cubes on grids, repeated multiplication, and the place value chart where the digits move past the decimal point. Type your own numbers or make up a question.</p>
+          <a class="open" href="Powers,%20roots%20and%20scientific%20notation%20teaching%20tool.html" target="_blank" rel="noopener">Open tool</a></div>
+        <div class="card"><span class="kind">Whole class · PowerPoint</span><h3>Hinge questions: A, B, C or D?</h3><p>Every step in the lesson slides has an A–D hinge question, and every wrong answer comes from a common mistake. Pupils show their letter on mini-whiteboards or fingers. "Not secure? Try another" leads to second-chance questions.</p>
+          <a class="open" href="S3_Powers_Roots_Scientific_Notation_MTH4-06a_4-06b.pptx" target="_blank" rel="noopener">Open file</a></div>
+        <div class="card"><span class="kind">Pairs</span><h3>Place value chart race</h3><p>Use the place value charts in the workbooklet. One partner says a number in scientific notation, the other moves the digits on the chart and writes it in full. Swap and race to five correct.</p>
+          <a class="open" href="Workbooklet%20powers%20roots%20scientific%20notation.pptx" target="_blank" rel="noopener">Open workbooklet</a></div>
+        <div class="card"><span class="kind">Whole class</span><h3>Big or small?</h3><p>Show the Check in questions for steps 5–8 full screen with the answers hidden. Before you reveal each answer, pupils show thumbs up if the number is bigger than 1 and thumbs down if it is less than 1, then explain how the power of 10 tells them.</p></div>
+        <div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>
+      </div>
+    </section>
+
+    <footer>S3 Term 2 · Powers, roots and scientific notation · MTH 4-06a, MTH 4-06b</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files
+   ===================================================================== */
+const WEEKS = [
+  {label:"Week 1 · Powers and roots", from:1, to:4},
+  {label:"Week 2 · Scientific notation", from:5, to:10}
+];
+const STEPS = [
+  {s:"I can evaluate powers without a calculator.", eg:"e.g. 2⁵ = 32, 0.3² = 0.09, (2/3)² = 4/9, (−3)² = 9"},
+  {s:"I can find roots without a calculator.", eg:"e.g. √49 = 7, ∛125 = 5, √0.09 = 0.3, √50 is between 7 and 8"},
+  {s:"I can evaluate powers with a calculator, using brackets and checking with an estimate.", eg:"e.g. 3.8² = 14.44, (−4)⁴ = 256"},
+  {s:"I can find roots with a calculator, including working back from an area or volume.", eg:"e.g. a square of area 210.25 cm² has side √210.25 = 14.5 cm"},
+  {s:"I can write large numbers in scientific notation.", eg:"e.g. 3 400 000 = 3.4 × 10⁶"},
+  {s:"I can write large numbers in scientific notation in full.", eg:"e.g. 7.05 × 10⁵ = 705 000"},
+  {s:"I can write small numbers in scientific notation.", eg:"e.g. 0.00052 = 5.2 × 10⁻⁴"},
+  {s:"I can write small numbers in scientific notation in full.", eg:"e.g. 3.6 × 10⁻³ = 0.0036"},
+  {s:"I can answer questions using scientific notation: comparing, correcting and using the ×10ˣ key.", eg:"e.g. 2 × 10⁴ > 9.8 × 10³, 45 × 10³ = 4.5 × 10⁴"},
+  {s:"I can multiply and divide in scientific notation, with and without a calculator.", eg:"e.g. (5 × 10³) × (4 × 10²) = 2 × 10⁶"}
+];
+// What pupils do with each step's questions (shown above the questions)
+const ASK = {1:"Evaluate each power.",2:"Find each root.",3:"Use a calculator. Round where it says.",4:"Use a calculator. Round where it says.",
+  5:"Write each number in scientific notation.",6:"Write each number in full.",7:"Write each number in scientific notation.",8:"Write each number in full.",
+  9:"Answer each question.",10:"Give your answers in scientific notation unless it says otherwise."};
+// Scaffolds for each step: tool = teaching tool, table = squares and cubes, ord = ordering, bd = break it down
+const SCAFFOLD = {1:["tool","table"],2:["tool","table"],3:["bd","tool"],4:["tool","bd"],5:["tool"],6:["tool"],7:["tool"],8:["tool"],9:["ord","bd"],10:["bd"]};
+// What the teaching tool shows first on each step
+const TOOL_START = {1:"pow=3,4",2:"root=49,2",3:"pow=1.5,3",4:"root=210.25,2,cm",5:"sci=to,435000",6:"sci=from,4.3,5",7:"sci=to,0.00275",8:"sci=from,3.87,-3"};
+
+const LINKS = [
+  {steps:[1,2,3,4,5,6,7,8,9,10], title:"Corbettmaths", text:"Videos and practice questions. Search for “powers”, “roots” or “standard form” (another name for scientific notation).", url:"https://corbettmaths.com/contents/"},
+  {steps:[3,4,9,10], title:"Desmos scientific calculator", text:"An online scientific calculator if you don't have yours. Use brackets for negative numbers.", url:"https://www.desmos.com/scientific"},
+  {steps:[9,10], title:"The Scale of the Universe", text:"Zoom from the smallest things to the biggest and see their sizes in scientific notation.", url:"https://htwins.net/scale2/"}
+];
+const FILES = [
+  {steps:[1,2,3,4,5,6,7,8,9,10], kind:"PowerPoint", title:"Lesson slides with hinge questions", path:"S3_Powers_Roots_Scientific_Notation_MTH4-06a_4-06b.pptx"},
+  {steps:[1,2,3,4], kind:"Workbooklet", title:"Workbooklet: powers and roots (non-calculator and calculator)", path:"Workbooklet powers roots scientific notation.pptx"},
+  {steps:[5,6,7,8], kind:"Workbooklet", title:"Workbooklet: place value charts and boxes for converting", path:"Workbooklet powers roots scientific notation.pptx"},
+  {steps:[9,10], kind:"Workbooklet", title:"Workbooklet: revision sheet with examples and success criteria", path:"Workbooklet powers roots scientific notation.pptx"},
+  {steps:[5,6,7,8], kind:"Handout", title:"Scientific notation handout", path:"Scientific Notation Handout.pdf"}
+];
+
+const WE = {
+ 1:[{q:"2⁵",steps:["The base is 2 and the power is 5.","2⁵ = 2 × 2 × 2 × 2 × 2","2 × 2 = 4, × 2 = 8, × 2 = 16, × 2 = 32"],a:"32",tool:"pow=2,5",note:"2⁵ is not 2 × 5. The power tells you how many 2s to multiply."},
+    {q:"0.3²",steps:["0.3² = 0.3 × 0.3","3 × 3 = 9","0.3 has 1 decimal place, so the answer has 2."],a:"0.09",tool:"pow=0.3,2"},
+    {q:"(2/3)²",steps:["(2/3)² = 2/3 × 2/3","Multiply the tops: 2 × 2 = 4.","Multiply the bottoms: 3 × 3 = 9."],a:"4/9",tool:"pow=2/3,2"},
+    {q:"(−3)² and −3²",steps:["(−3)² = (−3) × (−3) = 9. The brackets mean the negative is squared too.","−3² = −(3 × 3) = −9. Only the 3 is squared."],a:"9 and −9",tool:"pow=-3,2"},
+    {q:"5 + 2³ × 2",steps:["BODMAS: powers come before multiplying and adding.","2³ = 8","8 × 2 = 16, then 5 + 16 = 21"],a:"21"}],
+ 2:[{q:"√49",steps:["√49 asks: what number × itself = 49?","7 × 7 = 49"],a:"7",tool:"root=49,2",note:"Check by squaring your answer: 7² = 49 ✓"},
+    {q:"∛125 and ⁴√16",steps:["∛125: what number × itself × itself = 125? 5 × 5 × 5 = 125.","⁴√16: what number multiplied by itself 4 times = 16? 2 × 2 × 2 × 2 = 16."],a:"5 and 2",tool:"root=125,3"},
+    {q:"√0.09",steps:["√9 = 3","0.09 has 2 decimal places, so the root has 1.","Check: 0.3 × 0.3 = 0.09 ✓"],a:"0.3",tool:"root=0.09,2"},
+    {q:"√(16/25)",steps:["Find the root of the top and the bottom.","√16 = 4 and √25 = 5"],a:"4/5",tool:"root=16/25,2"},
+    {q:"√8100",steps:["Split it up: 8100 = 81 × 100.","√81 = 9 and √100 = 10.","9 × 10 = 90"],a:"90",tool:"root=8100,2"},
+    {q:"Estimate √50",steps:["7² = 49 and 8² = 64.","50 is between 49 and 64, so √50 is between 7 and 8.","50 is much closer to 49, so √50 is closer to 7."],a:"between 7 and 8, closer to 7"}],
+ 3:[{q:"3.8²",steps:["Estimate first: 3.8 is about 4, and 4² = 16.","Calculator: 3.8 x² = 14.44","14.44 is close to 16 ✓"],a:"14.44",tool:"pow=3.8,2"},
+    {q:"(−4)⁴",steps:["Type the brackets: ( − 4 ) ^ 4","Without brackets the calculator does −(4⁴) = −256.","Four negatives (even) → positive."],a:"256",note:"Always put brackets round a negative number before a power."},
+    {q:"327³ to 2 significant figures",steps:["Calculator: 327 ^ 3 = 34 965 783","2 significant figures: 35 000 000 (keep the zeros to hold the place value)."],a:"35 000 000"},
+    {q:"A square tile has sides of 6.3 cm. Find its area.",steps:["Area of a square = side² = 6.3²","Estimate: 6² = 36","Calculator: 6.3² = 39.69"],a:"39.69 cm²"}],
+ 4:[{q:"A square has area 210.25 cm². How long is each side?",steps:["Side × side = 210.25, so side = √210.25.","Estimate: 14² = 196 and 15² = 225, so between 14 and 15.","Calculator: √210.25 = 14.5"],a:"14.5 cm",tool:"root=210.25,2,cm"},
+    {q:"A cube has volume 50 cm³. How long is each edge? Give your answer to 2 d.p.",steps:["Edge × edge × edge = 50, so edge = ∛50.","Estimate: 3³ = 27 and 4³ = 64, so between 3 and 4.","Calculator: ∛50 = 3.684… = 3.68 (2 d.p.)"],a:"3.68 cm",tool:"root=50,3,cm"},
+    {q:"⁴√789 to 3 d.p.",steps:["Estimate: 5⁴ = 625 and 6⁴ = 1296, so between 5 and 6.","Calculator: type 4, then the ˣ√ key, then 789: 5.29997…","3 d.p.: 5.300 (keep the zeros)"],a:"5.300",tool:"root=789,4"}],
+ 5:[{q:"3 400 000",steps:["The front number must be between 1 and 10: 3.4","How many digits after the first digit? 6","This is the power: 10⁶"],a:"3.4 × 10⁶",tool:"sci=to,3400000"},
+    {q:"370 000",steps:["How many digits after the first digit? 5","Write the first digit, a decimal point, then the rest of the digits (drop the zeros on the end): 3.7"],a:"3.7 × 10⁵",tool:"sci=to,370000"},
+    {q:"45 600 000",steps:["How many digits after the first digit? 7","Front number: 4.56"],a:"4.56 × 10⁷",tool:"sci=to,45600000"}],
+ 6:[{q:"7.05 × 10⁵",steps:["Evaluate the power: 10⁵ = 100 000.","Rewrite: 7.05 × 100 000.","Move every digit 5 places left and fill the gaps with zeros."],a:"705 000",tool:"sci=from,7.05,5"},
+    {q:"3.78 × 10⁴",steps:["10⁴ = 10 000","3.78 × 10 000: the digits move 4 places left."],a:"37 800",tool:"sci=from,3.78,4"},
+    {q:"4.7 × 10⁵",steps:["10⁵ = 100 000","4.7 × 100 000: the digits move 5 places left."],a:"470 000",tool:"sci=from,4.7,5",note:"Check: count the digits after the first digit in your answer. It should match the power."}],
+ 7:[{q:"0.00052",steps:["How many digits from the decimal point up to AND INCLUDING the first non-zero digit? 4","This, with a negative sign, is the power: 10⁻⁴","Front number: 5.2"],a:"5.2 × 10⁻⁴",tool:"sci=to,0.00052"},
+    {q:"0.000436",steps:["Count from the point up to and including the 4: 4 places.","Power: 10⁻⁴. Front number: 4.36"],a:"4.36 × 10⁻⁴",tool:"sci=to,0.000436"},
+    {q:"0.00891",steps:["Count from the point up to and including the 8: 3 places.","Power: 10⁻³. Front number: 8.91"],a:"8.91 × 10⁻³",tool:"sci=to,0.00891",note:"A small number (less than 1) has a negative power. It is not a negative number."}],
+ 8:[{q:"3.6 × 10⁻³",steps:["Evaluate the power: 10⁻³ = 1 ÷ 1000.","Rewrite: 3.6 ÷ 1000.","Move every digit 3 places right. Fill the gaps with zeros."],a:"0.0036",tool:"sci=from,3.6,-3"},
+    {q:"4.98 × 10⁻⁴",steps:["10⁻⁴ = 1 ÷ 10 000","4.98 ÷ 10 000: the digits move 4 places right."],a:"0.000498",tool:"sci=from,4.98,-4"},
+    {q:"9.21 × 10⁻³",steps:["10⁻³ = 1 ÷ 1000","9.21 ÷ 1000: the digits move 3 places right."],a:"0.00921",tool:"sci=from,9.21,-3",note:"Check: the first non-zero digit should be in the place the power says. 10⁻³ → 3rd place after the point."}],
+ 9:[{q:"Which is bigger: 2 × 10⁴ or 9.8 × 10³?",steps:["Compare the powers first: 10⁴ is bigger than 10³.","So 2 × 10⁴ is bigger, even though 2 is smaller than 9.8.","Check: 20 000 > 9800 ✓"],a:"2 × 10⁴"},
+    {q:"Write 45 × 10³ in scientific notation.",steps:["45 is not between 1 and 10.","45 = 4.5 × 10, so 45 × 10³ = 4.5 × 10 × 10³.","= 4.5 × 10⁴"],a:"4.5 × 10⁴"},
+    {q:"Enter 3.4 × 10⁶ on a calculator.",steps:["Type 3.4","Press the ×10ˣ key (on some calculators it is EXP or EE).","Type 6. Don't type × 10 as well."],a:"3.4 ×10ˣ 6"},
+    {q:"A female blue whale weighs 190 000 kg. What is this in grams? Give your answer in scientific notation.",steps:["1 kg = 1000 g, so multiply by 1000: 190 000 × 1000 = 190 000 000 g.","Digits after the first digit: 8.","1.9 × 10⁸"],a:"1.9 × 10⁸ g"}],
+ 10:[{q:"(5 × 10³) × (4 × 10²)",steps:["Multiply the front numbers: 5 × 4 = 20.","Add the powers: 10³ × 10² = 10⁵.","20 × 10⁵ is not in scientific notation: 20 = 2 × 10¹, so 2 × 10⁶."],a:"2 × 10⁶"},
+    {q:"(2.4 × 10⁶) ÷ (8 × 10²)",steps:["Divide the front numbers: 2.4 ÷ 8 = 0.3.","Subtract the powers: 10⁶ ÷ 10² = 10⁴.","0.3 × 10⁴ = 3 × 10³"],a:"3 × 10³"},
+    {q:"Light travels at 3 × 10⁸ m/s. The Sun is 1.5 × 10¹¹ m away. How long does light from the Sun take to reach us?",steps:["Time = distance ÷ speed","(1.5 × 10¹¹) ÷ (3 × 10⁸): 1.5 ÷ 3 = 0.5 and 10¹¹ ÷ 10⁸ = 10³","0.5 × 10³ = 500 seconds (about 8 minutes)"],a:"500 seconds"},
+    {q:"A sesame seed weighs about 3.6 × 10⁻⁶ kg. About how many seeds are in a 40 g bag?",steps:["Same units: 40 g = 0.04 kg = 4 × 10⁻² kg.","Number of seeds = 0.04 ÷ (3.6 × 10⁻⁶)","Calculator (use brackets or the ×10ˣ key): 11 111.1…"],a:"about 11 000 seeds (1.1 × 10⁴)"}]
+};
+
+// Hinge questions from the lesson slides: every wrong answer shows a common mistake
+const HINGE = {
+ 1:[{q:"What is 4³?",o:["12","64","43","16"],c:1,why:"A: multiplied by the power. C: wrote the digits together. D: squared instead of cubed."},
+    {q:"What is 0.4²?",o:["0.8","1.6","0.16","0.016"],c:2,why:"A: doubled. B: doubled and lost the decimal point. D: miscounted decimal places."},
+    {q:"What is 10 − 2² × 3?",o:["18","−2","4","−26"],c:1,why:"A: worked left to right. C: treated 2² as 2. D: squared 2 × 3."}],
+ 2:[{q:"What is ∛64?",o:["8","4","21.3","32"],c:1,why:"A: found the square root. C: divided by 3. D: halved."},
+    {q:"What is √0.49?",o:["0.07","0.245","0.7","7"],c:2,why:"A: misplaced the decimal point. B: halved. D: ignored the decimal point."},
+    {q:"√90 lies between:",o:["9 and 10","45 and 46","8 and 9","80 and 100"],c:0,why:"B: halved 90. C: thought 9² = 81 was too big. D: mixed up the root with the number."}],
+ 3:[{q:"A pupil types −2⁴ and gets −16. What is (−2)⁴?",o:["−16","16","−8","8"],c:1,why:"A: trusted the calculator without brackets. C, D: multiplied by the power."}],
+ 4:[{q:"A cube has volume 125 cm³. Its edge is:",o:["41.7 cm","11.2 cm","5 cm","62.5 cm"],c:2,why:"A: divided by 3. B: took the square root. D: halved."}],
+ 5:[{q:"Which is in scientific notation?",o:["34 × 10⁵","0.34 × 10⁷","3.4 × 10⁶","3.4 × 6¹⁰"],c:2,why:"A, B: the front number is not between 1 and 10. D: the base is not 10."},
+    {q:"52 000 000 =",o:["5.2 × 10⁶","5.2 × 10⁷","52 × 10⁶","5.2 × 10⁸"],c:1,why:"A: counted the zeros. C: front number too big. D: counted all the digits."}],
+ 6:[{q:"6.1 × 10⁴ =",o:["610 000","6 100 000","61 000","6.10000"],c:2,why:"A: added 4 zeros. B: moved 6 places. D: put the zeros after the decimal point."}],
+ 7:[{q:"0.0071 =",o:["7.1 × 10³","7.1 × 10⁻²","7.1 × 10⁻³","−7.1 × 10³"],c:2,why:"A: forgot the negative power. B: counted the zeros. D: thought small means negative."}],
+ 8:[{q:"2.4 × 10⁻⁵ =",o:["0.000024","0.0000024","−240 000","0.00024"],c:0,why:"B: moved 6 places. C: read 10⁻⁵ as a negative number. D: moved 4 places."}],
+ 9:[{q:"Which is largest?",o:["9.8 × 10³","2 × 10⁴","1.5 × 10⁴","99 × 10²"],c:1,why:"A, D: compared the front numbers only. C: didn't compare the front numbers once the powers matched."}],
+ 10:[{q:"(6 × 10⁵) × (3 × 10²) =",o:["18 × 10⁷","1.8 × 10⁸","1.8 × 10¹⁰","9 × 10⁷"],c:1,why:"A: didn't adjust. C: multiplied the powers. D: added the front numbers."},
+    {q:"Earth's mass is 5.97 × 10²⁴ kg and the Moon's is 7.35 × 10²² kg. How many times heavier is Earth?",o:["about 0.81","about 81","about 8100","about 812"],c:1,why:"A: divided the front numbers only. C, D: subtracted the powers wrongly or missed brackets on the calculator."}]
+};
+
+const RULES = [
+  {st:[1],q:"What does the power (index) tell you?",a:"How many of the base to multiply.\n3⁴ = 3 × 3 × 3 × 3 = 81"},
+  {st:[1],q:"Is 4³ the same as 4 × 3?",a:"No!\n4³ = 4 × 4 × 4 = 64"},
+  {st:[1,3],q:"(−3)² or −3²?",a:"(−3)² = 9\n−3² = −(3 × 3) = −9"},
+  {st:[1],q:"0.3² = ?",a:"0.09\n3 × 3 = 9, and 2 decimal places"},
+  {st:[1],q:"(2/3)² = ?",a:"4/9\nSquare the top and the bottom"},
+  {st:[1],q:"Powers in BODMAS",a:"Powers (O) come before × ÷ + −\n5 + 2³ × 2 = 5 + 16 = 21"},
+  {st:[2,4],q:"What does a square root do?",a:"It undoes squaring.\n√49 = 7 because 7² = 49"},
+  {st:[2,4],q:"What does a cube root do?",a:"It undoes cubing.\n∛125 = 5 because 5³ = 125"},
+  {st:[2],q:"Estimate √50",a:"Between 7 and 8\n7² = 49 and 8² = 64, so closer to 7"},
+  {st:[2],q:"√0.09 = ?",a:"0.3\nCheck: 0.3 × 0.3 = 0.09"},
+  {st:[3],q:"(−2)⁴ on a calculator",a:"Use brackets: (−2)⁴ = 16\nWithout brackets you get −16"},
+  {st:[3,4],q:"Why estimate first?",a:"To check your calculator answer.\n3.8² ≈ 4² = 16, and 3.8² = 14.44 ✓"},
+  {st:[4],q:"A square has area A. Its side is…",a:"√A\nArea 49 cm² → side 7 cm"},
+  {st:[4],q:"A cube has volume V. Its edge is…",a:"∛V\nVolume 64 cm³ → edge 4 cm"},
+  {st:[5,6,7,8,9],q:"What does scientific notation look like?",a:"a × 10ⁿ\na is at least 1 and less than 10\ne.g. 3.4 × 10⁶"},
+  {st:[5,6],q:"A large number has a … power",a:"positive power\n52 000 000 = 5.2 × 10⁷"},
+  {st:[7,8],q:"A small number (less than 1) has a … power",a:"negative power\n0.0071 = 7.1 × 10⁻³"},
+  {st:[7,8],q:"10⁻² = ?",a:"0.01\n1 ÷ 100"},
+  {st:[5,6,7,8],q:"In scientific notation, what moves: the point or the digits?",a:"The digits move.\nThe decimal point stays still."},
+  {st:[9],q:"Comparing numbers in scientific notation",a:"Compare the powers first.\nSame power? Compare the front numbers."},
+  {st:[9],q:"45 × 10³ in scientific notation",a:"4.5 × 10⁴\n45 = 4.5 × 10¹"},
+  {st:[9,10],q:"Which calculator key enters × 10ⁿ?",a:"The ×10ˣ key\n(EXP or EE on some calculators)"},
+  {st:[10],q:"Multiplying in scientific notation",a:"Multiply the front numbers, add the powers, then adjust.\n(5 × 10³) × (4 × 10²) = 2 × 10⁶"},
+  {st:[10],q:"Dividing in scientific notation",a:"Divide the front numbers, subtract the powers, then adjust.\n(2.4 × 10⁶) ÷ (8 × 10²) = 3 × 10³"}
+];
+const WORDS = [
+  {q:"Base",a:"The number being multiplied. In 5³ the base is 5."},
+  {q:"Power",a:"How many of the base to multiply together. In 5³ the power is 3."},
+  {q:"Index",a:"Another word for power. The plural is indices."},
+  {q:"Exponent",a:"Another word for power or index."},
+  {q:"Squared",a:"Multiplied by itself: 6² = 6 × 6 = 36."},
+  {q:"Cubed",a:"Multiplied by itself, then by itself again: 2³ = 2 × 2 × 2 = 8."},
+  {q:"Square root",a:"The number that was squared. √36 = 6 because 6² = 36."},
+  {q:"Cube root",a:"The number that was cubed. ∛8 = 2 because 2³ = 8."},
+  {q:"Inverse",a:"The opposite operation that undoes it. Square root is the inverse of squaring."},
+  {q:"Perfect square",a:"A whole number squared, e.g. 1, 4, 9, 16, 25."},
+  {q:"Perfect cube",a:"A whole number cubed, e.g. 1, 8, 27, 64, 125."},
+  {q:"Scientific notation",a:"A number written as a × 10ⁿ, where a is at least 1 and less than 10."},
+  {q:"Standard form",a:"Another name for scientific notation."},
+  {q:"Significant figures",a:"The digits that matter, counted from the first non-zero digit. 34 965 783 to 2 s.f. is 35 000 000."},
+  {q:"Estimate",a:"A rough answer, used to check. √50 is about 7."}
+];
+
+// Rich tasks (from the learning sequence). step = the step after which to use it.
+const TASKS = [
+  {step:1,title:"Last digits",task:"What is the last digit of 7¹⁰⁰?",extra:"Hint: look at the last digits of 7¹, 7², 7³, 7⁴, 7⁵…",ans:"1. The last digits go 7, 9, 3, 1 and repeat every 4 powers. 100 is a multiple of 4, so the last digit is 1."},
+  {step:1,title:"Which is bigger?",task:"Which is bigger, 2¹⁰⁰ or 10³⁰? Explain without a calculator.",ans:"2¹⁰⁰. 2¹⁰ = 1024, which is more than 10³ = 1000. So 2¹⁰⁰ = (2¹⁰)¹⁰ is more than (10³)¹⁰ = 10³⁰."},
+  {step:2,title:"Always, sometimes, never",task:"“Squaring a number makes it bigger.”\n“The square root of a number is smaller than the number.”",extra:"Decide, then convince someone with examples.",ans:"Both are sometimes true. They are false for numbers between 0 and 1 (0.5² = 0.25 and √0.25 = 0.5), the number stays the same for 0 and 1, and squaring any negative number makes it bigger."},
+  {step:4,title:"Surd teaser",task:"Use a calculator to compare √12 with 2 × √3, and √50 with 5 × √2. What do you notice?",extra:"Can you find another pair?",ans:"They are equal, because 12 = 4 × 3 and 50 = 25 × 2. For example √18 = 3 × √2. (A preview of N5 surds.)"},
+  {step:7,title:"Continue the pattern",task:"2³ = 8,  2² = 4,  2¹ = 2\nContinue the pattern down to 2⁻³.",extra:"What do 2⁰ and 2⁻² mean?",ans:"Each step divides by 2: 2⁰ = 1, 2⁻¹ = 1/2, 2⁻² = 1/4, 2⁻³ = 1/8. (A preview of N5 indices.)"},
+  {step:9,title:"Scale of the universe",task:"Atom 1 × 10⁻¹⁰ m · Hair 7 × 10⁻⁵ m · Ben Nevis 1.345 × 10³ m · Earth's diameter 1.27 × 10⁷ m · Earth to the Sun 1.5 × 10¹¹ m",extra:"Put them in order. How many times bigger is each one than the one before?",ans:"The order is as listed. Divide each pair, e.g. Earth to the Sun ÷ Earth's diameter = (1.5 × 10¹¹) ÷ (1.27 × 10⁷) ≈ 1.2 × 10⁴ times."},
+  {step:10,title:"Folding paper to the Moon",task:"A sheet of paper is 1 × 10⁻⁴ m thick. Each fold doubles the thickness. How thick is it after 42 folds?",extra:"The Moon is about 3.84 × 10⁸ m away.",ans:"1 × 10⁻⁴ × 2⁴² ≈ 4.4 × 10⁸ m: further than the Moon! Discuss why you can't really fold paper that many times."},
+  {step:10,title:"Fermi estimate",task:"Roughly how many times will your heart beat in an 80-year life?",extra:"Write down your assumptions. Give your answer in scientific notation.",ans:"About 70 beats a minute gives about 2.9 × 10⁹ beats. Credit sensible assumptions rather than one exact answer."}
+];
+
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const N=v=>v<0?'−'+(-v):String(v);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const isLong=s=>s.length>26;
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+const sup=n=>String(n).split('').map(c=>SUP[c]||c).join('');
+const ROOT={2:'√',3:'∛',4:'⁴√',5:'⁵√'};
+
+/* Exact decimals, so answers never have rounding errors */
+const D={
+  parse(s){ s=String(s).trim().replace(/[−–]/g,'-').replace(/[\s,]/g,''); if(!/^-?(\d+(\.\d*)?|\.\d+)$/.test(s)) return null;
+    const neg=s[0]==='-'; if(neg) s=s.slice(1); let [i,f='']=s.split('.'); return D.norm({m:BigInt((i||'0')+f)*(neg?-1n:1n),s:f.length}); },
+  norm(x){ if(x.m===0n) return {m:0n,s:0}; while(x.s>0&&x.m%10n===0n){x.m/=10n;x.s--;} while(x.s<0){x.m*=10n;x.s++;} return x; },
+  mul(a,b){ return D.norm({m:a.m*b.m,s:a.s+b.s}); },
+  pow(a,n){ let r={m:1n,s:0}; for(let i=0;i<n;i++) r=D.mul(r,a); return r; },
+  shift(a,k){ return D.norm({m:a.m,s:a.s-k}); },
+  digits(a){ return (a.m<0n?-a.m:a.m).toString(); },
+  lead(a){ return D.digits(a).length-1-a.s; },
+  str(a,group=true){ const neg=a.m<0n; let t=(neg?-a.m:a.m).toString();
+    if(a.s>0){ t=t.padStart(a.s+1,'0'); t=t.slice(0,t.length-a.s)+'.'+t.slice(t.length-a.s); }
+    let [i,f]=t.split('.'); if(group&&i.length>=5) i=i.replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+    return (neg?'−':'')+i+(f?'.'+f:''); },
+  num(a){ return Number(D.str(a,false).replace('−','-')); },
+  // round half up to k decimal places, keeping trailing zeros (returns a string)
+  roundDP(a,k){ const neg=a.m<0n, m=neg?-a.m:a.m; let v;
+    if(a.s<=k) v=m*10n**BigInt(k-a.s); else { const d=10n**BigInt(a.s-k); v=(m+d/2n)/d; }
+    let t=v.toString(); if(k>0){ t=t.padStart(k+1,'0'); t=t.slice(0,t.length-k)+'.'+t.slice(t.length-k); }
+    return (neg?'−':'')+t; },
+  roundSF(a,sf){ const e=D.lead(a); const k=sf-1-e;           // decimal places needed
+    if(k>=0) return D.roundDP(a,k);
+    const neg=a.m<0n, m=neg?-a.m:a.m, d=10n**BigInt(a.s-k); const v=((m+d/2n)/d)*10n**BigInt(-k);
+    return D.str({m:neg?-v:v,s:0}); }
+};
+const dec=s=>D.parse(s);
+const sciS=(a,p)=>`${D.str(a)} × 10${sup(p)}`;                     // from a Dec front and power
+const toSci=x=>{const e=D.lead(x);return sciS(D.shift(x,-e),e);}     // any Dec → scientific notation
+const front=k=>{ let s=String(rnd(1,9)); for(let i=1;i<k;i++) s+=String(i===k-1?rnd(1,9):rnd(0,9)); return dec(s.length>1?s[0]+'.'+s.slice(1):s); };
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+
+// N ÷ Dn (positive whole numbers) rounded to sf significant figures: {f:"2.14", e:power of 10}
+function sfFrac(Nn,Dn,sf){
+  const ge=e=>e>=0?Nn>=Dn*10n**BigInt(e):Nn*10n**BigInt(-e)>=Dn;
+  let e=Nn.toString().length-Dn.toString().length; while(!ge(e)) e--; while(ge(e+1)) e++;
+  const k=sf-1-e; let num=Nn,den=Dn; if(k>=0) num*=10n**BigInt(k); else den*=10n**BigInt(-k);
+  let v=(2n*num+den)/(2n*den); if(v>=10n**BigInt(sf)){ v/=10n; e++; }
+  const t=v.toString(); return {f:t[0]+(t.length>1?'.'+t.slice(1):''),e};
+}
+
+/* ---------- Question generators: {q, a, n (value for checking), sci (answer must be in sci. notation), ask, steps (hints)} ---------- */
+const GEN = {
+ 1:()=>{
+   const t=rnd(0,5);
+   if(t<=1){ const [b,n]=pick([[rnd(2,12),2],[rnd(2,5),3],[rnd(2,3),rnd(4,6)],[10,rnd(2,6)],[rnd(2,5),rnd(3,4)]]);
+     const r=b**n; return {q:`${b}${sup(n)}`,a:D.str(dec(String(r))),n:r,steps:[`${b}${sup(n)} = ${Array(n).fill(b).join(' × ')}`,`= ${D.str(dec(String(r)))}`]}; }
+   if(t===2){ const [b,n]=pick([['0.'+rnd(1,9),2],['0.'+rnd(1,5),3],['0.0'+rnd(1,9),2],[String(rnd(2,9)*10),2],[String(rnd(2,9)*100),2]]);
+     const r=D.pow(dec(b),n); return {q:`${D.str(dec(b))}${sup(n)}`,a:D.str(r),n:D.num(r),
+       steps:[`${D.str(dec(b))}${sup(n)} = ${Array(n).fill(D.str(dec(b))).join(' × ')}`,`Multiply the digits, then count the decimal places (or zeros).`,`= ${D.str(r)}`]}; }
+   if(t===3){ let a,b,n=pick([2,2,3]); do{b=rnd(2,n===2?10:5);a=rnd(1,b-1);}while(gcd(a,b)!==1);
+     return {q:`(${a}/${b})${sup(n)}`,a:`${a**n}/${b**n}`,n:a**n/b**n,steps:[`Multiply the tops: ${Array(n).fill(a).join(' × ')} = ${a**n}.`,`Multiply the bottoms: ${Array(n).fill(b).join(' × ')} = ${b**n}.`]}; }
+   if(t===4){ const b=rnd(2,5),n=rnd(2,4);
+     if(rnd(0,2)===0){ const r=-(b**n); return {q:`−${b}${sup(n)}`,a:N(r),n:r,steps:[`No brackets, so only the ${b} is powered: −(${b}${sup(n)}).`,`${b}${sup(n)} = ${b**n}, so the answer is ${N(r)}.`]}; }
+     const r=(-b)**n; return {q:`(−${b})${sup(n)}`,a:N(r),n:r,steps:[`(−${b})${sup(n)} = ${Array(n).fill(`(−${b})`).join(' × ')}`,`${n} negatives: ${n%2?'odd → negative':'even → positive'}.`,`= ${N(r)}`]}; }
+   const f=rnd(0,3);
+   if(f===0){ const a=rnd(1,9),b=rnd(2,3),n=b===2?rnd(2,4):rnd(2,3),c=rnd(2,4),p=b**n,r=a+p*c;
+     return {q:`${a} + ${b}${sup(n)} × ${c}`,a:String(r),n:r,steps:[`Powers first: ${b}${sup(n)} = ${p}.`,`Then multiply: ${p} × ${c} = ${p*c}.`,`${a} + ${p*c} = ${r}`]}; }
+   if(f===1){ const a=rnd(5,20),b=rnd(2,4),c=rnd(2,3),p=b*b,r=a-p*c;
+     return {q:`${a} − ${b}² × ${c}`,a:N(r),n:r,steps:[`Powers first: ${b}² = ${p}.`,`Then multiply: ${p} × ${c} = ${p*c}.`,`${a} − ${p*c} = ${N(r)}`]}; }
+   if(f===2){ const a=rnd(1,6),b=rnd(1,6),r=(a+b)**2;
+     return {q:`(${a} + ${b})²`,a:String(r),n:r,steps:[`Brackets first: ${a} + ${b} = ${a+b}.`,`${a+b}² = ${r}`]}; }
+   const s=rnd(2,10),b=rnd(2,3),n=rnd(2,3),r=s+b**n;
+   return {q:`√${s*s} + ${b}${sup(n)}`,a:String(r),n:r,steps:[`√${s*s} = ${s}`,`${b}${sup(n)} = ${b**n}`,`${s} + ${b**n} = ${r}`]};
+ },
+ 2:()=>{
+   const t=rnd(0,6);
+   if(t<=1){ const r=rnd(2,15); return {q:`√${r*r}`,a:String(r),n:r,steps:[`What number × itself = ${r*r}?`,`${r} × ${r} = ${r*r}`]}; }
+   if(t===2){ if(rnd(0,2)){ const r=rnd(2,6); return {q:`∛${r**3}`,a:String(r),n:r,steps:[`What number × itself × itself = ${r**3}?`,`${r} × ${r} × ${r} = ${r**3}`]}; }
+     const [x,n,r]=pick([[16,4,2],[81,4,3],[625,4,5],[10000,4,10],[32,5,2],[243,5,3]]);
+     return {q:`${ROOT[n]}${D.str(dec(String(x)))}`,a:String(r),n:r,steps:[`What number multiplied by itself ${n} times = ${D.str(dec(String(x)))}?`,`${Array(n).fill(r).join(' × ')} = ${D.str(dec(String(x)))}`]}; }
+   if(t===3){ const k=rnd(0,2), r=rnd(1,9);
+     if(k===0){ const x=D.pow(dec('0.'+r),2); return {q:`√${D.str(x)}`,a:'0.'+r,n:r/10,steps:[`√${r*r} = ${r}`,`${D.str(x)} has 2 decimal places, so the root has 1.`,`Check: 0.${r} × 0.${r} = ${D.str(x)}`]}; }
+     if(k===1){ const x=D.pow(dec('0.0'+r),2); return {q:`√${D.str(x)}`,a:'0.0'+r,n:r/100,steps:[`√${r*r} = ${r}`,`${D.str(x)} has 4 decimal places, so the root has 2.`,`Check: 0.0${r} × 0.0${r} = ${D.str(x)}`]}; }
+     let a,b; do{b=rnd(2,10);a=rnd(1,b-1);}while(gcd(a,b)!==1);
+     return {q:`√(${a*a}/${b*b})`,a:`${a}/${b}`,n:a/b,steps:[`Root of the top: √${a*a} = ${a}.`,`Root of the bottom: √${b*b} = ${b}.`]}; }
+   if(t===4){ const r=rnd(2,9);
+     if(rnd(0,1)) return {q:`√${D.str(dec(String(r*r*100)))}`,a:String(r*10),n:r*10,steps:[`Split it up: ${r*r*100} = ${r*r} × 100.`,`√${r*r} = ${r} and √100 = 10.`,`${r} × 10 = ${r*10}`]};
+     return {q:`√${D.str(dec(String(r*r*10000)))}`,a:String(r*100),n:r*100,steps:[`Split it up: ${D.str(dec(String(r*r*10000)))} = ${r*r} × 10 000.`,`√${r*r} = ${r} and √10 000 = 100.`,`${r} × 100 = ${r*100}`]}; }
+   if(t===5){ let x; do{x=rnd(5,150);}while(Number.isInteger(Math.sqrt(x))); const lo=Math.floor(Math.sqrt(x));
+     return {q:`√${x} lies between which two whole numbers?`,a:`${lo} and ${lo+1}`,steps:[`${lo}² = ${lo*lo} and ${lo+1}² = ${(lo+1)**2}.`,`${x} is between ${lo*lo} and ${(lo+1)**2}.`]}; }
+   const s=rnd(2,10),c=rnd(2,4),r=s+c**3;
+   return {q:`√${s*s} + ${c}³`,a:String(r),n:r,steps:[`√${s*s} = ${s}`,`${c}³ = ${c**3}`,`${s} + ${c**3} = ${r}`]};
+ },
+ 3:()=>{
+   const t=rnd(0,4);
+   if(t===0){ let bv; do{bv=rnd(11,99);}while(bv%10===0); const b=dec(String(bv/10)),n=pick([2,2,3]),r=D.pow(b,n),est=Math.round(D.num(b));
+     return {q:`${D.str(b)}${sup(n)}`,a:D.str(r),n:D.num(r),steps:[`Estimate: ${D.str(b)} is about ${est}, and ${est}${sup(n)} = ${est**n}.`,`Calculator: ${D.str(b)} ^ ${n} = ${D.str(r)}`]}; }
+   if(t===1){ const b=dec(String(rnd(11,35)/10)),n=rnd(2,4),r=D.pow({m:-b.m,s:b.s},n);
+     return {q:`(−${D.str(b)})${sup(n)}`,a:D.str(r),n:D.num(r),steps:[`Type it with brackets: ( − ${D.str(b)} ) ^ ${n}`,`${n} negatives: ${n%2?'odd → negative':'even → positive'}.`,`= ${D.str(r)}`]}; }
+   if(t===2){ const ty=rnd(0,2);
+     if(ty===0){ const b=dec(String(rnd(11,49)/10)),n=rnd(4,6),r=D.pow(b,n),ans=D.roundSF(r,3);
+       return {q:`${D.str(b)}${sup(n)} (3 s.f.)`,a:ans,n:D.num(dec(ans.replace(/ /g,''))),steps:[`Calculator: ${D.str(b)} ^ ${n} = ${D.str(r)}`,`Round to 3 significant figures, counting from the first non-zero digit.`,`= ${ans}`]}; }
+     if(ty===1){ const b=rnd(120,480),r=dec(String(b**3)),ans=D.roundSF(r,2);
+       return {q:`${b}³ (2 s.f.)`,a:ans,n:D.num(dec(ans.replace(/ /g,''))),steps:[`Calculator: ${b} ^ 3 = ${D.str(r)}`,`2 significant figures: keep 2 digits, then zeros to hold the place value.`,`= ${ans}`]}; }
+     const b=dec('1.0'+rnd(1,9)),n=rnd(5,10),r=D.pow(b,n),ans=D.roundDP(r,2);
+     return {q:`${D.str(b)}${sup(n)} (2 d.p.)`,a:ans,n:Number(ans),steps:[`Calculator: ${D.str(b)} ^ ${n} = ${D.str(r)}`,`Round to 2 decimal places.`,`= ${ans}`]}; }
+   if(t===3){ const s=dec(String(rnd(21,99)/10)),u=pick(['cm','m']),r=D.pow(s,2);
+     return {q:`A square tile has sides of ${D.str(s)} ${u}. Find its area.`,a:`${D.str(r)} ${u}²`,n:D.num(r),steps:[`Area of a square = side² = ${D.str(s)}²`,`Calculator: ${D.str(s)}² = ${D.str(r)}`,`Units: ${u} × ${u} = ${u}²`]}; }
+   const s=dec(String(rnd(11,49)/10)),u=pick(['cm','m']),r=D.pow(s,3);
+   return {q:`A cube has edges of ${D.str(s)} ${u}. Find its volume.`,a:`${D.str(r)} ${u}³`,n:D.num(r),steps:[`Volume of a cube = edge³ = ${D.str(s)}³`,`Calculator: ${D.str(s)} ^ 3 = ${D.str(r)}`,`Units: ${u} × ${u} × ${u} = ${u}³`]};
+ },
+ 4:()=>{
+   const t=rnd(0,4);
+   if(t<=1){ let x; do{x=rnd(2,999);}while(Number.isInteger(Math.sqrt(x))); const v=Math.sqrt(x),a=v.toFixed(2),lo=Math.floor(v);
+     return {q:`√${x} (2 d.p.)`,a,n:Number(a),steps:[`Estimate: ${lo}² = ${lo*lo} and ${lo+1}² = ${(lo+1)**2}, so between ${lo} and ${lo+1}.`,`Calculator: √${x} = ${v.toFixed(5)}…`,`2 d.p.: ${a}`]}; }
+   if(t===2){ const n=pick([3,3,4]); let x; do{x=rnd(10,999);}while(Number.isInteger(Math.round(Math.pow(x,1/n)))&&Math.round(Math.pow(x,1/n))**n===x);
+     const v=Math.pow(x,1/n),a=v.toFixed(2),lo=Math.floor(v+1e-12);
+     return {q:`${ROOT[n]}${x} (2 d.p.)`,a,n:Number(a),steps:[`Estimate: ${lo}${sup(n)} = ${lo**n} and ${lo+1}${sup(n)} = ${(lo+1)**n}, so between ${lo} and ${lo+1}.`,n===3?`Calculator: ∛${x} = ${v.toFixed(5)}… (the ∛ key is often SHIFT then √)`:`Calculator: type ${n}, then the ˣ√ key, then ${x}: ${v.toFixed(5)}…`,`2 d.p.: ${a}`]}; }
+   if(t===3){ const s=dec(String(rnd(31,199)/10)),u=pick(['cm','m']),A=D.pow(s,2),lo=Math.floor(D.num(s));
+     return {q:`A square has an area of ${D.str(A)} ${u}². How long is each side?`,a:`${D.str(s)} ${u}`,n:D.num(s),steps:[`Side × side = ${D.str(A)}, so side = √${D.str(A)}.`,`Estimate: ${lo}² = ${lo*lo} and ${lo+1}² = ${(lo+1)**2}.`,`Calculator: √${D.str(A)} = ${D.str(s)}`]}; }
+   let V; do{V=rnd(10,500);}while(Math.round(Math.cbrt(V))**3===V); const v=Math.cbrt(V),a=v.toFixed(2),lo=Math.floor(v);
+   const thing=pick(['cube-shaped box','cube','cube-shaped tank']);
+   return {q:`A ${thing} has a volume of ${V} cm³. How long is each edge, to 2 d.p.?`,a:`${a} cm`,n:Number(a),steps:[`Edge × edge × edge = ${V}, so edge = ∛${V}.`,`Estimate: ${lo}³ = ${lo**3} and ${lo+1}³ = ${(lo+1)**3}.`,`Calculator: ∛${V} = ${v.toFixed(5)}… = ${a} cm`]};
+ },
+ 5:()=>{
+   if(rnd(0,4)===0){ const [what,v,u]=pick([['The Earth is about','150000000',' km from the Sun'],['Light travels at about','300000000',' m/s'],['The Moon is about','384000',' km from the Earth'],['The Earth is about','12700',' km across'],['Scotland has about','5400000',' people'],['The world has about','8000000000',' people']]);
+     const x=dec(v),s=toSci(x); return {q:`${what} ${D.str(x)}${u}. Write this number in scientific notation.`,a:s,n:D.num(x),sci:true,
+       steps:[`How many digits after the first digit? ${D.lead(x)}`,`Front number: ${D.str(D.shift(x,-D.lead(x)))}`,`${s}`]}; }
+   const a=front(rnd(1,3)),p=rnd(3,9),x=D.shift(a,p);
+   return {q:D.str(x),a:sciS(a,p),n:D.num(x),sci:true,ask:'Write in scientific notation',
+     steps:[`How many digits after the first digit? ${p}`,`This is the power: 10${sup(p)}`,`Front number: ${D.str(a)}`]};
+ },
+ 6:()=>{
+   const a=front(rnd(1,4)),p=rnd(2,9),x=D.shift(a,p);
+   return {q:sciS(a,p),a:D.str(x),n:D.num(x),ask:'Write in full',
+     steps:[`Evaluate the power: 10${sup(p)} = ${D.str(D.shift(dec('1'),p))}.`,`${D.str(a)} × ${D.str(D.shift(dec('1'),p))}: move every digit ${p} places left.`,`Fill the gaps with zeros: ${D.str(x)}`]};
+ },
+ 7:()=>{
+   if(rnd(0,4)===0){ const [what,v,u]=pick([['A human hair is about','0.00007',' m wide'],['A sheet of paper is about','0.0001',' m thick'],['A sesame seed weighs about','0.0000036',' kg'],['An atom is about','0.0000000001',' m across']]);
+     const x=dec(v),s=toSci(x); return {q:`${what} ${D.str(x)}${u}. Write this number in scientific notation.`,a:s,n:D.num(x),sci:true,
+       steps:[`Count from the point up to AND INCLUDING the first non-zero digit: ${-D.lead(x)}.`,`This, with a negative sign, is the power: 10${sup(D.lead(x))}`,s]}; }
+   const a=front(rnd(1,3)),p=-rnd(1,7),x=D.shift(a,p);
+   return {q:D.str(x),a:sciS(a,p),n:D.num(x),sci:true,ask:'Write in scientific notation',
+     steps:[`Count from the point up to AND INCLUDING the first non-zero digit: ${-p}.`,`This, with a negative sign, is the power: 10${sup(p)}`,`Front number: ${D.str(a)}`]};
+ },
+ 8:()=>{
+   const a=front(rnd(1,4)),p=-rnd(1,7),x=D.shift(a,p);
+   return {q:sciS(a,p),a:D.str(x),n:D.num(x),ask:'Write in full',
+     steps:[`Evaluate the power: 10${sup(p)} = 1 ÷ ${D.str(D.shift(dec('1'),-p))}.`,`${D.str(a)} ÷ ${D.str(D.shift(dec('1'),-p))}: move every digit ${-p} places right.`,`Fill the gaps with zeros: ${D.str(x)}`]};
+ },
+ 9:()=>{
+   const t=rnd(0,4);
+   if(t===0){ let A,B,pa,pb; do{A=front(rnd(1,2));B=front(rnd(1,2));pa=rnd(-6,9);pb=pick([pa,pa+1,pa-1,rnd(-6,9)]);}while(pa===0||pb===0||(pa===pb&&D.num(A)===D.num(B)));
+     const xa=D.shift(A,pa),xb=D.shift(B,pb),big=D.num(xa)>D.num(xb)?[A,pa,xa]:[B,pb,xb];
+     return {q:`Which is bigger: ${sciS(A,pa)} or ${sciS(B,pb)}?`,a:sciS(big[0],big[1]),n:D.num(big[2]),sci:true,
+       steps:[pa===pb?`The powers are the same (10${sup(pa)}), so compare the front numbers.`:`Compare the powers first: 10${sup(Math.max(pa,pb))} is bigger than 10${sup(Math.min(pa,pb))}.`,`So ${sciS(big[0],big[1])} is bigger.`]}; }
+   if(t===1){ const a=front(rnd(1,2)),p=rnd(-5,8),k=pick([1,1,2,-1]),shown=D.shift(a,k),pp=p-k,x=D.shift(a,p);
+     if(pp===0) return GEN[9]();
+     return {q:`Write ${sciS(shown,pp)} in scientific notation.`,a:sciS(a,p),n:D.num(x),sci:true,
+       steps:[`${D.str(shown)} is not between 1 and 10.`,`${D.str(shown)} = ${D.str(a)} × 10${sup(k)}`,`So the power goes ${k>0?'up':'down'} by ${Math.abs(k)}: ${sciS(a,p)}`]}; }
+   if(t===2){ const a=front(rnd(1,3)),[w,p]=pick([['thousand',3],['million',6],['billion',9]]),x=D.shift(a,p);
+     return {q:`Write ${D.str(a)} ${w} in scientific notation.`,a:sciS(a,p),n:D.num(x),sci:true,
+       steps:[`1 ${w} = ${D.str(D.shift(dec('1'),p))} = 10${sup(p)}`,`${D.str(a)} ${w} = ${D.str(a)} × 10${sup(p)}`]}; }
+   if(t===3){ const ok=rnd(0,1); let a=front(rnd(1,2)),p=rnd(2,8),shown,why;
+     if(ok){ shown=sciS(a,p); why='Yes. The front number is at least 1 and less than 10.'; }
+     else { const k=pick([1,-1]); const f=D.shift(a,k); shown=sciS(f,p-k); why=`No. ${D.str(f)} is not between 1 and 10. It should be ${sciS(a,p)}.`; }
+     return {q:`Is ${shown} in scientific notation?`,a:why}; }
+   // a unit conversion in context
+   const [txt,from,to,end]=pick([['A lorry has a mass of','kg','g',''],['A ship has a mass of','tonnes','kg',''],['A journey is','km','m',' long'],['A fence is','m','mm',' long']]);
+   const a=front(rnd(1,3)),p=rnd(3,6),x=D.shift(a,p),y=D.shift(x,3);
+   return {q:`${txt} ${D.str(x)} ${from}${end}. Write this in ${to}, in scientific notation.`,a:`${toSci(y)} ${to}`,n:D.num(y),sci:true,
+     steps:[`1 ${from==='tonnes'?'tonne':from} = 1000 ${to}, so multiply by 1000: ${D.str(y)} ${to}.`,`Count the digits after the first digit: ${D.lead(y)}.`,`${toSci(y)} ${to}`]};
+ },
+ 10:()=>{
+   const t=rnd(0,4);
+   if(t===0){ const a=rnd(2,9),b=rnd(2,9),m=rnd(-4,8),n=rnd(-4,8); if(m===0||n===0) return GEN[10]();
+     const pr=dec(String(a*b)),pw=m+n,x=D.shift(pr,pw);
+     return {q:`(${a} × 10${sup(m)}) × (${b} × 10${sup(n)})`,a:toSci(x),n:D.num(x),sci:true,
+       steps:[`Multiply the front numbers: ${a} × ${b} = ${a*b}.`,`Add the powers: ${N(m)} + ${N(n)} = ${N(pw)}.`,a*b>=10?`${a*b} × 10${sup(pw)} → ${toSci(x)}`:`${toSci(x)}`]}; }
+   if(t===1){ const r=dec(pick([String(rnd(1,9)),String(rnd(11,99)/10)])),d=rnd(2,9),m=rnd(-3,9),n=rnd(-4,6); if(m===0||n===0) return GEN[10]();
+     const top=D.mul(r,dec(String(d))),x=D.shift(r,m-n),tA=D.shift(top,-D.lead(top)),tm=m+D.lead(top);
+     if(tm===0) return GEN[10]();
+     return {q:`(${sciS(tA,tm)}) ÷ (${d} × 10${sup(n)})`,a:toSci(x),n:D.num(x),sci:true,
+       steps:[`Divide the front numbers: ${D.str(tA)} ÷ ${d} = ${D.str(D.shift(r,D.lead(top)===D.lead(r)?0:-1))}.`,`Subtract the powers: ${N(tm)} − ${N(n)} = ${N(tm-n)}.`,`Adjust so the front number is between 1 and 10: ${toSci(x)}`]}; }
+   if(t===2){ const A=front(3),B=front(3),m=rnd(2,9),n=rnd(-5,9); if(n===0) return GEN[10]();
+     const op=rnd(0,1);
+     if(op===0){ const x=D.shift(D.mul(A,B),m+n),e=D.lead(x),fr=D.roundSF(D.shift(x,-e),3),f2=dec(fr);
+       const fix=D.num(f2)>=10?[D.shift(f2,-1),e+1]:[f2,e];
+       return {q:`(${sciS(A,m)}) × (${sciS(B,n)}) (3 s.f.)`,a:`${D.roundDP(fix[0],2)} × 10${sup(fix[1])}`,n:D.num(fix[0])*10**fix[1],sci:true,
+         steps:[`Use the ×10ˣ key, or brackets round each number.`,`Calculator: ${toSci(x)}`,`Round the front number to 3 s.f.`]}; }
+     // division with a calculator
+     const r=sfFrac(A.m*10n**BigInt(B.s),B.m*10n**BigInt(A.s),3), ee=r.e+m-n;
+     return {q:`(${sciS(A,m)}) ÷ (${sciS(B,n)}) (3 s.f.)`,a:`${r.f} × 10${sup(ee)}`,n:Number(r.f)*10**ee,sci:true,
+       steps:[`Use the ×10ˣ key, or brackets round each number.`,`Divide the front numbers: ${D.str(A)} ÷ ${D.str(B)} = ${(D.num(A)/D.num(B)).toFixed(5)}… Subtract the powers: ${N(m)} − ${N(n)} = ${N(m-n)}.`,`Adjust so the front number is between 1 and 10, then round to 3 s.f.: ${r.f} × 10${sup(ee)}`]}; }
+   if(t===3){ const [f,f3]=pick([['1.2','0.4'],['1.5','0.5'],['2.4','0.8'],['3.6','1.2'],['4.5','1.5'],['6','2'],['7.5','2.5'],['9','3']]),p=rnd(9,12),T=D.shift(dec(f3),p-8);
+     return {q:`Light travels at 3 × 10⁸ m/s. How many seconds does it take light to travel ${sciS(dec(f),p)} m?`,a:`${toSci(T)} seconds`,n:D.num(T),sci:true,
+       steps:[`Time = distance ÷ speed = (${sciS(dec(f),p)}) ÷ (3 × 10⁸)`,`${f} ÷ 3 = ${f3}, and ${p} − 8 = ${p-8}.`,`${f3} × 10${sup(p-8)} = ${toSci(T)} seconds`]}; }
+   const a=rnd(2,9),m=rnd(3,6),b=rnd(2,9),n=-rnd(2,6),w=D.shift(dec(String(a*b)),m+n),thing=pick(['grains of sand','tiny beads','seeds','paper clips']);
+   return {q:`A bag holds ${a} × 10${sup(m)} ${thing}. Each one weighs ${b} × 10${sup(n)} kg. What is the total weight, in kg?`,a:`${toSci(w)} kg`,n:D.num(w),sci:true,
+     steps:[`Total = number × weight of one = (${a} × 10${sup(m)}) × (${b} × 10${sup(n)})`,`${a} × ${b} = ${a*b}, and ${m} + (${N(n)}) = ${N(m+n)}.`,`${a*b} × 10${sup(m+n)} = ${toSci(w)} kg`]};
+ }
+};
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();if(seen.has(g.q))continue;seen.add(g.q);out.push({...g,st});}
+  return out;
+}
+const qText=(g,withAsk)=>withAsk&&g.ask?`${g.ask}: ${g.q}`:g.q;
+
+/* ---------- Sidebar ---------- */
+const seqWrap=document.getElementById('seqWrap');
+seqWrap.innerHTML=WEEKS.map(w=>`<p class="wk">${esc(w.label)}</p><ol class="steps" start="${w.from}">`+
+  STEPS.slice(w.from-1,w.to).map((st,k)=>{const n=w.from+k;return `<li><button class="step" data-view="${n}"><span class="num">${n}</span>
+    <span class="txt">${esc(st.s)}${st.eg?`<span class="eg">${esc(st.eg)}</span>`:''}</span></button></li>`;}).join('')+'</ol>').join('');
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';
+const qSel=new Set(STEPS.map((_,i)=>i+1));
+const VOCAB_STEPS=[1,5];
+function showView(v){
+  view=v;
+  const isStep=v!=='all';
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===String(v))));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = s.dataset.for==='vocab' ? !(v==='all'||VOCAB_STEPS.includes(v)) : (s.dataset.for==='step')!==isStep);
+  const jumps=isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],...(VOCAB_STEPS.includes(v)?[['vocab','Word scramble']]:[]),['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['vocab','Word scramble'],['tasks','Rich tasks'],['games','Games']];
+  document.getElementById('jump').innerHTML=jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('')+
+    (isStep?`<li class="stepnav">${v>1?`<button class="btn alt" data-go="${v-1}">← Step ${v-1}</button>`:''}${v<STEPS.length?`<button class="btn" data-go="${v+1}">Step ${v+1} →</button>`:''}</li>`:'');
+  const kicker=document.getElementById('kicker'),title=document.getElementById('title'),heroEg=document.getElementById('heroEg');
+  if(isStep){
+    const wk=WEEKS.find(w=>v>=w.from&&v<=w.to);
+    kicker.textContent=`Step ${v} of ${STEPS.length} · ${wk.label}`;
+    title.textContent=STEPS[v-1].s; heroEg.textContent=STEPS[v-1].eg||'';
+    renderExamples(v); renderScaffold(v); renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=`New questions for step ${v} every time.`;
+    document.getElementById('qAsk').textContent=ASK[v]||'';
+  } else {
+    kicker.textContent='S3 Term 2 · Weeks 1–2 · MTH 4-06a, MTH 4-06b';
+    title.textContent='Powers, roots and scientific notation';
+    heroEg.textContent='Powers and roots with and without a calculator, then writing very large and very small numbers in scientific notation and calculating with them.';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include.';
+    document.getElementById('qAsk').textContent='';
+    renderTasks();
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g) location.hash='step-'+g.dataset.go;
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d+)$/);
+  const v=m&&+m[1]>=1&&+m[1]<=STEPS.length?+m[1]:'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples and hinge questions ---------- */
+function renderExamples(n){
+  const ex=(WE[n]||[]).map((ex,i)=>`
+    <div class="ex">
+      <div class="exq${isLong(ex.q)?' long':''}">${esc(ex.q)}</div>
+      <ol>${ex.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+      <div class="exa">${isLong(ex.q)?'Answer: ':esc(ex.q)+' = '}${esc(ex.a)}</div>
+      ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}
+      ${ex.tool?`<button class="btn alt try" data-ex="${i}">Show it step by step</button>`:''}
+    </div>`);
+  const hg=(HINGE[n]||[]).map(h=>`
+    <div class="ex hinge"><span class="kind-h">Quick check · hinge question</span>
+      <div class="exq long">${esc(h.q)}</div>
+      <ul class="opts">${h.o.map((o,i)=>`<li><b>${'ABCD'[i]}</b>  ${esc(o)}</li>`).join('')}</ul>
+      <details><summary>Answer</summary><b>${'ABCD'[h.c]}: ${esc(h.o[h.c])}</b><br>${esc(h.why)}</details>
+    </div>`);
+  document.getElementById('exs').innerHTML=[...ex,...hg].join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ex]'); if(!t) return;
+  const ex=WE[view][+t.dataset.ex]; toolLoad(ex.tool); document.getElementById('sc-tool').hidden=false; document.getElementById('sc-tool').scrollIntoView();
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'),qsEl=document.getElementById('qs');
+STEPS.forEach((_,i)=>{const n=i+1,b=document.createElement('button');
+  b.className='chip';b.textContent=n;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${n}`);
+  b.onclick=()=>{qSel.has(n)?qSel.delete(n):qSel.add(n);b.setAttribute('aria-pressed',qSel.has(n));newChecks();};
+  chips.appendChild(b);});
+function newChecks(){
+  const steps=view==='all'?[...qSel]:[view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  const all=view==='all';
+  qsEl.classList.toggle('wordy',out.some(g=>qText(g,all).length>45));
+  qsEl.innerHTML=out.map(g=>{const q=qText(g,all),L=isLong(q)||q!==g.q;return `<li><span class="q${L?' long':''}">${esc(q)}${L?'':' ='}</span><span class="a${g.a.length>12?' long':''}">${esc(g.a)}</span>${all?`<span class="from">Step ${g.st}</span>`:''}</li>`;}).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(n){
+  const ks=SCAFFOLD[n]||[];
+  const stack=document.querySelector('.sc-stack');
+  ['tool','table','ord','bd'].forEach(id=>document.getElementById('sc-'+id).hidden=!ks.includes(id));
+  ks.forEach(id=>stack.appendChild(document.getElementById('sc-'+id)));   // show them in the order listed
+  if(ks.includes('ord')) ordNew();
+  if(ks.includes('tool')) toolLoad(TOOL_START[n]);
+  if(ks.includes('bd')) newBD();
+}
+
+/* Teaching tool (separate file, shown in a frame) */
+const TOOL='Powers, roots and scientific notation teaching tool.html';
+const toolFrame=document.getElementById('toolFrame');
+function toolLoad(h){
+  document.getElementById('toolOpen').href=encodeURI(TOOL)+'#'+h;
+  toolFrame.src=encodeURI(TOOL)+'#embed&'+h;   // only the # part changes after the first load, so the tool updates without reloading
+}
+window.addEventListener('message',e=>{ if(e.data && e.data.toolHeight) toolFrame.style.height=(e.data.toolHeight+4)+'px'; });
+
+/* Squares and cubes table */
+const sqTable=document.getElementById('sqTable');
+(function(){
+  const ns=Array.from({length:15},(_,i)=>i+1);
+  sqTable.innerHTML=`<tr><th class="rowh">n</th>${ns.map(n=>`<th>${n}</th>`).join('')}</tr>`+
+    `<tr><th class="rowh">n²</th>${ns.map(n=>`<td data-n="${n}" data-p="2">${n*n}</td>`).join('')}</tr>`+
+    `<tr><th class="rowh">n³</th>${ns.map(n=>`<td data-n="${n}" data-p="3">${n<=10?D.str(D.parse(String(n**3))):''}</td>`).join('')}</tr>`;
+})();
+sqTable.addEventListener('click',e=>{
+  const td=e.target.closest('td[data-n]'); if(!td||!td.textContent) return;
+  sqTable.querySelectorAll('.pick').forEach(x=>x.classList.remove('pick')); td.classList.add('pick');
+  const n=+td.dataset.n,p=+td.dataset.p,v=n**p;
+  document.getElementById('sqOut').textContent=p===2?`${n}² = ${n} × ${n} = ${v}, so √${v} = ${n}`:`${n}³ = ${n} × ${n} × ${n} = ${D.str(D.parse(String(v)))}, so ∛${D.str(D.parse(String(v)))} = ${n}`;
+});
+const sqHide=document.getElementById('sqHide');
+sqHide.onclick=()=>{const on=sqTable.classList.toggle('hide');sqHide.setAttribute('aria-pressed',on);sqHide.textContent=on?'Show the numbers':'Hide the numbers';};
+
+/* Ordering numbers in scientific notation */
+const ordPool=document.getElementById('ordPool'),ordDone=document.getElementById('ordDone'),ordFb=document.getElementById('ordFb');
+let ord={xs:[],next:0};
+function ordNew(){
+  const items=[],seen=new Set(); const base=rnd(-3,6);
+  while(items.length<5){ const a=front(rnd(1,2)), p=pick([base,base,base+1,base-1,base+2,base-2]); if(p===0) continue;
+    const v=D.num(D.shift(a,p)); if(seen.has(v)) continue; seen.add(v); items.push({s:sciS(a,p),v}); }
+  ord={xs:items.sort((a,b)=>a.v-b.v),next:0};
+  ordPool.innerHTML=shuffle(ord.xs.map((x,i)=>({...x,i}))).map(x=>`<button data-i="${x.i}">${x.s}</button>`).join('');
+  ordDone.textContent=''; ordFb.textContent=''; ordFb.className='feedback';
+}
+ordPool.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const i=+b.dataset.i;
+  if(i!==ord.next){ordFb.className='feedback no';ordFb.textContent='Not yet. Look for the smallest power of 10 first. If two powers are the same, compare the front numbers.';return;}
+  b.disabled=true; ord.next++;
+  ordDone.textContent=ord.xs.slice(0,ord.next).map(x=>x.s).join('  <  ');
+  ordFb.className='feedback ok';
+  ordFb.textContent=ord.next===ord.xs.length?'All in order. Well done!':'Yes!';
+});
+document.getElementById('ordNew').onclick=ordNew;
+
+/* Break it down */
+let bd=null,shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIn=document.getElementById('bdIn'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  let g=0; do{ bd=GEN[view==='all'?pick([3,4,9,10]):view](); }while((bd.n===undefined||!bd.steps)&&g++<50);
+  shown=0; const q=qText(bd,true), L=isLong(q)||q!==bd.q;
+  bdQ.textContent=L?q:q+' = ?'; bdQ.classList.toggle('long',L);
+  bdSteps.innerHTML=''; bdIn.value=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.textContent=bd.steps[shown++];bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+// Reads answers like 3.4 × 10^6, 3.4x10⁶, 3.4e6, 3 400 000, 4/9, 14.5 cm
+const SUPIN={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9','⁻':'-'};
+function readAnswer(s){
+  s=String(s).toLowerCase().replace(/[−–—]/g,'-').replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g,m=>'^'+[...m].map(c=>SUPIN[c]).join(''))
+    .replace(/(cm|mm|km|m|kg|g|tonnes|seconds|secs|s)(\^?[23])?(\/s)?\b/g,'').replace(/[£°\s,]/g,'').replace(/[×*]/g,'x').replace(/\^\^/g,'^');
+  let m;
+  if((m=s.match(/^(-?\d*\.?\d+)x10\^?\(?(-?\d+)\)?$/))) return {v:Number(m[1])*10**Number(m[2]),sci:Math.abs(Number(m[1]))>=1&&Math.abs(Number(m[1]))<10};
+  if((m=s.match(/^(-?\d*\.?\d+)e(-?\d+)$/))) return {v:Number(m[1])*10**Number(m[2]),sci:true};
+  if((m=s.match(/^(-?\d+)\/(\d+)$/))&&+m[2]) return {v:Number(m[1])/Number(m[2]),sci:false};
+  if(/^-?\d*\.?\d+$/.test(s)) return {v:Number(s),sci:false};
+  return null;
+}
+document.getElementById('bdCheck').onclick=()=>{
+  if(!bdIn.value.trim()){bdFb.textContent='Type your answer first.';bdFb.className='feedback no';return;}
+  const r=readAnswer(bdIn.value);
+  if(!r){bdFb.textContent='Type a number, e.g. 14.5 or 3.4 × 10^6.';bdFb.className='feedback no';return;}
+  const ok=Math.abs(r.v-bd.n)<=1e-9*Math.max(1,Math.abs(bd.n));
+  if(ok&&bd.sci&&!r.sci){bdFb.textContent='Right value! Now write it in scientific notation.';bdFb.className='feedback no';return;}
+  bdFb.textContent=ok?`Correct: ${bd.a}`:'Not yet. Check your working, or show a hint.';
+  bdFb.className='feedback '+(ok?'ok':'no');
+};
+bdIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+const fileHref=p=>encodeURI(p).replace(/\(/g,'%28').replace(/\)/g,'%29');
+function renderLinks(n){
+  const web=LINKS.filter(l=>l.steps.includes(n)).map(l=>`<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open ${esc(l.title)}</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(n)).map(f=>`<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${esc(fileHref(f.path))}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+`<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+
+/* ---------- Rich tasks ---------- */
+function renderTasks(){
+  document.getElementById('taskCards').innerHTML=TASKS.map(t=>`<div class="card"><span class="kind">${t.step<=4?'Week 1':'Week 2'} · after step ${t.step}</span><h3>${esc(t.title)}</h3>
+    <p class="big-task" style="white-space:pre-line">${esc(t.task)}</p>${t.extra?`<p>${esc(t.extra)}</p>`:''}
+    <details><summary>Answer</summary>${esc(t.ans)}</details></div>`).join('');
+}
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+function buildDeckMenu(v){
+  const opts=v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['rules','Rules'],['words','Key words']]
+    : [['step',`Step ${v} questions`],['rules',`Rules for step ${v}`],...([1,2,5,9].includes(v)?[['words','Key words']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='rules') return shuffle(view==='all'?RULES:RULES.filter(r=>r.st.includes(view)));
+  if(type==='words') return shuffle(WORDS);
+  const steps=type==='step'?[view]:STEPS.map((_,i)=>i+1);
+  return makeQs(steps,12).map(g=>{const q=qText(g,true);return {q:isLong(q)||q!==g.q?q:q+' = ?',a:g.a};});
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i]; fcSetFlip(false); fcFront.textContent=c.q;
+  setTimeout(()=>{fcBack.textContent=c.a;},250);
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+(left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){if(!fc.flipped)return;knew?fc.known++:fc.again.push(fc.deck[fc.i]);fc.i++;fcShow();}
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true); fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Word scramble (uses WORDS) ---------- */
+const wsDefs=document.getElementById('wsDefs'),wsTiles=document.getElementById('wsTiles'),wsDef=document.getElementById('wsDef'),
+      wsIn=document.getElementById('wsIn'),wsFb=document.getElementById('wsFb'),wsCount=document.getElementById('wsCount'),
+      wsDefBtn=document.getElementById('wsDefBtn'),wsList=document.getElementById('wsList');
+function scramble(word){
+  // scramble each word separately, keep spaces; make sure it changes
+  return word.toUpperCase().split(' ').map(w=>{
+    if(w.length<2) return w; let s,g=0; do{s=shuffle([...w]).join('');}while(s===w&&g++<50); return s;}).join(' ');
+}
+let ws={order:[],i:0,solved:0,defOn:false};
+function wsStart(){ws={order:shuffle(WORDS),i:0,solved:0,defOn:false};wsShow();wsBuildList();}
+function wsShow(){
+  const w=ws.order[ws.i];
+  wsTiles.innerHTML=scramble(w.q).split('').map(c=>c===' '?'<span class="gap"></span>':`<span class="t">${esc(c)}</span>`).join('');
+  wsDef.innerHTML=`<b>Definition:</b> ${esc(w.a)}`;
+  ws.defOn=wsDefs.checked; wsDefSync();
+  wsIn.value=''; wsFb.textContent=''; wsFb.className='feedback';
+  wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+}
+function wsDefSync(){wsDef.hidden=!ws.defOn;wsDefBtn.textContent=ws.defOn?'Hide the definition':'Show the definition';}
+const norm=s=>s.toUpperCase().replace(/[^A-Z]/g,'');
+document.getElementById('wsCheck').onclick=()=>{
+  const w=ws.order[ws.i];
+  if(!wsIn.value.trim()){wsFb.textContent='Type your word first.';wsFb.className='feedback no';return;}
+  if(norm(wsIn.value)===norm(w.q)){
+    if(!wsFb.classList.contains('ok')) ws.solved++;
+    wsFb.textContent=`Correct: ${w.q.toUpperCase()}`;wsFb.className='feedback ok';
+    ws.defOn=true;wsDefSync();
+    wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+  } else {wsFb.textContent='Not yet. Try the definition for a clue.';wsFb.className='feedback no';}
+};
+wsIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('wsCheck').click();});
+wsDefBtn.onclick=()=>{ws.defOn=!ws.defOn;wsDefSync();};
+document.getElementById('wsReveal').onclick=()=>{const w=ws.order[ws.i];wsFb.textContent=`The word is ${w.q.toUpperCase()}`;wsFb.className='feedback';ws.defOn=true;wsDefSync();};
+document.getElementById('wsNext').onclick=()=>{ws.i=(ws.i+1)%ws.order.length;if(ws.i===0){ws.order=shuffle(WORDS);ws.solved=0;}wsShow();};
+
+function wsBuildList(){
+  wsList.innerHTML=shuffle(WORDS).map(w=>`<li><div class="scr">${esc(scramble(w.q))}</div><div class="word">${esc(w.q.toUpperCase())}</div>${wsDefs.checked?`<div class="d">${esc(w.a)}</div>`:''}</li>`).join('');
+}
+wsDefs.onchange=()=>{ws.defOn=wsDefs.checked;wsDefSync();
+  wsList.querySelectorAll('li').forEach(li=>{const word=li.querySelector('.word').textContent,w=WORDS.find(x=>x.q.toUpperCase()===word);
+    let d=li.querySelector('.d'); if(wsDefs.checked&&!d){d=document.createElement('div');d.className='d';d.textContent=w.a;li.appendChild(d);} if(!wsDefs.checked&&d) d.remove();});};
+const modeOne=document.getElementById('wsModeOne'),modeAll=document.getElementById('wsModeAll');
+function wsMode(all){modeOne.setAttribute('aria-pressed',!all);modeAll.setAttribute('aria-pressed',all);
+  document.getElementById('wsOne').hidden=all;document.getElementById('wsAll').hidden=!all;wsCount.hidden=all;}
+modeOne.onclick=()=>wsMode(false); modeAll.onclick=()=>wsMode(true);
+document.getElementById('wsReshuffle').onclick=wsBuildList;
+const wsShowAll=document.getElementById('wsShowAll');
+wsShowAll.onclick=()=>{const on=wsList.classList.toggle('show');wsShowAll.setAttribute('aria-pressed',on);wsShowAll.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('wsFull').onclick=()=>{const el=document.getElementById('vocab');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+wsStart();
+
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s3/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

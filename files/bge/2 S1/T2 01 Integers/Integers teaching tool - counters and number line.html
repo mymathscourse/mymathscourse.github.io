@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integers: counters and number line</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --pos:#3FA86B; --pos-fill:#C9F0D7; --neg:#E06464; --neg-fill:#F9CACA;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.1rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+.wrap{padding:1.25rem clamp(1rem,2.5vw,2rem) 2.5rem;max-width:1500px;margin:0 auto}
+
+/* Control bar */
+.bar{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem 1.2rem;display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:flex-end}
+.grp{display:flex;flex-direction:column;gap:.35rem}
+.grp .lab{font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.row input{width:4.6rem;padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.3rem;text-align:center}
+.row select{padding:.45rem .5rem;border:1.5px solid var(--line);border-radius:8px;font-family:var(--head);font-size:1.05rem;background:var(--paper)}
+.row select.op{font-size:1.3rem}
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn.big{font-size:1.15rem;padding:.65rem 1.3rem}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .85rem;font-weight:700;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--deep)}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.err{color:#B23B3B;font-weight:700;font-size:.95rem;min-height:1.2rem}
+
+/* Question + stepping */
+.qbar{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin:1.25rem 0 1rem}
+.question{font-family:var(--head);font-weight:700;font-size:clamp(2.2rem,5vw,3.6rem);color:var(--deep);font-variant-numeric:tabular-nums;white-space:nowrap}
+.question .ans{color:var(--sea)}
+.steps-ctl{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto;align-items:center}
+.stepcount{font-family:var(--head);color:var(--muted);font-size:.95rem;margin-right:.3rem}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.panels.one{grid-template-columns:1fr}
+@media (max-width:1050px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem 1.25rem;display:flex;flex-direction:column;min-width:0}
+.panel h2{font-size:1.2rem;color:var(--deep);border-bottom:2px solid var(--deep);padding-bottom:.35rem;margin-bottom:.9rem}
+.stage{min-height:230px;display:flex;align-items:center;justify-content:safe center;padding:.5rem 0;overflow-x:auto}
+.say{list-style:none;margin:.75rem 0 0;padding:0;font-size:1.15rem}
+.say li{padding:.35rem 0 .35rem .9rem;border-left:4px solid var(--line);margin:.3rem 0;animation:in .35s ease both}
+.say li.now{border-left-color:var(--sand)}
+.say li.answer{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.35rem;border-left-color:var(--sea)}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Counters */
+.ctr-area{display:flex;flex-wrap:wrap;gap:.7rem 1rem;align-items:flex-start;justify-content:center}
+.cols{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;row-gap:.6rem;align-items:flex-start}
+.box{display:flex;gap:.3rem;border:3px solid var(--ink);border-radius:12px;padding:.3rem}
+.col{display:flex;flex-direction:column;gap:.35rem}
+.ctr,.slot{width:var(--c,48px);height:var(--c,48px)}
+.ctr{border-radius:50%;display:grid;place-items:center;position:relative;animation:pop .4s cubic-bezier(.3,1.4,.5,1) both}
+.ctr svg{width:58%;height:58%}
+.ctr.p{background:var(--pos-fill);border:3px solid var(--pos);color:var(--pos)}
+.ctr.n{background:var(--neg-fill);border:3px solid var(--neg);color:#C94444}
+.ctr.cancel{animation:fade .6s ease both}
+.ctr.x{animation:none;opacity:.5}
+@keyframes fade{from{opacity:1}to{opacity:.25}}
+.ctr.x::before,.ctr.x::after{content:"";position:absolute;left:-12%;right:-12%;top:50%;height:5px;margin-top:-2.5px;background:#8A9398;border-radius:3px;transform:rotate(45deg);animation:strike .35s ease both}
+.ctr.x::after{transform:rotate(-45deg)}
+@keyframes strike{from{opacity:0;transform:rotate(45deg) scaleX(0)}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+.ctr-label{width:100%;text-align:center;font-size:.9rem;color:var(--muted);margin-top:.2rem}
+
+/* Number line */
+svg.nl{width:100%;height:auto;display:block;min-width:520px}
+svg.nl .axis{stroke:var(--ink);stroke-width:2.2}
+svg.nl .tick{stroke:var(--ink);stroke-width:1.6}
+svg.nl .lbl{font-family:var(--head);fill:var(--ink);text-anchor:middle}
+svg.nl .lbl.zero{font-weight:700}
+svg.nl .hb{stroke-width:2}
+svg.nl .hb.p{fill:var(--pos-fill);stroke:var(--pos)}
+svg.nl .hb.n{fill:var(--neg-fill);stroke:var(--neg)}
+svg.nl .ht{font-family:var(--head);font-weight:700;text-anchor:middle}
+svg.nl .arc{fill:none;stroke-width:2.4;stroke-dasharray:6 5}
+svg.nl .hop{opacity:0;animation:hop .35s ease forwards}
+@keyframes hop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+svg.nl .mark{font-family:var(--head);font-weight:700;font-size:17px;text-anchor:middle}
+.opts{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin-bottom:.4rem;font-size:.95rem;color:var(--muted)}
+.opts .seg button{padding:.3rem .7rem;font-size:.9rem}
+
+.help{margin-top:1.25rem;color:var(--muted);font-size:.95rem}
+body.embed{background:var(--paper)}
+body.embed .topbar,body.embed .help{display:none}
+body.embed .wrap{padding:0;max-width:none}
+body.embed .bar{background:var(--bg)}
+@media (min-width:760px){
+  body.embed .panels{grid-template-columns:1fr 1fr;gap:.9rem}
+  body.embed .panels.one{grid-template-columns:1fr}
+  body.embed .panel{padding:.9rem .9rem 1rem}
+  body.embed svg.nl{min-width:0}
+  body.embed .stage{min-height:190px}
+  body.embed .say{font-size:1rem}
+  body.embed .qbar{margin:.9rem 0 .8rem}
+}
+.help b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html">BGE Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#S1-t2-integers">Hub</a> › <a href="Topic%20page%20-%20Integers.html">Integers</a> › Counters and number line</nav>
+</header>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="grp">
+      <span class="lab">Type a question</span>
+      <div class="row">
+        <input id="inA" value="-3" aria-label="First number" inputmode="numeric">
+        <select id="inOp" class="op" aria-label="Add or subtract"><option value="+">+</option><option value="-" selected>−</option></select>
+        <input id="inB" value="-2" aria-label="Second number" inputmode="numeric">
+        <button class="btn" id="go">Use these numbers</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Or make one up</span>
+      <div class="row">
+        <select id="kind" aria-label="Type of question">
+          <option value="mix">Any type</option>
+          <option value="addp">Adding a positive  (−5 + 3)</option>
+          <option value="addn">Adding a negative  (6 + (−2))</option>
+          <option value="subp">Subtracting a positive  (2 − (+5))</option>
+          <option value="subn">Subtracting a negative  (−3 − (−2))</option>
+        </select>
+        <select id="size" aria-label="Size of numbers">
+          <option value="6">Numbers up to 6</option>
+          <option value="10">Numbers up to 10</option>
+        </select>
+        <button class="btn" id="rand">New question</button>
+      </div>
+    </div>
+    <div class="grp">
+      <span class="lab">Show</span>
+      <div class="seg" role="group" aria-label="Which models to show">
+        <button data-show="both" aria-pressed="true">Both</button>
+        <button data-show="ctr" aria-pressed="false">Counters</button>
+        <button data-show="nl" aria-pressed="false">Number line</button>
+      </div>
+    </div>
+    <div class="err" id="err" role="status"></div>
+  </div>
+
+  <div class="qbar">
+    <div class="question" id="question" aria-live="polite"></div>
+    <div class="steps-ctl">
+      <span class="stepcount" id="stepCount"></span>
+      <button class="btn alt" id="back">← Back</button>
+      <button class="btn big" id="next">Next step →</button>
+      <button class="btn alt" id="all">Show all</button>
+      <button class="btn alt" id="reset">Start again</button>
+    </div>
+  </div>
+
+  <div class="panels" id="panels">
+    <section class="panel" id="pCtr" aria-labelledby="hCtr">
+      <h2 id="hCtr">Visual model with counters</h2>
+      <div class="stage" id="ctrStage"></div>
+      <ul class="say" id="ctrSay"></ul>
+    </section>
+    <section class="panel" id="pNl" aria-labelledby="hNl">
+      <h2 id="hNl">Number line</h2>
+      <div class="opts" id="nlOpts">
+        <span>Subtracting:</span>
+        <div class="seg" role="group" aria-label="Number line method for subtracting">
+          <button data-sub="from" aria-pressed="true">From the 2nd number to the 1st</button>
+          <button data-sub="opp" aria-pressed="false">Add the opposite</button>
+        </div>
+      </div>
+      <div class="stage" id="nlStage"></div>
+      <ul class="say" id="nlSay"></ul>
+    </section>
+  </div>
+
+  <p class="help"><b>Tips:</b> press <b>Next step</b> (or the space bar / right arrow) to build each model one step at a time. Each green <b>+</b> counter is worth +1 and each red <b>−</b> counter is worth −1, so a zero pair is worth 0. Numbers can be from −10 to 10.</p>
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const N=v=>v<0?'−'+(-v):String(v);
+const sgnWord=s=>s==='p'?'positive':'negative';
+const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
+
+/* How the question is written, matching the pupil notes:
+   3 + 2,  −5 + 3,  6 + (−2),  −3 − (−2),  −3 − (+2) */
+function second(op,b){
+  if(b<0) return `(${N(b)})`;
+  if(op==='-' && b>0) return `(+${b})`;
+  return String(b);
+}
+const qText=(a,op,b)=>`${N(a)} ${op==='+'?'+':'−'} ${second(op,b)}`;
+
+/* ---------- State ---------- */
+let Q={a:-3,op:'-',b:-2}, step=0, subMethod='from';
+let CT=null, NL=null;   // built models: {stages:[{...}], say:[...]}
+
+/* ---------- Counter model ---------- */
+const PLUS='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>';
+const MINUS='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h14" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>';
+const opp=s=>s==='p'?'n':'p';
+
+function buildCounters(a,op,b){
+  const sa=a>=0?'p':'n', na=Math.abs(a), sb=b>=0?'p':'n', nb=Math.abs(b);
+  const r = op==='+'?a+b:a-b, sr=r>=0?'p':'n', nr=Math.abs(r);
+  const cols=[];      // {top,bot,box,topX,botX,topCancel,botCancel, stage shown}
+  const stages=[];    // each stage: {say, apply(cols)} – we rebuild from scratch each render
+  if(op==='+'){
+    const k = (sa!==sb && na && nb) ? Math.min(na,nb) : 0;
+    const m=Math.max(na,nb);
+    for(let i=0;i<m;i++) cols.push({top:i<na?sa:null, bot:i<nb?sb:null, box:i<k});
+    stages.push({show:'top', say: na? `Start with ${N(a)}: ${plural(na,sgnWord(sa)+' counter')}.` : 'Start with 0: no counters.'});
+    stages.push({show:'bot', say: nb? `Add ${second('+',b)}: ${plural(nb,'more '+sgnWord(sb)+' counter')}.` : 'Add 0: no more counters.'});
+    if(k){
+      stages.push({show:'box', say:`There ${k===1?'is 1 zero pair':'are '+k+' zero pairs'}. Each zero pair is worth 0.`});
+      stages.push({show:'cancel', say: nr? `There ${nr===1?'is':'are'} ${plural(nr,sgnWord(sr)+' counter')} left.` : 'Everything cancels. There are no counters left.', answer:true});
+    } else {
+      stages.push({show:'all', say: nr? `There are no zero pairs. There ${nr===1?'is':'are'} ${plural(nr,sgnWord(sr)+' counter')} all together.` : 'There are no counters.', answer:true});
+    }
+  } else {
+    const avail = (a!==0 && sa===sb) ? na : 0;
+    const need = Math.max(0, nb-avail);
+    for(let i=0;i<na;i++) cols.push({top:sa, bot:null, box:false});
+    for(let j=0;j<need;j++) cols.push({top:sb, bot:opp(sb), box:true, added:true});
+    // which counters get crossed out: own counters first, then the added ones
+    let toCross=nb;
+    cols.forEach(c=>{ if(toCross>0 && !c.added && c.top===sb){c.topX=true;toCross--;} });
+    cols.forEach(c=>{ if(toCross>0 && c.added){c.topX=true;toCross--;} });
+    stages.push({show:'own', say: na? `Start with ${N(a)}: ${plural(na,sgnWord(sa)+' counter')}.` : 'Start with 0: no counters.'});
+    if(nb===0) stages.push({show:'own', say:'Take away 0: nothing changes.'});
+    else if(need>0){
+      stages.push({show:'added', say:`${N(a)} take away ${second('-',b)}. ${avail? `There ${avail===1?'is':'are'} only ${plural(avail,sgnWord(sb)+' counter')}, so add`:`There are no ${sgnWord(sb)} counters to take away, so add`} ${need===1?'1 zero pair':need+' zero pairs'} in order to remove ${second('-',b)}. Zero pairs are worth 0, so the value is still ${N(a)}.`});
+    } else {
+      stages.push({show:'own', say:`${N(a)} take away ${second('-',b)}. There are enough ${sgnWord(sb)} counters to take away.`});
+    }
+    if(nb) stages.push({show:'cross', say:`Take away ${plural(nb,sgnWord(sb)+' counter')}.`});
+    stages.push({show:'cross', say: nr? `There ${nr===1?'is':'are'} ${plural(nr,sgnWord(sr)+' counter')} left.` : 'There are no counters left.', answer:true});
+  }
+  return {cols,stages,r};
+}
+const ORDER={top:0,own:0,bot:1,added:1,box:2,all:2,cancel:3,cross:3};
+function renderCounters(upto){
+  const {cols,stages}=CT, el=document.getElementById('ctrStage');
+  const lv=Math.max(...stages.slice(0,upto+1).map(s=>ORDER[s.show]));
+  const isAdd=Q.op==='+';
+  // fit the counters to the space available (between 20px and 48px each)
+  const avail = Math.max(200, el.clientWidth - 30);
+  const size = Math.max(24, Math.min(48, Math.floor(avail / (Math.max(cols.length,1) * 1.15 + 0.6))));
+  const showTop=true, showBot= isAdd ? lv>=1 : lv>=1;
+  const boxOn = isAdd ? lv>=2 : lv>=1;
+  const cancel = isAdd && lv>=3, cross = !isAdd && lv>=3 && stages.some((s,i)=>i<=upto&&s.show==='cross');
+  const ctr=(s,cls)=>s?`<div class="ctr ${s}${cls||''}">${s==='p'?PLUS:MINUS}</div>`:`<div class="slot"></div>`;
+  const colHTML=c=>{
+    const hasBot=cols.some(x=>x.bot);
+    if(!isAdd && c.added && !showBot) return '';
+    return `<div class="col">${ctr(c.top,(cross&&c.topX?' x':'')+(cancel&&c.box?' cancel':''))}${hasBot?((isAdd&&!showBot)||!c.bot?'<div class="slot"></div>':ctr(c.bot,(cancel&&c.box?' cancel':''))):''}</div>`;
+  };
+  let html='';
+  if(!cols.length) html='<p style="color:var(--muted)">No counters</p>';
+  else {
+    // group consecutive boxed columns
+    let i=0; html='<div class="cols">';
+    while(i<cols.length){
+      if(cols[i].box && boxOn){
+        let j=i; let inner='';
+        while(j<cols.length && cols[j].box){inner+=colHTML(cols[j]);j++;}
+        if(inner) html+=`<div class="box">${inner}</div>`;
+        i=j;
+      } else { html+=colHTML(cols[i]); i++; }
+    }
+    html+='</div>';
+  }
+  el.innerHTML=`<div class="ctr-area" style="--c:${size}px">${html}</div>`;
+  sayList('ctrSay',stages,upto);
+}
+
+/* ---------- Number line model ---------- */
+function buildLine(a,op,b,method){
+  const r= op==='+'?a+b:a-b;
+  let from,to,stages,marks;
+  if(op==='+' || method==='opp'){
+    const add = op==='+'?b:-b;
+    from=a; to=a+add;
+    stages=[];
+    if(op==='-') stages.push({say:`Subtracting ${second('-',b)} is the same as adding ${second('+',-b)}: ${qText(a,'+',-b)}.`, hops:false});
+    stages.push({say:`Start at ${N(a)}.`, hops:false});
+    stages.push({say: add===0?'Move 0 places.':`Move ${plural(Math.abs(add),'place')} in the ${add>0?'positive':'negative'} direction.`, hops:true});
+    stages.push({say:`You land at ${N(to)}.`, hops:true, answer:true});
+    marks=[{v:a,label:'start'}];
+  } else {
+    from=b; to=a;
+    const d=a-b;
+    stages=[
+      {say:`${qText(a,'-',b)} means from ${b>0?'+'+b:N(b)} to ${N(a)} on the number line.`, hops:false},
+      {say: d===0?'They are the same number, so there are no moves.':`From ${b>0?'+'+b:N(b)} move ${d>0?'right':'left'} ${plural(Math.abs(d),'unit')} to ${N(a)},`, hops:true},
+      {say: `which is ${d>0?'+'+d:N(d)} unit${Math.abs(d)===1?'':'s'}.`, hops:true, answer:true}
+    ];
+    marks=[{v:b,label:'from'},{v:a,label:'to'}];
+  }
+  return {from,to,stages,marks,r};
+}
+function renderLine(upto){
+  const {from,to,stages,marks}=NL, el=document.getElementById('nlStage');
+  const st=stages[Math.min(upto,stages.length-1)];
+  const showHops = stages.slice(0,upto+1).some(s=>s.hops);
+  let lo=Math.min(from,to,0)-1, hi=Math.max(from,to,0)+1;
+  while(hi-lo<10){hi++; if(hi-lo<10) lo--;}
+  const W=820,X0=30,X1=W-30,AY=150,H=218, ux=(X1-X0)/(hi-lo), x=v=>X0+(v-lo)*ux;
+  const fs = ux<22?14:ux<30?17:21;
+  let s=`<svg class="nl" viewBox="0 0 ${W} ${H}" role="img" aria-label="Number line">
+    <defs>
+      <marker id="ah-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--pos)"/></marker>
+      <marker id="ah-n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--neg)"/></marker>
+      <marker id="ah-ax" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink)"/></marker>
+    </defs>
+    <line class="axis" x1="${X0-18}" x2="${X1+18}" y1="${AY}" y2="${AY}" marker-start="url(#ah-ax)" marker-end="url(#ah-ax)"/>`;
+  for(let v=lo;v<=hi;v++){
+    s+=`<line class="tick" x1="${x(v)}" x2="${x(v)}" y1="${AY-8}" y2="${AY+8}"/>`;
+    s+=`<text class="lbl${v===0?' zero':''}" x="${x(v)}" y="${AY+28}" font-size="${v===0?fs+2:fs}">${N(v)}</text>`;
+  }
+  if(showHops && from!==to){
+    const dir=to>from?1:-1, n=Math.abs(to-from), c=dir>0?'p':'n';
+    const bh=Math.min(28,Math.max(20,ux*.75));
+    for(let i=0;i<n;i++){
+      const v1=from+i*dir, v2=v1+dir, xa=Math.min(x(v1),x(v2)), w=ux;
+      const peak=AY-bh-Math.max(22,ux*.7);
+      s+=`<g class="hop" style="animation-delay:${i*0.28}s">
+        <rect class="hb ${c}" x="${xa}" y="${AY-bh}" width="${w}" height="${bh}"/>
+        <text class="ht" x="${xa+w/2}" y="${AY-bh/2+fs*0.36}" font-size="${fs}" fill="${c==='p'?'#25774A':'#B53A3A'}">${dir>0?'+1':'−1'}</text>
+        <path class="arc" stroke="var(--${c==='p'?'pos':'neg'})" marker-end="url(#ah-${c})" d="M${x(v1)},${AY-bh-2} Q${(x(v1)+x(v2))/2},${peak} ${x(v2)-dir*2},${AY-bh-4}"/>
+      </g>`;
+    }
+  }
+  marks.forEach(m=>{
+    const filled = m.label!=='to';
+    s+=`<circle cx="${x(m.v)}" cy="${AY}" r="8" fill="${filled?'var(--deep)':'#fff'}" stroke="var(--deep)" stroke-width="3"/>`;
+    s+=`<text class="mark" x="${x(m.v)}" y="${AY+54}" fill="var(--deep)">${m.label}</text>`;
+  });
+  if(stages[Math.min(upto,stages.length-1)].answer){
+    s+=`<circle cx="${x(to)}" cy="${AY}" r="11" fill="var(--sand)" stroke="var(--deep)" stroke-width="2.5"/>`;
+  }
+  s+='</svg>';
+  el.innerHTML=s;
+  sayList('nlSay',stages,upto);
+}
+
+/* ---------- Narration ---------- */
+function sayList(id,stages,upto){
+  const n=Math.min(upto,stages.length-1);
+  const r = Q.op==='+'?Q.a+Q.b:Q.a-Q.b;
+  document.getElementById(id).innerHTML = stages.slice(0,n+1).map((s,i)=>`<li class="${i===n?'now':''}">${s.say}</li>`).join('') +
+    (stages[n].answer?`<li class="answer">Answer: ${qText(Q.a,Q.op,Q.b)} = ${N(r)}</li>`:'');
+}
+
+/* ---------- Driver ---------- */
+const maxStep=()=>Math.max(CT.stages.length,NL.stages.length)-1;
+function render(){
+  const r=Q.op==='+'?Q.a+Q.b:Q.a-Q.b, done=step>=maxStep();
+  document.getElementById('question').innerHTML=`${qText(Q.a,Q.op,Q.b)} = ${done?`<span class="ans">${N(r)}</span>`:'?'}`;
+  renderCounters(Math.min(step,CT.stages.length-1));
+  renderLine(Math.min(step,NL.stages.length-1));
+  document.getElementById('stepCount').textContent=`Step ${step+1} of ${maxStep()+1}`;
+  document.getElementById('back').disabled=step===0;
+  document.getElementById('next').disabled=done;
+  document.getElementById('all').disabled=done;
+}
+function load(a,op,b){
+  Q={a,op,b}; step=0;
+  CT=buildCounters(a,op,b); NL=buildLine(a,op,b,subMethod);
+  document.getElementById('inA').value=a; document.getElementById('inOp').value=op; document.getElementById('inB').value=b;
+  document.getElementById('nlOpts').style.visibility = op==='-'?'visible':'hidden';
+  render();
+}
+
+/* Inputs */
+const parse=s=>{s=String(s).trim().replace(/[−–]/g,'-').replace(/^\+/,'').replace(/[()]/g,'');return /^-?\d{1,2}$/.test(s)?+s:null;};
+document.getElementById('go').onclick=()=>{
+  const a=parse(document.getElementById('inA').value), b=parse(document.getElementById('inB').value), op=document.getElementById('inOp').value, err=document.getElementById('err');
+  if(a===null||b===null||Math.abs(a)>10||Math.abs(b)>10){err.textContent='Use whole numbers from −10 to 10.';return;}
+  err.textContent=''; load(a,op,b);
+};
+['inA','inB'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('go').click();}}));
+
+document.getElementById('rand').onclick=()=>{
+  const M=+document.getElementById('size').value; let k=document.getElementById('kind').value;
+  if(k==='mix') k=pick(['addp','addn','subp','subn']);
+  const nz=(lo,hi)=>{let v;do{v=rnd(lo,hi);}while(v===0);return v;};
+  let a,b,op;
+  if(k==='addp'){op='+';a=nz(-M,M);b=rnd(1,M);}
+  if(k==='addn'){op='+';a=nz(-M,M);b=-rnd(1,M);}
+  if(k==='subp'){op='-';a=nz(-M,M);b=rnd(1,M);}
+  if(k==='subn'){op='-';a=nz(-M,M);b=-rnd(1,M);}
+  if(a===Q.a&&b===Q.b&&op===Q.op) return document.getElementById('rand').click();
+  document.getElementById('err').textContent='';
+  load(a,op,b);
+};
+
+document.getElementById('next').onclick=()=>{if(step<maxStep()){step++;render();}};
+document.getElementById('back').onclick=()=>{if(step>0){step--;render();}};
+document.getElementById('all').onclick=()=>{step=maxStep();render();};
+document.getElementById('reset').onclick=()=>{step=0;render();};
+document.addEventListener('keydown',e=>{
+  if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();document.getElementById('next').click();}
+  if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById('back').click();}
+});
+
+/* Show both / one */
+document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-show]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const v=b.dataset.show;
+  document.getElementById('pCtr').hidden=v==='nl'; document.getElementById('pNl').hidden=v==='ctr';
+  document.getElementById('panels').classList.toggle('one',v!=='both');
+  render();
+});
+document.querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-sub]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  subMethod=b.dataset.sub; const s=step; NL=buildLine(Q.a,Q.op,Q.b,subMethod); step=Math.min(s,maxStep()); render();
+});
+
+/* Start from a link like ...html#q=-3,-,-2  (add "embed" to the hash when shown inside the topic page) */
+function fromHash(first){
+  document.body.classList.toggle('embed',/embed/.test(location.hash));
+  const m=location.hash.match(/q=(-?\d+),([+-]),(-?\d+)/);
+  if(m) load(+m[1],m[2],+m[3]); else if(first) load(-3,'-',-2);
+}
+window.addEventListener('hashchange',()=>fromHash(false));
+fromHash(true);
+/* Tell the topic page how tall this is, so its frame fits without scrolling */
+function sendHeight(){ if(window.parent!==window){ try{ window.parent.postMessage({toolHeight:Math.ceil(document.querySelector('.wrap').getBoundingClientRect().bottom+window.scrollY)},'*'); }catch(e){} } }
+if('ResizeObserver' in window) new ResizeObserver(sendHeight).observe(document.body);
+window.addEventListener('load',sendHeight);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "s1/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>

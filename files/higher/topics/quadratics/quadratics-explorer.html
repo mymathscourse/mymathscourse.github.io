@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quadratics Explorer</title>
+<style>
+  :root {
+    --ink: #1b2430; --muted: #5b6573; --line: #d9dee5; --bg: #f6f7f9; --card: #fff;
+    --new: #14213d; --parent: #8a94a3; --pupil: #e07a00;
+    --a: #d1342b; --b: #1d6fd6; --p: #8b3fd9; --c: #13874b;
+    --tp: #c2185b; --root: #00838f; --yint: #1d6fd6; --two: #8b3fd9;
+    --good: #13874b; --warn: #b26a00; --bad: #d1342b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 12px 16px 32px; }
+  .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+  .top a { color: var(--b); text-decoration: none; font-size: 14px; }
+  h1 { font-size: 24px; margin: 4px 0 8px; }
+  h3 { font-size: 14px; margin: 0 0 6px; color: var(--muted); }
+  .ca { color: var(--a); } .cb { color: var(--b); } .cp { color: var(--p); } .cc { color: var(--c); }
+  .m, .mm { font-family: "Times New Roman", Times, serif; }
+  .muted { color: var(--muted); }
+  [hidden] { display: none !important; }
+
+  /* Level switch */
+  .lvl { display: inline-flex; border: 1px solid #b8c0cc; border-radius: 9px; overflow: hidden; }
+  .lvl button { font: inherit; font-size: 15px; padding: 7px 14px; border: 0; background: #fff; cursor: pointer; color: var(--ink); }
+  .lvl button[aria-pressed=true] { background: var(--new); color: #fff; font-weight: 600; }
+
+  /* Tabs */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px; }
+  .tabs button { font: inherit; font-size: 15px; padding: 8px 14px; border-radius: 8px 8px 0 0; border: 1px solid var(--line);
+    border-bottom: 3px solid var(--line); background: #fff; cursor: pointer; color: var(--muted); }
+  .tabs button[aria-selected=true] { color: var(--ink); font-weight: 700; border-bottom-color: var(--new); }
+  .seq { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+  /* Key cards */
+  .key { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+  .kc { background: var(--card); border: 2px solid var(--line); border-left-width: 8px; border-radius: 10px; padding: 8px 12px; }
+  .kc[data-k=a] { border-left-color: var(--a); } .kc[data-k=p] { border-left-color: var(--p); } .kc[data-k=c] { border-left-color: var(--c); }
+  .kc .h { display: flex; align-items: baseline; gap: 8px; font-weight: 700; font-size: 16px; }
+  .kc .let { font-size: 24px; font-style: italic; font-family: "Times New Roman", Times, serif; }
+  .kc .d { font-size: 14px; line-height: 1.35; margin-top: 3px; }
+
+  /* Toolbar and inputs */
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  button.btn { font: inherit; font-size: 15px; padding: 7px 13px; border-radius: 8px; border: 1px solid #b8c0cc;
+    background: #fff; cursor: pointer; color: var(--ink); }
+  button.btn:hover { background: #eef1f5; }
+  button.primary { background: var(--new); color: #fff; border-color: var(--new); }
+  button.primary:hover { background: #24345c; }
+  input.n, select.n { font: inherit; font-size: 17px; padding: 4px 6px; border: 1px solid #b8c0cc; border-radius: 6px; width: 62px; text-align: center; }
+  select.n { width: auto; text-align: left; }
+  input.n.sm { width: 50px; font-size: 15px; }
+  input.n.bad { background: #fdeceb; border-color: var(--bad); }
+  input.n.ok { background: #e6f5ec; border-color: var(--good); }
+  .eqin { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: "Times New Roman", Times, serif; font-size: 20px; }
+
+  .cols { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 1fr); gap: 12px; align-items: start; }
+  .side { display: grid; gap: 10px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .eqline { font-family: "Times New Roman", Times, serif; font-size: 24px; min-height: 36px; margin: 2px 4px 6px; }
+  .eqline .muted { font-size: 18px; }
+  svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
+  .sw { display: inline-block; width: 28px; height: 0; vertical-align: middle; margin-right: 5px; }
+
+  /* Sliders */
+  .sl { display: grid; grid-template-columns: 150px 1fr 54px; align-items: center; gap: 8px; margin: 6px 0; font-size: 15px; }
+  .sl input[type=range] { width: 100%; }
+  .sl output { font-family: "Times New Roman", Times, serif; font-size: 19px; text-align: right; }
+  .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 15px; }
+  .checks label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+
+  /* Info rows */
+  .info { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 16px; }
+  .info dt { color: var(--muted); }
+  .info dd { margin: 0; font-family: "Times New Roman", Times, serif; font-size: 18px; }
+
+  /* Steps */
+  .stepbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .stepbar button { font-size: 14px; padding: 5px 10px; }
+  .step { display: grid; grid-template-columns: 26px 1fr; gap: 6px; padding: 6px 0; border-top: 1px solid #eef0f3; }
+  .step:first-child { border-top: 0; }
+  .step .num { width: 22px; height: 22px; border-radius: 50%; background: var(--new); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; margin-top: 3px; }
+  .step .mm { font-size: 20px; line-height: 1.5; }
+  .step .why { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .step.hid .num { background: #c4cad3; }
+  .step.hid .body { color: #b0b6bf; font-size: 14px; padding-top: 4px; }
+  .badge { display: inline-block; font-family: -apple-system, "Segoe UI", sans-serif; font-size: 14px; font-weight: 700;
+    padding: 2px 9px; border-radius: 6px; color: #fff; vertical-align: 2px; }
+  .badge.two { background: var(--good); } .badge.eq { background: var(--warn); } .badge.none { background: var(--bad); }
+
+  /* Fractions, surds */
+  .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .78em; line-height: 1.12; margin: 0 2px; }
+  .fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
+  .fr.big { font-size: 1em; }
+  .ov { border-top: 1.5px solid currentColor; padding: 0 2px; }
+
+  /* Forms cards */
+  .forms { display: grid; gap: 8px; }
+  .form { border: 1px solid var(--line); border-left-width: 6px; border-radius: 8px; padding: 6px 10px; }
+  .form .t { font-size: 13px; color: var(--muted); }
+  .form .mm { font-size: 20px; }
+  .form .g { font-size: 14px; }
+
+  #exFb, #fkNow { font-size: 15px; font-weight: 600; }
+  .hint { font-size: 13px; color: var(--muted); }
+  .warn { color: var(--bad); font-size: 14px; }
+
+  svg .gl { stroke: #e9ecf0; stroke-width: 1; }
+  svg .ax { stroke: #5b6573; stroke-width: 1.6; }
+  svg .tk { font-size: 14px; fill: #5b6573; font-family: -apple-system, "Segoe UI", sans-serif; }
+  svg .axl { font: italic 19px "Times New Roman", Times, serif; fill: #5b6573; }
+  svg .lab { font-size: 16px; font-weight: 700; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round;
+    font-family: -apple-system, "Segoe UI", sans-serif; }
+
+  @media (max-width: 920px) { .cols { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .key { grid-template-columns: 1fr; } .sl { grid-template-columns: 110px 1fr 48px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a id="back" href="../../index.html#quadratics">← Back to hub</a>
+    <div class="lvl" role="group" aria-label="Level">
+      <button data-lvl="n5" aria-pressed="false">National 5</button><button data-lvl="higher" aria-pressed="true">Higher</button>
+    </div>
+  </div>
+  <h1>Quadratics explorer</h1>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="explore" data-name="Graph explorer"></button>
+    <button role="tab" data-tab="square" data-name="Completing the square"></button>
+    <button role="tab" data-tab="roots" data-name="Roots and the discriminant"></button>
+    <button role="tab" data-tab="findk" data-name="Find k"></button>
+    <button role="tab" data-tab="ineq" data-name="Inequalities" class="hi"></button>
+    <button role="tab" data-tab="line" data-name="Line and curve"></button>
+  </nav>
+  <p class="seq" id="seq"></p>
+
+  <!-- 1 Graph explorer -->
+  <section class="pane" id="p-explore">
+    <div class="key" id="exKey"></div>
+    <div class="bar">
+      <button class="btn primary" id="exNew">New graph to identify (N)</button>
+      <button class="btn" id="exReveal">Reveal (R)</button>
+      <button class="btn" id="exBack" hidden>Back to sliders</button>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <div class="eqline" id="exEq"></div>
+        <svg id="exG" viewBox="0 0 720 500" role="img" aria-label="Graph of the quadratic"></svg>
+        <div class="legend">
+          <span><span class="sw" style="border-top:3px dashed var(--parent)"></span>y = x²</span>
+          <span><span class="sw" style="border-top:4px solid var(--new)"></span>the quadratic</span>
+          <span id="exLegPupil" hidden><span class="sw" style="border-top:3px dotted var(--pupil)"></span>your answer</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="panel" id="exSl">
+          <div class="sl"><span id="exLa"></span><input type="range" id="exA" min="0" max="7" value="5"><output id="exAv"></output></div>
+          <div class="sl"><span id="exLh"></span><input type="range" id="exH" min="-8" max="8" value="0"><output id="exHv"></output></div>
+          <div class="sl"><span id="exLq"></span><input type="range" id="exQ" min="-10" max="10" value="0"><output id="exQv"></output></div>
+        </div>
+        <div class="panel" id="exGuess" hidden>
+          <h3>What's the equation?</h3>
+          <div class="eqin" id="exGuessIn"></div>
+          <div class="bar" style="margin:8px 0 0"><button class="btn" id="exCheck">Check</button><span id="exFb"></span></div>
+          <div class="hint">Blank boxes count as 1 for the number in front and 0 for the others.</div>
+        </div>
+        <div class="panel">
+          <h3>Show on the graph</h3>
+          <div class="checks">
+            <label><input type="checkbox" id="exShTp" checked> <span class="dot" style="background:var(--tp)"></span>Turning point</label>
+            <label><input type="checkbox" id="exShAx"> Axis of symmetry</label>
+            <label><input type="checkbox" id="exShRt"> <span class="dot" style="background:var(--root)"></span>Roots</label>
+            <label><input type="checkbox" id="exShY"> <span class="dot" style="background:var(--yint)"></span>y-intercept</label>
+            <label><input type="checkbox" id="exShP" checked> y = x²</label>
+          </div>
+        </div>
+        <div class="panel"><dl class="info" id="exInfo"></dl></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 Completing the square -->
+  <section class="pane" id="p-square" hidden>
+    <div class="bar">
+      <div class="eqin">y = <input class="n" id="sqA" value="1"><i>x</i>² + <input class="n" id="sqB" value="6"><i>x</i> + <input class="n" id="sqC" value="5"></div>
+      <button class="btn primary" id="sqNew">New example (N)</button>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <svg id="sqG" viewBox="0 0 720 500" role="img" aria-label="Graph of the quadratic"></svg>
+        <div class="legend">
+          <span><span class="dot" style="background:var(--yint)"></span>y-intercept</span>
+          <span><span class="dot" style="background:var(--tp)"></span>turning point</span>
+          <span><span class="dot" style="background:var(--root)"></span>roots</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="panel"><div id="sqSteps"></div></div>
+        <div class="panel"><h3>Three forms, three facts</h3><div class="forms" id="sqForms"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Roots and the discriminant -->
+  <section class="pane" id="p-roots" hidden>
+    <div class="bar">
+      <div class="eqin"><input class="n" id="rtA" value="2"><i>x</i>² + <input class="n" id="rtB" value="-5"><i>x</i> + <input class="n" id="rtC" value="-3"> = 0</div>
+      <button class="btn primary" id="rtNew">New example (N)</button>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <svg id="rtG" viewBox="0 0 720 500" role="img" aria-label="Graph of the quadratic"></svg>
+        <div class="sl" style="grid-template-columns:200px 1fr 54px"><span>Move up or down (<i>c</i>)</span><input type="range" id="rtSl" min="-20" max="20" step="1"><output id="rtSlv"></output></div>
+        <div class="hint">Slide c and watch b² − 4ac change sign as the graph lifts off the x-axis.</div>
+      </div>
+      <div class="side">
+        <div class="panel"><div id="rtSteps"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 Find k -->
+  <section class="pane" id="p-findk" hidden>
+    <div class="bar">
+      <label class="hint" for="fkPre">Example</label>
+      <select class="n" id="fkPre"></select>
+      <label class="hint" for="fkCond">Find k so that there are</label>
+      <select class="n" id="fkCond">
+        <option value="equal">equal roots</option>
+        <option value="real">real roots</option>
+        <option value="distinct">real and distinct roots</option>
+        <option value="none">no real roots</option>
+      </select>
+    </div>
+    <details class="panel" style="margin-bottom:10px">
+      <summary class="hint" style="cursor:pointer">Edit the equation (each coefficient is a number + a number × k)</summary>
+      <div class="eqin" style="font-size:17px; margin-top:8px">
+        <i>a</i> = <input class="n sm" id="fkA0"> + <input class="n sm" id="fkA1"><i>k</i>&nbsp;&nbsp;
+        <i>b</i> = <input class="n sm" id="fkB0"> + <input class="n sm" id="fkB1"><i>k</i>&nbsp;&nbsp;
+        <i>c</i> = <input class="n sm" id="fkC0"> + <input class="n sm" id="fkC1"><i>k</i>
+      </div>
+    </details>
+    <div class="eqline" id="fkEq"></div>
+    <div class="cols">
+      <div class="panel">
+        <div class="sl" style="grid-template-columns:60px 1fr 64px"><span class="m" style="font-size:20px"><i>k</i> =</span><input type="range" id="fkK" min="-12" max="12" step="0.05" value="0"><output id="fkKv"></output></div>
+        <div class="bar" style="margin:0 0 4px"><button class="btn" id="fkJump">Jump to a value where b² − 4ac = 0</button><span id="fkNow"></span></div>
+        <svg id="fkG" viewBox="0 0 720 500" role="img" aria-label="Graph of the quadratic for the current k"></svg>
+      </div>
+      <div class="side">
+        <div class="panel"><div id="fkSteps"></div></div>
+        <div class="panel">
+          <h3>b² − 4ac against k</h3>
+          <svg id="fkD" viewBox="0 0 720 380" role="img" aria-label="Graph of the discriminant against k"></svg>
+          <div class="hint">The dot is the current k. The green part of the k-axis (shown with the answer) is where the condition holds.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Inequalities (Higher) -->
+  <section class="pane" id="p-ineq" hidden>
+    <div class="bar">
+      <div class="eqin"><input class="n" id="inA" value="1"><i>x</i>² + <input class="n" id="inB" value="-2"><i>x</i> + <input class="n" id="inC" value="-8">
+        <select class="n" id="inS"><option value="gt">&gt;</option><option value="ge">≥</option><option value="lt">&lt;</option><option value="le">≤</option></select> 0</div>
+      <button class="btn primary" id="inNew">New example (N)</button>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <svg id="inG" viewBox="0 0 720 500" role="img" aria-label="Graph for the inequality"></svg>
+        <div class="legend">
+          <span><span class="sw" style="border-top:6px solid var(--good)"></span>where the inequality is true</span>
+          <span><span class="dot" style="background:#fff;border:2.5px solid var(--good)"></span>not included</span>
+          <span><span class="dot" style="background:var(--good)"></span>included</span>
+        </div>
+      </div>
+      <div class="side"><div class="panel"><div id="inSteps"></div></div></div>
+    </div>
+  </section>
+
+  <!-- 6 Line and curve -->
+  <section class="pane" id="p-line" hidden>
+    <div class="bar">
+      <div class="eqin">Curve: y = <input class="n" id="lnA" value="1"><i>x</i>² + <input class="n" id="lnB" value="-2"><i>x</i> + <input class="n" id="lnC" value="-3"></div>
+      <button class="btn primary" id="lnNew">New example (N)</button>
+      <button class="btn" id="lnTan">Make it a tangent</button>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <svg id="lnG" viewBox="0 0 720 500" role="img" aria-label="Graph of the curve and line"></svg>
+        <div class="legend">
+          <span><span class="sw" style="border-top:4px solid var(--new)"></span>curve</span>
+          <span><span class="sw" style="border-top:4px solid var(--two)"></span><span id="lnLegT">line</span></span>
+          <span><span class="dot" style="background:var(--tp)"></span>where they meet</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="panel">
+          <div class="eqin" style="font-size:18px; margin-bottom:6px"><span id="lnTitle2">Line:</span> y =
+            <span class="hi"><input class="n sm" id="lnE" value="0"><i>x</i>² +</span>
+            <input class="n sm" id="lnM" value="1"><i>x</i> + <input class="n sm" id="lnD" value="1"></div>
+          <div class="sl" style="grid-template-columns:110px 1fr"><span>Gradient <i>m</i></span><input type="range" id="lnMs" min="-10" max="10" step="0.5"></div>
+          <div class="sl" style="grid-template-columns:110px 1fr"><span>Up/down <i>d</i></span><input type="range" id="lnDs" min="-20" max="20" step="0.5"></div>
+          <div class="hint hi">Set the x² box to something other than 0 to make the second graph a parabola.</div>
+        </div>
+        <div class="panel"><div id="lnSteps"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const M = "−", X_ = "<i>x</i>", K_ = "<i>k</i>";
+
+/* ---------- exact fractions ---------- */
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a; }
+class F {
+  constructor(n, d = 1) { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d) || 1; this.n = n / g; this.d = d / g; }
+  static of(x) { if (x instanceof F) return x; if (Number.isInteger(x)) return new F(x); return new F(Math.round(x * 10000), 10000); }
+  add(o) { o = F.of(o); return new F(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { return this.add(F.of(o).neg()); }
+  mul(o) { o = F.of(o); return new F(this.n * o.n, this.d * o.d); }
+  div(o) { o = F.of(o); return new F(this.n * o.d, this.d * o.n); }
+  neg() { return new F(-this.n, this.d); }
+  abs() { return new F(Math.abs(this.n), this.d); }
+  sq() { return this.mul(this); }
+  get v() { return this.n / this.d; }
+  get s() { return Math.sign(this.n); }
+  isInt() { return this.d === 1; }
+  is(k) { return this.n === k * this.d; }
+  eq(o) { o = F.of(o); return this.n === o.n && this.d === o.d; }
+  toString() { return this.d === 1 ? String(this.n) : this.n + "/" + this.d; }
+}
+function parseF(str) {
+  str = String(str).trim().replace(/[−–]/g, "-").replace(/\s+/g, "");
+  let m = str.match(/^([+-]?\d+)\/(\d+)$/);
+  if (m) return +m[2] === 0 ? null : new F(+m[1], +m[2]);
+  if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(str)) return F.of(parseFloat(str));
+  return null;
+}
+function sqrtF(f) {
+  if (f.s < 0) return null;
+  const n = Math.round(Math.sqrt(f.n)), d = Math.round(Math.sqrt(f.d));
+  return n * n === f.n && d * d === f.d ? new F(n, d) : null;
+}
+
+/* ---------- formatting ---------- */
+const int = n => String(n).replace("-", M);
+function dec(x, dp = 2) {
+  if (Math.abs(x - Math.round(x)) < 1e-9) return int(Math.round(x));
+  return x.toFixed(dp).replace("-", M);
+}
+function fr(f) {
+  f = F.of(f);
+  const a = f.abs(), body = a.isInt() ? String(a.n) : `<span class="fr"><span>${a.n}</span><span>${a.d}</span></span>`;
+  return (f.s < 0 ? M : "") + body;
+}
+const frAbs = f => fr(F.of(f).abs());
+const signed = f => (F.of(f).s < 0 ? ` ${M} ` : " + ") + frAbs(f);         // " + 3" or " − 3"
+const signedOpt = f => F.of(f).s === 0 ? "" : signed(f);
+const par = f => { f = F.of(f); return f.s < 0 || !f.isInt() ? `(${fr(f)})` : fr(f); };
+// value that may be exact (F) or a decimal (number)
+const val = v => v instanceof F ? (v.d <= 100 ? fr(v) : dec(v.v)) : dec(v);
+const num = v => v instanceof F ? v.v : v;
+const pt = (x, y) => `(${val(x)}, ${val(y)})`;
+const bigfr = (t, b) => `<span class="fr big"><span>${t}</span><span>${b}</span></span>`;
+
+// coefficients high power → low, e.g. [a, b, c]
+function polyHTML(cs, v = X_) {
+  let s = "", first = true;
+  cs.forEach((c, i) => {
+    c = F.of(c); if (c.s === 0) return;
+    const p = cs.length - 1 - i, vv = p === 0 ? "" : p === 1 ? v : v + "²";
+    const coef = p > 0 && c.abs().is(1) ? "" : frAbs(c);
+    s += first ? (c.s < 0 ? M : "") : (c.s < 0 ? ` ${M} ` : " + ");
+    s += coef + vv; first = false;
+  });
+  return first ? "0" : s;
+}
+const aPref = a => a.is(1) ? "" : a.is(-1) ? M : fr(a);
+// a(x − h)² + q, optionally colour-coded
+function vertexHTML(a, h, q, col, v = X_) {
+  const c = (k, s) => col ? `<b class="c${k}">${s}</b>` : s;
+  let s = c("a", aPref(a));
+  s += h.s === 0 ? v + "²" : `(${v} ${h.s > 0 ? M : "+"} ${c("p", frAbs(h))})²`;
+  if (q.s !== 0) s += ` ${q.s < 0 ? M : "+"} ${c("c", frAbs(q))}`;
+  return s;
+}
+// factorised form, or null when the roots aren't rational
+function factorHTML(a, b, c, v = X_) {
+  const D = b.sq().sub(a.mul(c).mul(4)), s = D.s >= 0 && sqrtF(D);
+  if (!s) return null;
+  const r1 = b.neg().sub(s).div(a.mul(2)), r2 = b.neg().add(s).div(a.mul(2));
+  let br = r => r.s === 0 ? v : `(${r.d === 1 ? "" : r.d}${v} ${r.s > 0 ? M : "+"} ${Math.abs(r.n)})`;
+  let k = a.div(r1.d * r2.d), pre = aPref(k);
+  if (!k.isInt()) { pre = aPref(a); br = r => r.s === 0 ? v : `(${v} ${r.s > 0 ? M : "+"} ${frAbs(r)})`; }  // e.g. (x − 3/2)², not ¼(2x − 3)²
+  if (r1.eq(r2)) return pre + (r1.s === 0 ? v + "²" : br(r1) + "²");
+  let [p1, p2] = [br(r1), br(r2)];
+  if (r2.s === 0) [p1, p2] = [p2, p1];
+  return pre + p1 + p2;
+}
+// x = (p ± k√N)/den in lowest terms; integer coefficients only
+function surdHTML(a, b, D, v = X_) {
+  if (!(a.isInt() && b.isInt() && D.isInt()) || D.n <= 0) return null;
+  let N = D.n, k = 1;
+  for (let i = 2; i * i <= N; i++) while (N % (i * i) === 0) { N /= i * i; k *= i; }
+  if (N === 1) return null;
+  let p = -b.n, den = 2 * a.n;
+  const g = gcd(gcd(p, k), den) || 1; p /= g; k /= g; den /= g;
+  if (den < 0) { den = -den; p = -p; }
+  const sur = (k === 1 ? "" : k) + `√${N}`, top = p === 0 ? "±" + sur : `${int(p)} ± ${sur}`;
+  return `${v} = ` + (den === 1 ? top : bigfr(top, den));
+}
+function solveQ(a, b, c) {
+  const D = b.sq().sub(a.mul(c).mul(4));
+  if (D.s < 0) return { D, roots: [] };
+  const s = sqrtF(D);
+  if (s) {
+    const r = [b.neg().sub(s).div(a.mul(2)), b.neg().add(s).div(a.mul(2))].sort((u, w) => u.v - w.v);
+    return { D, roots: D.s === 0 ? [r[0]] : r, exact: true };
+  }
+  const sv = Math.sqrt(D.v);
+  return { D, roots: [(-b.v - sv) / (2 * a.v), (-b.v + sv) / (2 * a.v)].sort((u, w) => u - w), exact: false };
+}
+const nature = D => D.s > 0 ? ["two", "two real and distinct roots"] : D.s === 0 ? ["eq", "equal roots"] : ["none", "no real roots"];
+const badge = D => { const [c, t] = nature(D); return `<span class="badge ${c}">${t}</span>`; };
+const rootsList = (rs, v = "<i>x</i>") => rs.map(r => `${v} = ${val(r)}`).join(" or ");
+function discWorking(a, b, c) {
+  const D = b.sq().sub(a.mul(c).mul(4)), m4ac = a.mul(c).mul(-4);
+  return `<i>b</i>² ${M} 4<i>ac</i> = ${par(b)}² ${M} 4 × ${par(a)} × ${par(c)}<br>= ${fr(b.sq())}${signed(m4ac)} = <b>${fr(D)}</b>`;
+}
+
+/* ---------- random ---------- */
+const ri = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const nz = (lo, hi) => { let n; do n = ri(lo, hi); while (n === 0); return n; };
+
+/* ---------- graphs ---------- */
+function niceStep(raw) {
+  const p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p;
+}
+const tick = x => int(+x.toFixed(6));
+function plot(svg, win, draw, opt = {}) {
+  const [, , W, H] = svg.getAttribute("viewBox").split(" ").map(Number), L = 6, R = 6, T = 6, B = 6;
+  const sx = (W - L - R) / (win.x1 - win.x0), sy = (H - T - B) / (win.y1 - win.y0);
+  const X = x => L + (x - win.x0) * sx, Y = y => T + (win.y1 - y) * sy;
+  const inside = (x, y) => x >= win.x0 && x <= win.x1 && y >= win.y0 && y <= win.y1;
+  const cid = svg.id + "-clip", o = [], top = [];
+  o.push(`<defs><clipPath id="${cid}"><rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}"/></clipPath></defs>`);
+  o.push(`<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="#fff"/>`);
+  const steps = span => { const g = niceStep(span / 22); return [g, span / g > 12 ? 2 * g : g]; };
+  const [gx, lx] = steps(win.x1 - win.x0), [gy, ly] = steps(win.y1 - win.y0);
+  for (let i = Math.ceil(win.x0 / gx); i * gx <= win.x1 + 1e-9; i++) o.push(`<line class="gl" x1="${X(i * gx)}" x2="${X(i * gx)}" y1="${T}" y2="${H - B}"/>`);
+  for (let i = Math.ceil(win.y0 / gy); i * gy <= win.y1 + 1e-9; i++) o.push(`<line class="gl" x1="${L}" x2="${W - R}" y1="${Y(i * gy)}" y2="${Y(i * gy)}"/>`);
+  const ay = Math.min(Math.max(Y(0), T), H - B), ax = Math.min(Math.max(X(0), L), W - R);
+  o.push(`<line class="ax" x1="${L}" x2="${W - R}" y1="${ay}" y2="${ay}"/><line class="ax" x1="${ax}" x2="${ax}" y1="${T}" y2="${H - B}"/>`);
+  const tyOff = ay + 19 > H - B ? -7 : 19;
+  for (let i = Math.ceil(win.x0 / lx); i * lx <= win.x1 + 1e-9; i++) {
+    const x = i * lx; if (Math.abs(x) < 1e-9 || X(x) < L + 12 || X(x) > W - R - 22) continue;
+    o.push(`<text class="tk" x="${X(x)}" y="${ay + tyOff}" text-anchor="middle">${tick(x)}</text>`);
+  }
+  const left = ax > L + 40;
+  for (let i = Math.ceil(win.y0 / ly); i * ly <= win.y1 + 1e-9; i++) {
+    const y = i * ly; if (Math.abs(y) < 1e-9 || Y(y) < T + 22 || Y(y) > H - B - 8) continue;
+    o.push(`<text class="tk" x="${left ? ax - 6 : ax + 6}" y="${Y(y) + 5}" text-anchor="${left ? "end" : "start"}">${tick(y)}</text>`);
+  }
+  o.push(`<text class="axl" x="${W - R - 6}" y="${ay - 8}" text-anchor="end">${opt.xl || "x"}</text>`);
+  o.push(`<text class="axl" x="${ax + 8}" y="${T + 18}">${opt.yl || "y"}</text>`);
+  const P = {
+    X, Y, win,
+    curve(f, style, keep) {
+      let d = "", pen = false; const n = 600;
+      for (let i = 0; i <= n; i++) {
+        const x = win.x0 + (win.x1 - win.x0) * i / n, y = f(x);
+        if (!Number.isFinite(y) || (keep && !keep(x, y))) { pen = false; continue; }
+        const yy = Math.max(-3000, Math.min(3000, Y(y)));
+        d += (pen ? "L" : "M") + X(x).toFixed(1) + " " + yy.toFixed(1) + " "; pen = true;
+      }
+      o.push(`<path d="${d}" fill="none" stroke-linejoin="round" clip-path="url(#${cid})" ${style}/>`);
+    },
+    vline(x, colour, label) {
+      if (x < win.x0 || x > win.x1) return;
+      o.push(`<line x1="${X(x)}" x2="${X(x)}" y1="${T}" y2="${H - B}" stroke="${colour}" stroke-width="2" stroke-dasharray="7 6"/>`);
+      if (label) top.push(`<text class="lab" x="${X(x) + 6}" y="${T + 20}" fill="${colour}">${label}</text>`);
+    },
+    point(x, y, colour, label, hollow) {
+      if (!inside(x, y)) return;
+      top.push(`<circle cx="${X(x)}" cy="${Y(y)}" r="7" fill="${hollow ? "#fff" : colour}" stroke="${hollow ? colour : "#fff"}" stroke-width="${hollow ? 3 : 2}"/>`);
+      if (!label) return;
+      const right = X(x) < W - 170, up = Y(y) > T + 34;
+      top.push(`<text class="lab" x="${X(x) + (right ? 11 : -11)}" y="${Y(y) + (up ? -11 : 24)}" text-anchor="${right ? "start" : "end"}" fill="${colour}">${label}</text>`);
+    },
+    axisSeg(xa, xb, colour) {
+      const a = Math.max(xa, win.x0), b = Math.min(xb, win.x1); if (a > b) return;
+      o.push(`<line x1="${X(a)}" x2="${X(b)}" y1="${Y(0)}" y2="${Y(0)}" stroke="${colour}" stroke-width="9" stroke-linecap="${a === b ? "round" : "butt"}" opacity=".85"/>`);
+    },
+    note(text, colour) { top.push(`<text class="lab" x="${W - R - 10}" y="${H - B - 14}" text-anchor="end" fill="${colour}">${text}</text>`); },
+  };
+  draw(P);
+  svg.innerHTML = o.join("") + top.join("");
+}
+// a window that shows the interesting points of a parabola (and any extra points)
+function autoWin(pts, minSpan = 10) {
+  const xs = [0, ...pts.map(p => p[0])].filter(Number.isFinite), ys = [0, ...pts.map(p => p[1])].filter(Number.isFinite);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const px = Math.max((x1 - x0) * .2, 1.5), py = Math.max((y1 - y0) * .15, 1.5);
+  x0 -= px; x1 += px; y0 -= py; y1 += py;
+  if (x1 - x0 < minSpan) { const m = (x0 + x1) / 2; x0 = m - minSpan / 2; x1 = m + minSpan / 2; }
+  if (y1 - y0 < minSpan) { const m = (y0 + y1) / 2; y0 = m - minSpan / 2; y1 = m + minSpan / 2; }
+  return { x0: Math.floor(x0), x1: Math.ceil(x1), y0: Math.floor(y0), y1: Math.ceil(y1) };
+}
+function quadPts(a, b, c) {
+  const f = x => a.v * x * x + b.v * x + c.v, h = -b.v / (2 * a.v);
+  const roots = solveQ(a, b, c).roots.map(num);
+  // reach far enough past the roots that the arms clearly carry on
+  const w = Math.max(3, ...roots.map(r => Math.abs(r - h) + 1.5));
+  const pts = [[h, f(h)], [0, c.v], [h - w, f(h - w)], [h + w, f(h + w)]];
+  roots.forEach(r => pts.push([r, 0]));
+  return pts;
+}
+
+/* ---------- step-by-step working ---------- */
+class Steps {
+  constructor(el, onChange) {
+    this.n = 0; this.lines = []; this.onChange = onChange;
+    el.innerHTML = `<div class="stepbar"><button class="btn primary">Next step (W)</button><button class="btn">Show all</button><button class="btn">Hide all</button></div><div></div>`;
+    const [next, all, none] = el.querySelectorAll("button");
+    this.list = el.lastElementChild;
+    next.onclick = () => this.next();
+    all.onclick = () => { this.n = this.lines.length; this.changed(); };
+    none.onclick = () => { this.n = 0; this.changed(); };
+  }
+  next() { if (this.n < this.lines.length) { this.n++; this.changed(); } }
+  reset() { this.n = 0; }
+  get done() { return this.n >= this.lines.length; }
+  changed() { this.onChange(); }
+  set(lines) {
+    this.lines = lines; this.n = Math.min(this.n, lines.length);
+    this.list.innerHTML = lines.map((l, i) => i < this.n
+      ? `<div class="step"><span class="num">${i + 1}</span><div class="body"><div class="mm">${l.m}</div>${l.why ? `<div class="why">${l.why}</div>` : ""}</div></div>`
+      : `<div class="step hid"><span class="num">${i + 1}</span><div class="body">${l.title || "…"}</div></div>`).join("");
+  }
+}
+
+function getF(sel, quiet) {
+  const el = $(sel), f = parseF(el.value);
+  el.classList.toggle("bad", !f && !quiet);
+  return f;
+}
+const setF = (sel, f) => { $(sel).value = F.of(f).toString(); $(sel).classList.remove("bad"); };
+
+/* ---------- level and tabs ---------- */
+const params = new URLSearchParams(location.search);
+let level = params.get("level") === "n5" ? "n5" : "higher";
+const hub = (params.get("hub") || params.get("level")) === "n5" ? "n5" : "higher";
+$("#back").href = hub === "n5" ? "../../../Nat%205/index.html#quadratic-functions" : "../../index.html#quadratics";
+let active = "explore";
+
+const SEQ = {
+  explore: { n5: "Quadratic functions steps 1.1–2.2 and 3.1: shape, finding k, reading the turning point, sketching.", higher: "Steps 2.3 and 2.5: turning point from the completed square, maximum turning points. Also a Nat 5 recap." },
+  square: { n5: "Quadratic functions step 4.1: completing the square.", higher: "Steps 2.1–2.5: completing the square with a = 1 (even and odd x coefficient), a ≠ 1 and a negative x² term." },
+  roots: { n5: "Quadratic equations steps 2.1, 3.1 and 4.1 (roots from a graph, the formula, nature of the roots); quadratic functions 3.2.", higher: "Steps 3.1–3.2: the discriminant and the nature of the roots." },
+  findk: { n5: "Quadratic equations step 4.2: finding an unknown.", higher: "Steps 4.1–4.5: equal roots, real roots, no real roots, roots real for all k." },
+  ineq: { n5: "", higher: "Steps 1.1–1.4: quadratic inequalities." },
+  line: { n5: "Quadratic functions step 5.2: where a line meets a curve.", higher: "Steps 5.1–5.4: tangents, points of contact, intersecting parabolas." },
+};
+const TABS = {};
+
+function showTab(id) {
+  active = id;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === id));
+  document.querySelectorAll(".pane").forEach(p => p.hidden = p.id !== "p-" + id);
+  $("#seq").textContent = (level === "n5" ? "Nat 5 teacher sequence: " : "Higher teacher sequence: ") + SEQ[id][level];
+  TABS[id].render();
+}
+function setLevel(l) {
+  level = l;
+  document.querySelectorAll(".lvl button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lvl === l));
+  document.querySelectorAll(".hi").forEach(e => e.hidden = l === "n5");
+  let i = 0;
+  document.querySelectorAll(".tabs button").forEach(b => { if (!b.hidden) b.textContent = `${++i} ${b.dataset.name}`; });
+  const u = new URL(location.href); u.searchParams.set("level", l); u.searchParams.set("hub", hub);
+  history.replaceState(null, "", u);
+  Object.values(TABS).forEach(t => t.level && t.level());
+  showTab(l === "n5" && active === "ineq" ? "explore" : active);
+}
+
+/* =========================================================
+   1  Graph explorer
+   ========================================================= */
+const A_LIST = [-3, -2, -1, new F(-1, 2), new F(1, 2), 1, 2, 3].map(F.of);
+const EX = { guess: false, revealed: false, t: null, pupil: null };
+const exCards = {
+  n5: [
+    { k: "a", let: "k", h: "Stretches and flips", d: "The number in front. Bigger k makes the graph narrower. A negative k flips it to a ∩ with a <b>maximum</b> turning point. For y = kx², put a point on the graph into the equation to find k." },
+    { k: "p", let: "a", h: "Slides left or right", d: "In (x − a)² the turning point is at x = a. (x − 3)² moves the graph <b>right</b> 3 and (x + 3)² moves it <b>left</b> 3. The sign looks the wrong way round!" },
+    { k: "c", let: "b", h: "Moves up or down", d: "+ b moves the graph up b. The turning point of y = (x − a)² + b is <b>(a, b)</b>." },
+  ],
+  higher: [
+    { k: "a", let: "a", h: "Stretches and flips", d: "a > 0: ∪ shape with a <b>minimum</b>. a < 0: ∩ shape with a <b>maximum</b>. Bigger a (ignoring the sign) is narrower." },
+    { k: "p", let: "p", h: "Slides left or right", d: "(x + p)² moves the graph <b>left</b> p, so the turning point is at x = −p. The axis of symmetry is x = −p." },
+    { k: "c", let: "q", h: "Moves up or down", d: "+ q moves the graph up q. The turning point of y = a(x + p)² + q is <b>(−p, q)</b>." },
+  ],
+};
+function exLevel() {
+  $("#exKey").innerHTML = exCards[level].map(c => `<div class="kc" data-k="${c.k}"><div class="h"><span class="let c${c.k === "a" ? "a" : c.k}">${c.let}</span>${c.h}</div><div class="d">${c.d}</div></div>`).join("");
+  const [k, a, b] = exCards[level].map(c => c.let);
+  $("#exLa").innerHTML = `<b class="ca">${k}</b> number in front`;
+  $("#exLh").innerHTML = `Left / right`;
+  $("#exLq").innerHTML = `<b class="cc">${b}</b> up / down`;
+  $("#exGuessIn").innerHTML = level === "n5"
+    ? `y = <input class="n" id="gA" placeholder="k" style="border:2px solid var(--a)">(<i>x</i> − <input class="n" id="gH" placeholder="a" style="border:2px solid var(--p)">)² + <input class="n" id="gQ" placeholder="b" style="border:2px solid var(--c)">`
+    : `y = <input class="n" id="gA" placeholder="a" style="border:2px solid var(--a)">(<i>x</i> + <input class="n" id="gH" placeholder="p" style="border:2px solid var(--p)">)² + <input class="n" id="gQ" placeholder="q" style="border:2px solid var(--c)">`;
+  document.querySelectorAll("#exGuessIn input").forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") exCheck(); }));
+  EX.pupil = null; $("#exFb").textContent = "";
+}
+function exCur() {
+  return EX.guess ? EX.t : { a: A_LIST[+$("#exA").value], h: new F(+$("#exH").value), q: new F(+$("#exQ").value) };
+}
+function exRender() {
+  const { a, h, q } = exCur(), hide = EX.guess && !EX.revealed;
+  $("#exAv").innerHTML = fr(A_LIST[+$("#exA").value]);
+  $("#exHv").innerHTML = int(+$("#exH").value) === "0" ? "0" : (+$("#exH").value > 0 ? "→ " : "← ") + Math.abs(+$("#exH").value);
+  $("#exQv").innerHTML = int(+$("#exQ").value);
+  $("#exSl").hidden = EX.guess; $("#exGuess").hidden = !EX.guess; $("#exBack").hidden = !EX.guess;
+  $("#exReveal").disabled = !EX.guess;
+  const b = a.mul(h).mul(-2), c = a.mul(h.sq()).add(q);
+  $("#exEq").innerHTML = hide ? "y = ?" : `y = ${vertexHTML(a, h, q, true)}` + (h.s ? ` <span class="muted">&nbsp;= ${polyHTML([a, b, c])}</span>` : "");
+  const r2 = q.neg().div(a);
+  let roots = [];
+  if (r2.s >= 0) { const s = sqrtF(r2); roots = s ? (s.s === 0 ? [h] : [h.sub(s), h.add(s)]) : [h.v - Math.sqrt(r2.v), h.v + Math.sqrt(r2.v)]; }
+  const tpKind = a.s > 0 ? "minimum" : "maximum";
+  $("#exInfo").innerHTML = hide ? `<dt>Hidden</dt><dd class="muted" style="font-family:inherit;font-size:15px">Work out the equation, then Check or Reveal.</dd>` : `
+    <dt>Shape</dt><dd>${a.s > 0 ? "∪" : "∩"} <span class="muted" style="font-size:15px">(${a.s > 0 ? "positive" : "negative"} x² term)</span></dd>
+    <dt>Turning point</dt><dd>${pt(h, q)} <span class="muted" style="font-size:15px">${tpKind}</span></dd>
+    <dt>Axis of symmetry</dt><dd><i>x</i> = ${val(h)}</dd>
+    <dt>y-intercept</dt><dd>${pt(0, c)}</dd>
+    <dt>Roots</dt><dd>${roots.length ? rootsList(roots) + (roots.length === 1 ? ' <span class="muted" style="font-size:15px">(touches)</span>' : "") : '<span class="muted" style="font-size:15px">none: the graph doesn\'t cross the x-axis</span>'}</dd>`;
+  const f = x => a.v * (x - h.v) ** 2 + q.v;
+  $("#exLegPupil").hidden = !EX.pupil;
+  plot($("#exG"), { x0: -10, x1: 10, y0: -12, y1: 12 }, P => {
+    if ($("#exShP").checked) P.curve(x => x * x, 'stroke="var(--parent)" stroke-width="2.5" stroke-dasharray="9 6"');
+    if ($("#exShAx").checked && !hide) P.vline(h.v, "#6b7480", `x = ${tick(h.v)}`);
+    P.curve(f, 'stroke="var(--new)" stroke-width="4"');
+    if (EX.pupil) { const u = EX.pupil; P.curve(x => u.a.v * (x - u.h.v) ** 2 + u.q.v, 'stroke="var(--pupil)" stroke-width="4" stroke-dasharray="2 8" stroke-linecap="round"'); }
+    if ($("#exShRt").checked && !hide) roots.forEach(r => P.point(num(r), 0, "var(--root)", `(${val(r)}, 0)`));
+    if ($("#exShY").checked && !hide) P.point(0, c.v, "var(--yint)", pt(0, c));
+    if (EX.guess && EX.t.mark) P.point(EX.t.mark[0], EX.t.mark[1].v, "var(--ink)", pt(EX.t.mark[0], EX.t.mark[1]));
+    if ($("#exShTp").checked) P.point(h.v, q.v, "var(--tp)", hide ? "" : pt(h, q));
+  });
+}
+function exNew() {
+  let a, h, q;
+  if (level === "n5" && Math.random() < .4) { a = pick(A_LIST.filter(x => !x.abs().is(1))); h = new F(0); q = new F(0); }
+  else if (level === "n5") { a = F.of(pick([1, 1, -1])); h = new F(ri(-6, 6)); q = new F(ri(-8, 8)); }
+  else { a = pick(A_LIST); h = new F(ri(-6, 6)); q = new F(ri(-8, 8)); }
+  let mark = null;
+  if (!a.abs().is(1)) for (const dx of [2, 1, -2, -1, 3]) {
+    const y = a.mul(dx * dx).add(q), x = h.v + dx;
+    if (y.isInt() && Math.abs(y.v) <= 11 && Math.abs(x) <= 9 && dx * dx * Math.abs(a.v) >= 1) { mark = [x, y]; break; }
+  }
+  EX.t = { a, h, q, mark }; EX.guess = true; EX.revealed = false; EX.pupil = null;
+  document.querySelectorAll("#exGuessIn input").forEach(i => { i.value = ""; i.classList.remove("ok", "bad"); });
+  $("#exFb").textContent = "";
+  exRender();
+}
+function exCheck() {
+  if (!EX.guess) return;
+  const read = (id, def) => { const s = $(id).value; return s.trim() === "" ? F.of(def) : parseF(s); };
+  const a = read("#gA", 1), m = read("#gH", 0), q = read("#gQ", 0);
+  if (!a || !m || !q) { $("#exFb").textContent = "Type numbers like 2, −3 or 1/2."; return; }
+  if (a.s === 0) { $("#exFb").textContent = "The number in front can't be 0."; return; }
+  const h = level === "n5" ? m : m.neg();
+  EX.pupil = { a, h, q };
+  const marks = [["#gA", a.eq(EX.t.a)], ["#gH", h.eq(EX.t.h)], ["#gQ", q.eq(EX.t.q)]];
+  marks.forEach(([id, ok]) => { $(id).classList.toggle("ok", ok); $(id).classList.toggle("bad", !ok); });
+  const right = marks.every(m => m[1]);
+  $("#exFb").innerHTML = right ? '<span style="color:var(--good)">Correct! ✓</span>' : 'Not quite: your graph is the orange dotted one.';
+  exRender();
+}
+TABS.explore = {
+  render: exRender, level: exLevel, onNew: exNew,
+  onReveal: () => { if (EX.guess) { EX.revealed = true; exRender(); } },
+};
+$("#exNew").onclick = exNew;
+$("#exReveal").onclick = TABS.explore.onReveal;
+$("#exCheck").onclick = exCheck;
+$("#exBack").onclick = () => {
+  const t = EX.t; EX.guess = false; EX.pupil = null;
+  $("#exA").value = A_LIST.findIndex(x => x.eq(t.a)); $("#exH").value = t.h.v; $("#exQ").value = t.q.v;
+  exRender();
+};
+["#exA", "#exH", "#exQ"].forEach(s => $(s).addEventListener("input", exRender));
+document.querySelectorAll("#p-explore .checks input").forEach(i => i.addEventListener("change", exRender));
+
+/* =========================================================
+   2  Completing the square
+   ========================================================= */
+const SQ = { steps: new Steps($("#sqSteps"), () => sqRender()) };
+function sqLines(a, b, c) {
+  const p = b.div(a.mul(2)), q = c.sub(b.sq().div(a.mul(4))), xp = `(${X_}${signed(p)})`;
+  const L = [{ m: `y = ${polyHTML([a, b, c])}`, why: "Start with the quadratic.", title: "Start" }];
+  if (b.s === 0) {
+    L.push({ m: `= ${vertexHTML(a, new F(0), c)}`, why: "There's no x term, so it's already in completed square form.", title: "Answer" });
+  } else if (a.is(1)) {
+    L.push({ m: `= ${xp}² ${M} ${par(p)}²${signedOpt(c)}`, why: `Halve the coefficient of x: ${fr(b)} ÷ 2 = ${fr(p)}. Put it in the bracket, then take away ${par(p)}² so the value doesn't change.`, title: "Halve the x coefficient" });
+    L.push({ m: `= ${xp}²${signed(p.sq().neg())}${signedOpt(c)}`, why: `${par(p)}² = ${fr(p.sq())}`, title: "Square" });
+    L.push({ m: `= ${vertexHTML(a, p.neg(), q)}`, why: "Tidy up the numbers.", title: "Tidy up" });
+  } else {
+    const ba = b.div(a), A = aPref(a);
+    L.push({ m: `= ${A}(${polyHTML([1, ba, 0])})${signedOpt(c)}`, why: `Take out the x² coefficient, ${fr(a)}, from the first two terms only. (${fr(b)} ÷ ${par(a)} = ${fr(ba)})`, title: "Take out a" });
+    L.push({ m: `= ${A}[${xp}² ${M} ${par(p)}²]${signedOpt(c)}`, why: `Complete the square inside: halve ${fr(ba)} to get ${fr(p)}, then take away ${par(p)}².`, title: "Complete the square inside" });
+    L.push({ m: `= ${A}${xp}²${signed(a.mul(p.sq()).neg())}${signedOpt(c)}`, why: `Multiply out the square bracket: ${par(a)} × ${M}${par(p)}² = ${fr(a.mul(p.sq()).neg())}.`, title: "Multiply out" });
+    L.push({ m: `= ${vertexHTML(a, p.neg(), q)}`, why: "Tidy up the numbers.", title: "Tidy up" });
+  }
+  L.push({ m: `Turning point ${pt(p.neg(), q)}`, why: `${a.s > 0 ? "Minimum (a > 0, ∪ shape)" : "Maximum (a < 0, ∩ shape)"}. Axis of symmetry x = ${val(p.neg())}.`, title: "Turning point" });
+  return L;
+}
+function sqRender() {
+  const a = getF("#sqA"), b = getF("#sqB"), c = getF("#sqC");
+  if (!a || !b || !c) return;
+  if (a.s === 0) { SQ.steps.set([{ m: '<span class="warn">The x² coefficient can\'t be 0.</span>' }]); return; }
+  SQ.steps.set(sqLines(a, b, c));
+  const done = SQ.steps.done, h = b.div(a.mul(2)).neg(), q = c.sub(b.sq().div(a.mul(4)));
+  const sol = solveQ(a, b, c), fac = factorHTML(a, b, c);
+  $("#sqForms").innerHTML = `
+    <div class="form" style="border-left-color:var(--yint)"><div class="t">Expanded</div><div class="mm">y = ${polyHTML([a, b, c])}</div><div class="g">tells you the <b>y-intercept</b> ${pt(0, c)}</div></div>
+    <div class="form" style="border-left-color:var(--tp)"><div class="t">Completed square</div><div class="mm">${done ? "y = " + vertexHTML(a, h, q) : "y = ?"}</div><div class="g">tells you the <b>turning point</b> ${done ? pt(h, q) : "(?, ?)"}</div></div>
+    <div class="form" style="border-left-color:var(--root)"><div class="t">Factorised</div><div class="mm">${fac ? "y = " + fac : `<span class="muted" style="font-size:15px">${sol.roots.length ? "doesn't factorise nicely: use the formula" : "no real roots, so it doesn't factorise"}</span>`}</div><div class="g">tells you the <b>roots</b>${sol.roots.length ? ": " + rootsList(sol.roots) : ""}</div></div>`;
+  const f = x => a.v * x * x + b.v * x + c.v;
+  plot($("#sqG"), autoWin(quadPts(a, b, c)), P => {
+    if (done) P.vline(h.v, "#6b7480", `x = ${dec(h.v)}`);
+    P.curve(f, 'stroke="var(--new)" stroke-width="4"');
+    sol.roots.forEach(r => P.point(num(r), 0, "var(--root)", fac ? `(${val(r)}, 0)` : ""));
+    P.point(0, c.v, "var(--yint)", pt(0, c));
+    P.point(h.v, q.v, "var(--tp)", done ? pt(h, q) : "?");
+  });
+}
+function sqNew() {
+  let a, b, c;
+  const kind = level === "n5" ? pick(["even", "even", "even", "neg1"]) : pick(["even", "odd", "a", "a", "neg", "frac"]);
+  if (kind === "even") { a = 1; b = 2 * nz(-5, 5); c = ri(-9, 9); }
+  else if (kind === "neg1") { a = -1; b = 2 * nz(-4, 4); c = ri(-6, 9); }
+  else if (kind === "odd") { a = 1; b = 2 * ri(-4, 4) + 1; c = ri(-9, 9); }
+  else if (kind === "a") { a = pick([2, 3]); b = 2 * a * nz(-4, 4); c = ri(-9, 9); }
+  else if (kind === "neg") { a = pick([-1, -2, -3]); b = 2 * a * nz(-3, 3); c = ri(-6, 9); }
+  else { a = 2; b = 2 * nz(-4, 4) + (Math.random() < .5 ? 2 : 0); c = ri(-5, 9); if ((b / a) % 2 === 0) b += 2; }
+  setF("#sqA", a); setF("#sqB", b); setF("#sqC", c);
+  SQ.steps.reset(); sqRender();
+}
+TABS.square = { render: sqRender, onNew: sqNew, steps: SQ.steps };
+$("#sqNew").onclick = sqNew;
+["#sqA", "#sqB", "#sqC"].forEach(s => $(s).addEventListener("input", () => { SQ.steps.reset(); sqRender(); }));
+
+/* =========================================================
+   3  Roots and the discriminant
+   ========================================================= */
+const RT = { steps: new Steps($("#rtSteps"), () => rtRender()) };
+function rtLines(a, b, c) {
+  const sol = solveQ(a, b, c), D = sol.D, [, nat] = nature(D);
+  const graph = D.s > 0 ? "The graph crosses the x-axis twice." : D.s === 0 ? "The graph just touches the x-axis (the x-axis is a tangent)." : "The graph doesn't meet the x-axis.";
+  const L = [
+    { m: discWorking(a, b, c), why: "Work out the discriminant.", title: "Discriminant" },
+    { m: `${fr(D)} ${D.s > 0 ? ">" : D.s === 0 ? "=" : "<"} 0, so ${badge(D)}`, why: graph, title: "Nature of the roots" },
+  ];
+  if (D.s < 0) {
+    L.push({ m: "No real solutions", why: "The formula would need the square root of a negative number.", title: "Solve" });
+    return L;
+  }
+  L.push({ m: `<i>x</i> = ${bigfr(`${M}<i>b</i> ± √<span class="ov"><i>b</i>² ${M} 4<i>ac</i></span>`, "2<i>a</i>")} = ${bigfr(`${M}${par(b)} ± √${fr(D)}`, `2 × ${par(a)}`)}`, why: "Substitute into the quadratic formula.", title: "Substitute into the formula" });
+  const s = sqrtF(D);
+  if (s) {
+    L.push({ m: `<i>x</i> = ${bigfr(`${fr(b.neg())} ± ${fr(s)}`, fr(a.mul(2)))} &nbsp;⇒&nbsp; ${rootsList(sol.roots)}`, why: D.s === 0 ? "√0 = 0, so both roots are the same: equal roots." : "The discriminant is a square number, so the roots are rational.", title: "Roots" });
+    const fac = factorHTML(a, b, c);
+    if (fac) L.push({ m: `${fac} = 0`, why: "Because the discriminant is a perfect square, it factorises too, which is quicker.", title: "Check by factorising" });
+  } else {
+    const surd = surdHTML(a, b, D);
+    L.push({ m: `<i>x</i> = ${bigfr(`${fr(b.neg())} ± √${fr(D)}`, fr(a.mul(2)))}${surd ? ` &nbsp;= &nbsp;${surd.replace(/^<i>x<\/i> = /, "")}` : ""}`, why: surd ? "Simplify the surd for an exact answer." : "", title: "Simplify" });
+    L.push({ m: `${rootsList(sol.roots.map(r => +r.toFixed(2)))}`, why: "To 2 decimal places. The discriminant isn't a square number, so it doesn't factorise.", title: "Decimal answers" });
+  }
+  return L;
+}
+function rtRender() {
+  const a = getF("#rtA"), b = getF("#rtB"), c = getF("#rtC");
+  if (!a || !b || !c) return;
+  $("#rtSl").value = Math.round(c.v); $("#rtSlv").innerHTML = fr(c);
+  if (a.s === 0) { RT.steps.set([{ m: '<span class="warn">The x² coefficient can\'t be 0.</span>' }]); return; }
+  RT.steps.set(rtLines(a, b, c));
+  const n = RT.steps.n, sol = solveQ(a, b, c), f = x => a.v * x * x + b.v * x + c.v;
+  plot($("#rtG"), autoWin(quadPts(a, b, c)), P => {
+    P.curve(f, 'stroke="var(--new)" stroke-width="4"');
+    P.point(0, c.v, "var(--yint)", pt(0, c));
+    if (n >= 4) sol.roots.forEach(r => P.point(num(r), 0, "var(--root)", `(${val(r)}, 0)`));
+    else sol.roots.forEach(r => P.point(num(r), 0, "var(--root)", ""));
+    if (n >= 2) { const [cl, t] = nature(sol.D); P.note(t, cl === "two" ? "var(--good)" : cl === "eq" ? "var(--warn)" : "var(--bad)"); }
+  });
+}
+function rtNew() {
+  let a, b, c;
+  const kind = pick(["fac", "fac", "fac", "surd", "surd", "eq", "none"]);
+  for (let tries = 0; tries < 200; tries++) {
+    if (kind === "fac") {
+      const r = nz(-6, 6), s = ri(-6, 6), d = level === "n5" ? pick([1, 1, 2]) : pick([1, 1, 2, 3]), k = pick([1, 1, -1]);
+      // k(dx − s)(x − r) = k(dx² − (dr + s)x + rs)
+      a = k * d; b = -k * (d * r + s); c = k * r * s;
+    } else if (kind === "surd") { a = pick([1, 1, 2, 3]); b = ri(-9, 9); c = ri(-9, 9); }
+    else if (kind === "eq") { const r = nz(-5, 5); a = 1; b = -2 * r; c = r * r; }
+    else { a = pick([1, 2]); b = ri(-5, 5); c = ri(3, 12); }
+    const D = b * b - 4 * a * c, sq = Number.isInteger(Math.sqrt(Math.abs(D)));
+    if (kind === "surd" && (D <= 0 || sq)) continue;
+    if (kind === "none" && D >= 0) continue;
+    if (Math.abs(c) > 20) continue;
+    break;
+  }
+  setF("#rtA", a); setF("#rtB", b); setF("#rtC", c);
+  RT.steps.reset(); rtRender();
+}
+TABS.roots = { render: rtRender, onNew: rtNew, steps: RT.steps };
+$("#rtNew").onclick = rtNew;
+["#rtA", "#rtB", "#rtC"].forEach(s => $(s).addEventListener("input", () => { RT.steps.reset(); rtRender(); }));
+$("#rtSl").addEventListener("input", () => { setF("#rtC", +$("#rtSl").value); rtRender(); });
+
+/* =========================================================
+   4  Find k
+   ========================================================= */
+const KPRE = {
+  n5: [
+    { a: [1, 0], b: [6, 0], c: [0, 1], cond: "equal" },
+    { a: [1, 0], b: [0, 1], c: [16, 0], cond: "equal" },
+    { a: [0, 1], b: [-4, 0], c: [2, 0], cond: "equal" },
+    { a: [2, 0], b: [8, 0], c: [0, 1], cond: "equal" },
+    { a: [1, 0], b: [-4, 0], c: [0, 1], cond: "none" },
+  ],
+  higher: [
+    { a: [1, 0], b: [-3, 1], c: [4, 0], cond: "real" },
+    { a: [1, 0], b: [0, 2], c: [4, 3], cond: "equal" },
+    { a: [2, 0], b: [0, 1], c: [8, 0], cond: "none" },
+    { a: [1, 1], b: [6, 0], c: [-7, 1], cond: "real" },
+    { a: [1, 0], b: [0, 1], c: [-1, 1], cond: "real", label: "show the roots are real for all k" },
+  ],
+};
+const FK = { steps: new Steps($("#fkSteps"), () => fkRender()), jump: 0 };
+const COND = {
+  equal: { name: "equal roots", rel: "=" }, real: { name: "real roots", rel: "≥" },
+  distinct: { name: "real and distinct roots", rel: ">" }, none: { name: "no real roots", rel: "<" },
+};
+const linHTML = (c0, c1) => polyHTML([c1, c0], K_);
+function kTerm(c0, c1, pw, first) {
+  const vx = pw === 2 ? X_ + "²" : pw === 1 ? X_ : "";
+  if (c1.s === 0 || (c0.s === 0 && pw > 0)) {
+    const c = c1.s === 0 ? c0 : c1; if (c.s === 0) return "";
+    const coef = (c1.s === 0 ? (pw > 0 && c.abs().is(1) ? "" : frAbs(c)) : (c.abs().is(1) ? "" : frAbs(c)) + K_);
+    return (first ? (c.s < 0 ? M : "") : (c.s < 0 ? ` ${M} ` : " + ")) + coef + vx;
+  }
+  const inner = linHTML(c0, c1);
+  if (pw === 0) return first ? inner : inner.startsWith(M) ? ` ${M} ` + inner.slice(1) : " + " + inner;
+  return (first ? "" : " + ") + `(${inner})` + vx;
+}
+function kEqHTML(P) {
+  let s = "";
+  [[P.a, 2], [P.b, 1], [P.c, 0]].forEach(([c, pw]) => { s += kTerm(c[0], c[1], pw, s === ""); });
+  return (s || "0") + " = 0";
+}
+const kPart = c => c[1].s === 0 && c[0].s >= 0 ? fr(c[0]) : c[0].s === 0 && c[1].is(1) ? K_ : `(${linHTML(c[0], c[1])})`;
+// b² − 4ac in k, written the way it's usually seen: 36 − 4k rather than −4k + 36
+const discKHTML = (A, B, C) => A.s !== 0 || C.s === 0 || B.s === 0 ? polyHTML([A, B, C], K_)
+  : fr(C) + (B.s < 0 ? ` ${M} ` : " + ") + (B.abs().is(1) ? "" : frAbs(B)) + K_;
+function fkRead() {
+  const ids = ["#fkA0", "#fkA1", "#fkB0", "#fkB1", "#fkC0", "#fkC1"], v = ids.map(i => getF(i));
+  if (v.some(x => !x)) return null;
+  return { a: [v[0], v[1]], b: [v[2], v[3]], c: [v[4], v[5]] };
+}
+// b² − 4ac as A k² + B k + C
+function discK(P) {
+  const [a0, a1] = P.a, [b0, b1] = P.b, [c0, c1] = P.c;
+  return [b1.sq().sub(a1.mul(c1).mul(4)), b0.mul(b1).mul(2).sub(a0.mul(c1).add(a1.mul(c0)).mul(4)), b0.sq().sub(a0.mul(c0).mul(4))];
+}
+// which k satisfy the condition; returns {text, ok(k)}
+function solveK(A, B, C, cond) {
+  const want = { equal: d => Math.abs(d) < 1e-9, real: d => d >= -1e-9, distinct: d => d > 1e-9, none: d => d < -1e-9 }[cond];
+  const ge = cond === "real", strict = cond === "distinct" || cond === "none";
+  const lt = strict ? "<" : "≤", gt = strict ? ">" : "≥";
+  const disc = k => A.v * k * k + B.v * k + C.v;
+  const res = { ok: k => want(disc(k)), crit: [] };
+  if (A.s === 0 && B.s === 0) { res.text = want(C.v) ? "all values of k" : "no values of k"; return res; }
+  if (A.s === 0) {
+    const k0 = C.neg().div(B); res.crit = [k0];
+    if (cond === "equal") res.text = `k = ${val(k0)}`;
+    else { const up = (B.s > 0) === (cond !== "none"); res.text = `k ${up ? gt : lt} ${val(k0)}`; }
+    return res;
+  }
+  const S = solveQ(A, B, C), ks = S.roots;
+  res.crit = ks;
+  const surd = !S.exact && ks.length === 2 ? surdHTML(A, B, S.D, K_) : null;
+  const kv = k => val(k);
+  if (ks.length === 0) { res.text = want(disc(0)) ? "all values of k" : "no values of k"; return res; }
+  if (ks.length === 1) {
+    const k0 = kv(ks[0]);
+    res.text = { equal: `k = ${k0}`, real: A.s > 0 ? "all values of k" : `k = ${k0}`, distinct: A.s > 0 ? `k ≠ ${k0}` : "no values of k", none: A.s > 0 ? "no values of k" : `k ≠ ${k0}` }[cond];
+    return res;
+  }
+  const [k1, k2] = ks.map(kv), outside = (A.s > 0) === (cond !== "none");
+  res.text = cond === "equal" ? `k = ${k1} or k = ${k2}` : outside ? `k ${lt} ${k1} or k ${gt} ${k2}` : `${k1} ${lt} k ${lt} ${k2}`;
+  if (surd && cond !== "equal") res.text += ` <span class="muted" style="font-size:15px">(where ${surd})</span>`;
+  else if (surd) res.text = surd;
+  return res;
+}
+function fkLines(P, cond) {
+  const [A, B, C] = discK(P), co = COND[cond], dk = discKHTML(A, B, C);
+  const L = [
+    { m: `<i>a</i> = ${linHTML(...P.a)}, &nbsp;<i>b</i> = ${linHTML(...P.b)}, &nbsp;<i>c</i> = ${linHTML(...P.c)}`, why: "Write down a, b and c (they can include k).", title: "a, b and c" },
+    { m: `<i>b</i>² ${M} 4<i>ac</i> = ${kPart(P.b)}² ${M} 4 × ${kPart(P.a)} × ${kPart(P.c)}`, why: "Substitute into the discriminant.", title: "Substitute" },
+    { m: `= ${dk}`, why: "Expand and simplify.", title: "Simplify" },
+    { m: `For ${co.name}: &nbsp;${dk} ${co.rel} 0`, why: `${co.name[0].toUpperCase() + co.name.slice(1)} means b² − 4ac ${co.rel} 0.`, title: "Condition" },
+  ];
+  const ans = solveK(A, B, C, cond);
+  if (A.s !== 0) {
+    const S = solveQ(A, B, C);
+    if (S.roots.length < 2) {
+      const h = B.div(A.mul(2)).neg(), q = C.sub(B.sq().div(A.mul(4)));
+      L.push({ m: `b² − 4ac = ${vertexHTML(A, h, q, false, K_)}`, why: `Complete the square in k: ${A.s > 0 ? "a square is never negative" : "−(a square) is never positive"}${q.s ? `, and ${q.s > 0 ? "adding" : "taking away"} ${frAbs(q)} keeps it ${q.s > 0 ? "positive" : "negative"}` : ""}.`, title: "Complete the square" });
+    } else {
+      const fac = factorHTML(A, B, C, K_);
+      L.push({ m: fac ? `${fac} = 0 &nbsp;⇒&nbsp; ${rootsList(S.roots, "k")}` : `${dk} = 0 &nbsp;⇒&nbsp; ${rootsList(S.roots.map(r => +num(r).toFixed(2)), "k")}`, why: fac ? "Solve b² − 4ac = 0 to find the critical values." : "Use the formula (2 d.p.) to find the critical values.", title: "Critical values" });
+      if (cond !== "equal") L.push({ m: `${A.s > 0 ? "∪" : "∩"} shape in k`, why: `Sketch b² − 4ac against k (the second graph). It's ${A.s > 0 ? "positive outside" : "positive between"} the critical values.`, title: "Sketch" });
+    }
+  } else if (B.s !== 0 && cond !== "equal") {
+    L.push({ m: `${dk} ${co.rel} 0`, why: B.s < 0 ? "Rearrange. Dividing by a negative flips the inequality sign." : "Rearrange.", title: "Rearrange" });
+  }
+  let excl = "";
+  const ka = P.a[1].s !== 0 && P.a[0].neg().div(P.a[1]);
+  if (ka && ans.ok(ka.v)) { excl = ` <span class="muted" style="font-size:15px">(and k ≠ ${val(ka)}, or it isn't a quadratic)</span>`; }
+  L.push({ m: `<b>${ans.text}</b>${excl}`, why: "", title: "Answer" });
+  return { L, ans, A, B, C };
+}
+function fkLevel() {
+  $("#fkPre").innerHTML = KPRE[level].map((p, i) => {
+    const P = { a: p.a.map(F.of), b: p.b.map(F.of), c: p.c.map(F.of) };
+    return `<option value="${i}">${kEqHTML(P).replace(/<[^>]+>/g, "")}${p.label ? " (" + p.label + ")" : ""}</option>`;
+  }).join("");
+  fkPreset(0);
+}
+function fkPreset(i) {
+  const p = KPRE[level][i];
+  ["a", "b", "c"].forEach(l => { setF(`#fk${l.toUpperCase()}0`, p[l][0]); setF(`#fk${l.toUpperCase()}1`, p[l][1]); });
+  $("#fkCond").value = p.cond; $("#fkK").value = 0; FK.jump = 0;
+  FK.steps.reset(); fkRender();
+}
+function fkRender() {
+  const P = fkRead(); if (!P) return;
+  const cond = $("#fkCond").value, { L, ans, A, B, C } = fkLines(P, cond), k = +$("#fkK").value;
+  FK.steps.set(L);
+  FK.crit = ans.crit;
+  $("#fkJump").disabled = !ans.crit.length;
+  $("#fkEq").innerHTML = kEqHTML(P);
+  $("#fkKv").textContent = dec(k);
+  const kf = F.of(+k.toFixed(2)), a = P.a[0].add(P.a[1].mul(kf)), b = P.b[0].add(P.b[1].mul(kf)), c = P.c[0].add(P.c[1].mul(kf));
+  const D = b.sq().sub(a.mul(c).mul(4));
+  $("#fkNow").innerHTML = a.s === 0 ? '<span class="warn">a = 0 here: not a quadratic</span>'
+    : `<span class="m" style="font-weight:400">${polyHTML([a, b, c])} = 0</span> &nbsp;b² − 4ac = ${dec(D.v)} ${badge(D)}`;
+  plot($("#fkG"), { x0: -10, x1: 10, y0: -15, y1: 15 }, Pl => {
+    if (a.s === 0) { Pl.curve(x => b.v * x + c.v, 'stroke="var(--parent)" stroke-width="3"'); return; }
+    Pl.curve(x => a.v * x * x + b.v * x + c.v, 'stroke="var(--new)" stroke-width="4"');
+    solveQ(a, b, c).roots.forEach(r => Pl.point(num(r), 0, "var(--root)", ""));
+  });
+  const disc = x => A.v * x * x + B.v * x + C.v, samples = [];
+  for (let x = -12; x <= 12; x += .25) samples.push(disc(x));
+  let y0 = Math.max(Math.min(0, ...samples), -150), y1 = Math.min(Math.max(0, ...samples), 150);
+  const pad = Math.max((y1 - y0) * .1, 2);
+  plot($("#fkD"), { x0: -12, x1: 12, y0: Math.floor(y0 - pad), y1: Math.ceil(y1 + pad) }, Pl => {
+    if (FK.steps.done) {
+      let start = null;
+      for (let i = 0; i <= 2400; i++) {
+        const x = -12 + i / 100, ok = ans.ok(x);
+        if (ok && start === null) start = x;
+        if ((!ok || i === 2400) && start !== null) { Pl.axisSeg(start, ok ? x : x - .01, "var(--good)"); start = null; }
+      }
+      ans.crit.forEach(kc => Pl.point(num(kc), 0, "var(--good)", "", cond === "distinct" || cond === "none"));
+    }
+    Pl.curve(disc, 'stroke="var(--new)" stroke-width="3.5"');
+    Pl.point(k, disc(k), "var(--pupil)", `k = ${dec(k)}`);
+  }, { xl: "k", yl: "b² − 4ac" });
+}
+TABS.findk = { render: fkRender, level: fkLevel, steps: FK.steps };
+$("#fkPre").onchange = () => fkPreset(+$("#fkPre").value);
+$("#fkCond").onchange = () => { FK.steps.reset(); fkRender(); };
+$("#fkK").addEventListener("input", fkRender);
+document.querySelectorAll("#p-findk details input").forEach(i => i.addEventListener("input", () => { FK.steps.reset(); fkRender(); }));
+$("#fkJump").onclick = () => {
+  if (!FK.crit || !FK.crit.length) return;
+  const k = num(FK.crit[FK.jump++ % FK.crit.length]);
+  $("#fkK").value = Math.max(-12, Math.min(12, k)); fkRender();
+};
+
+/* =========================================================
+   5  Inequalities (Higher)
+   ========================================================= */
+const IN = { steps: new Steps($("#inSteps"), () => inRender()) };
+const SIGN = { gt: ">", ge: "≥", lt: "<", le: "≤" };
+function inAnswer(a, sol, s) {
+  const above = s === "gt" || s === "ge", strict = s === "gt" || s === "lt";
+  const rs = sol.roots, lt = strict ? "<" : "≤", gt = strict ? ">" : "≥";
+  const posPart = a.s > 0;  // outside the roots is positive when a > 0
+  if (rs.length === 2) {
+    const [r1, r2] = rs.map(val);
+    return (above === posPart) ? `x ${lt} ${r1} or x ${gt} ${r2}` : `${r1} ${lt} x ${lt} ${r2}`;
+  }
+  if (rs.length === 1) {
+    const r = val(rs[0]);
+    if (above === posPart) return strict ? `all x except x = ${r}` : "all values of x";
+    return strict ? "no values of x" : `x = ${r}`;
+  }
+  return above === posPart ? "all values of x" : "no values of x";
+}
+function inLines(a, b, c, s) {
+  const sol = solveQ(a, b, c), fac = factorHTML(a, b, c);
+  const above = s === "gt" || s === "ge", strict = s === "gt" || s === "lt";
+  const L = [];
+  if (!sol.roots.length) L.push({ m: `${polyHTML([a, b, c])} = 0 has no real roots`, why: `b² − 4ac = ${fr(sol.D)} < 0, so the graph never meets the x-axis.`, title: "Roots" });
+  else L.push({ m: fac ? `${fac} = 0 &nbsp;⇒&nbsp; ${rootsList(sol.roots)}` : `${rootsList(sol.roots.map(r => +num(r).toFixed(2)))}`, why: fac ? "Solve the equation (= 0) first to find where the graph meets the x-axis." : "Use the formula (2 d.p.) to find where the graph meets the x-axis.", title: "Roots" });
+  L.push({ m: `${a.s > 0 ? "∪" : "∩"} shape`, why: a.s > 0 ? "a > 0, so the graph has a minimum turning point." : "a < 0 (negative x² term), so the graph has a maximum turning point.", title: "Shape" });
+  L.push({ m: `Graph ${above ? "above" : "below"} the x-axis${strict ? "" : " (or on it)"}`, why: `${SIGN[s]} 0 means ${above ? "above" : "below"} the x-axis${strict ? ", not including the roots" : ", including the roots"}.`, title: "Read the graph" });
+  L.push({ m: `<b>${inAnswer(a, sol, s)}</b>`, why: "", title: "Answer" });
+  return { L, sol };
+}
+function inRender() {
+  const a = getF("#inA"), b = getF("#inB"), c = getF("#inC"), s = $("#inS").value;
+  if (!a || !b || !c) return;
+  if (a.s === 0) { IN.steps.set([{ m: '<span class="warn">The x² coefficient can\'t be 0.</span>' }]); return; }
+  const { L, sol } = inLines(a, b, c, s);
+  IN.steps.set(L);
+  const n = IN.steps.n, f = x => a.v * x * x + b.v * x + c.v;
+  const above = s === "gt" || s === "ge", strict = s === "gt" || s === "lt";
+  const true_ = x => { const y = f(x); return above ? y > 1e-9 : y < -1e-9; };
+  plot($("#inG"), autoWin(quadPts(a, b, c)), P => {
+    P.curve(f, `stroke="${n >= 3 ? "#b8c0cc" : "var(--new)"}" stroke-width="4"`);
+    if (n >= 3) P.curve(f, 'stroke="var(--good)" stroke-width="6"', x => true_(x));
+    if (n >= 4) {
+      let start = null; const w = P.win, N = 1200;
+      for (let i = 0; i <= N; i++) {
+        const x = w.x0 + (w.x1 - w.x0) * i / N, ok = true_(x);
+        if (ok && start === null) start = x;
+        if ((!ok || i === N) && start !== null) { P.axisSeg(start, x, "var(--good)"); start = null; }
+      }
+      if (!strict) sol.roots.forEach(r => P.axisSeg(num(r), num(r), "var(--good)"));
+    }
+    sol.roots.forEach(r => P.point(num(r), 0, n >= 4 ? "var(--good)" : "var(--root)", n >= 1 ? `${val(r)}` : "", n >= 4 && strict));
+  });
+}
+function inNew() {
+  const r1 = ri(-6, 4), r2 = r1 + ri(1, 6), a = pick([1, 1, 1, -1, 2, -2]);
+  setF("#inA", a); setF("#inB", -a * (r1 + r2)); setF("#inC", a * r1 * r2);
+  $("#inS").value = pick(["gt", "ge", "lt", "le"]);
+  IN.steps.reset(); inRender();
+}
+TABS.ineq = { render: inRender, onNew: inNew, steps: IN.steps };
+$("#inNew").onclick = inNew;
+["#inA", "#inB", "#inC"].forEach(s => $(s).addEventListener("input", () => { IN.steps.reset(); inRender(); }));
+$("#inS").onchange = () => { IN.steps.reset(); inRender(); };
+
+/* =========================================================
+   6  Line and curve
+   ========================================================= */
+const LN = { steps: new Steps($("#lnSteps"), () => lnRender()), win: null };
+function lnRead() {
+  const v = ["#lnA", "#lnB", "#lnC", "#lnE", "#lnM", "#lnD"].map(s => getF(s));
+  if (v.some(x => !x)) return null;
+  if (level === "n5") v[3] = new F(0);
+  return v;
+}
+function lnLines(a, b, c, e, m, d) {
+  const A = a.sub(e), B = b.sub(m), C = c.sub(d), two = e.s !== 0;
+  const g2 = x => e.mul(x).mul(x).add(m.mul(x)).add(d);
+  const L = [
+    { m: `${polyHTML([a, b, c])} = ${polyHTML([e, m, d])}`, why: "Where they meet, the y values are equal: set the equations equal.", title: "Set equal" },
+  ];
+  if (A.s === 0) {
+    L.push({ m: `${polyHTML([B, C])} = 0`, why: "The x² terms cancel, so this is a linear equation.", title: "Rearrange" });
+    if (B.s === 0) L.push({ m: C.s === 0 ? "Same graph!" : "No solutions", why: C.s === 0 ? "" : "They never meet.", title: "Solve" });
+    else { const x = C.neg().div(B); L.push({ m: `x = ${val(x)}, point ${pt(x, g2(x))}`, why: "One point of intersection.", title: "Solve" }); }
+    return { L, xs: B.s === 0 ? [] : [C.neg().div(B)] };
+  }
+  const sol = solveQ(A, B, C), D = sol.D;
+  L.push({ m: `${polyHTML([A, B, C])} = 0`, why: "Rearrange so that one side is 0.", title: "Rearrange" });
+  const what = D.s > 0 ? "two points of intersection" : D.s === 0 ? (two ? "the curves touch at one point" : "the line is a <b>tangent</b> to the curve") : "they don't meet";
+  L.push({ m: discWorking(A, B, C), why: `${badge(D)} so ${what}.`, title: "Discriminant" });
+  if (D.s < 0) return { L, xs: [] };
+  const fac = factorHTML(A, B, C);
+  L.push({ m: fac ? `${fac} = 0 &nbsp;⇒&nbsp; ${rootsList(sol.roots)}` : rootsList(sol.roots.map(r => +num(r).toFixed(2))), why: fac ? "Solve to find the x-coordinates." : "Use the formula (2 d.p.).", title: "Solve" });
+  const pts = sol.roots.map(x => x instanceof F ? pt(x, g2(x)) : pt(x, e.v * x * x + m.v * x + d.v));
+  L.push({ m: pts.join(" and "), why: `Substitute into the ${two ? "second curve's equation" : "line"} to find y.${D.s === 0 ? (two ? "" : " This is the point of contact.") : ""}`, title: D.s === 0 && !two ? "Point of contact" : "Points" });
+  return { L, xs: sol.roots };
+}
+function lnRender(refit) {
+  const v = lnRead(); if (!v) return;
+  const [a, b, c, e, m, d] = v;
+  $("#lnMs").value = m.v; $("#lnDs").value = d.v;
+  const two = e.s !== 0;
+  $("#lnLegT").textContent = two ? "second curve" : "line";
+  $("#lnTitle2").textContent = two ? "Curve 2:" : "Line:";
+  $("#lnTan").disabled = a.eq(e);
+  if (a.s === 0) { LN.steps.set([{ m: '<span class="warn">The curve\'s x² coefficient can\'t be 0.</span>' }]); return; }
+  const { L, xs } = lnLines(a, b, c, e, m, d);
+  LN.steps.set(L);
+  const n = LN.steps.n, f = x => a.v * x * x + b.v * x + c.v, g = x => e.v * x * x + m.v * x + d.v;
+  if (refit || !LN.win) LN.win = autoWin([...quadPts(a, b, c), ...xs.map(x => [num(x), f(num(x))])]);
+  plot($("#lnG"), LN.win, P => {
+    P.curve(f, 'stroke="var(--new)" stroke-width="4"');
+    P.curve(g, 'stroke="var(--two)" stroke-width="4"');
+    xs.forEach(x => P.point(num(x), f(num(x)), "var(--tp)", n >= L.length ? pt(x, x instanceof F ? e.mul(x).mul(x).add(m.mul(x)).add(d) : g(x)) : ""));
+  });
+}
+function lnNew() {
+  for (let t = 0; t < 200; t++) {
+    const a = level === "n5" ? 1 : pick([1, 1, 2, -1]), b = ri(-4, 4), c = ri(-6, 6);
+    const f = x => a * x * x + b * x + c;
+    let m, d;
+    if (level === "higher" && Math.random() < .5) { const x0 = ri(-3, 3); m = 2 * a * x0 + b; d = f(x0) - m * x0; }
+    else { const r1 = ri(-4, 2), r2 = r1 + ri(1, 5); m = a * (r1 + r2) + b; d = f(r1) - m * r1; }
+    if (Math.abs(m) > 10 || Math.abs(d) > 20) continue;
+    setF("#lnA", a); setF("#lnB", b); setF("#lnC", c); setF("#lnE", 0); setF("#lnM", m); setF("#lnD", d);
+    break;
+  }
+  LN.steps.reset(); lnRender(true);
+}
+TABS.line = { render: () => lnRender(true), onNew: lnNew, steps: LN.steps, level: () => { if (level === "n5") setF("#lnE", 0); } };
+$("#lnNew").onclick = lnNew;
+$("#lnTan").onclick = () => {
+  const v = lnRead(); if (!v) return;
+  const [a, b, c, e, m] = v;
+  if (a.eq(e)) return;
+  setF("#lnD", c.sub(b.sub(m).sq().div(a.sub(e).mul(4))));
+  LN.steps.reset(); lnRender();
+};
+["#lnA", "#lnB", "#lnC"].forEach(s => $(s).addEventListener("input", () => { LN.steps.reset(); lnRender(true); }));
+["#lnE", "#lnM", "#lnD"].forEach(s => $(s).addEventListener("input", () => { LN.steps.reset(); lnRender(); }));
+$("#lnMs").addEventListener("input", () => { setF("#lnM", +$("#lnMs").value); LN.steps.reset(); lnRender(); });
+$("#lnDs").addEventListener("input", () => { setF("#lnD", +$("#lnDs").value); LN.steps.reset(); lnRender(); });
+
+/* ---------- wiring ---------- */
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+document.querySelectorAll(".lvl button").forEach(b => b.onclick = () => setLevel(b.dataset.lvl));
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, select, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase(), T = TABS[active];
+  if (k === "n" && T.onNew) { T.onNew(); e.preventDefault(); }
+  else if (k === "r" && T.onReveal) { T.onReveal(); e.preventDefault(); }
+  else if (k === "w" && T.steps) { T.steps.next(); e.preventDefault(); }
+  else if (/^[1-6]$/.test(k)) {
+    const vis = [...document.querySelectorAll(".tabs button")].filter(b => !b.hidden);
+    if (vis[+k - 1]) showTab(vis[+k - 1].dataset.tab);
+  }
+});
+setLevel(level);
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "higher/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/quadratics/quadratics-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>
