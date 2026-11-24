@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simultaneous Equations Scales</title>
+<style>
+  :root {
+    --ink: #1b2430; --muted: #5b6573; --line: #d9dee5; --bg: #f6f7f9; --card: #fff;
+    --navy: #14213d; --good: #13874b; --bad: #d1342b; --sel: #e07a00;
+    --x: #1d6fd6; --x-soft: #e3eefc; --y: #8b3fd9; --y-soft: #f1e8fc;
+    --c: #4c5563; --c-soft: #e7eaee; --wood: #8a5a32; --metal: #9aa3ad;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 12px 16px 40px; }
+  .top a { color: var(--x); text-decoration: none; font-size: 14px; }
+  h1 { font-size: 24px; margin: 4px 0 4px; }
+  .lede { margin: 0 0 12px; color: var(--muted); max-width: 900px; line-height: 1.45; }
+  .alg { font-family: Georgia, "Times New Roman", serif; }
+  .alg i, i.v { font-style: italic; }
+  .vx { color: var(--x); font-weight: 700; } .vy { color: var(--y); font-weight: 700; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .bar .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 4px; }
+  button.btn { font: inherit; font-size: 15px; padding: 7px 13px; border-radius: 8px; border: 1px solid #b8c0cc;
+    background: #fff; cursor: pointer; color: var(--ink); }
+  button.btn:hover:not(:disabled) { background: #eef1f5; }
+  button.btn:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  button.primary:hover:not(:disabled) { background: #24345c; }
+  button.small { font-size: 14px; padding: 5px 10px; }
+  select, input[type=number], input[type=text] { font: inherit; font-size: 15px; padding: 5px 6px; border: 1px solid #b8c0cc; border-radius: 6px; background: #fff; color: var(--ink); }
+  input[type=number] { width: 58px; }
+  label.chk { display: inline-flex; align-items: center; gap: 5px; font-size: 14px; color: var(--muted); }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+  .panel h2 { font-size: 15px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+  /* Palette */
+  .palette { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .palette .pt { cursor: pointer; }
+  .palette .pt.on { outline: 3px solid var(--sel); outline-offset: 2px; }
+  .hint { font-size: 13px; color: var(--muted); }
+
+  /* Combine */
+  .combine { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  /* Scales */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 12px; }
+  .scale { background: var(--card); border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px 10px; position: relative; }
+  .scale.solved { border-color: var(--good); }
+  .scale.off { border-color: var(--bad); }
+  .shead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .sname { font-weight: 800; font-size: 20px; background: var(--navy); color: #fff; border-radius: 6px; padding: 0 8px; }
+  .sorigin { font-size: 13px; color: var(--muted); }
+  .sdel { margin-left: auto; border: 0; background: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 6px; border-radius: 6px; }
+  .sdel:hover { background: #eef1f5; color: var(--bad); }
+  .seq { font-family: Georgia, "Times New Roman", serif; font-size: 23px; margin: 4px 0 0; min-height: 30px; text-align: center; }
+  .seq .ne { color: var(--bad); font-weight: 700; }
+  .smsg { min-height: 22px; font-size: 14px; text-align: center; color: var(--muted); }
+  .smsg.good { color: var(--good); font-weight: 700; }
+  .smsg.bad { color: var(--bad); font-weight: 600; }
+
+  .rig { position: relative; height: 290px; margin-top: 2px; user-select: none; }
+  .post { position: absolute; left: 50%; top: 36px; width: 12px; margin-left: -6px; bottom: 18px;
+    background: linear-gradient(90deg, #6d4626, var(--wood), #6d4626); border-radius: 4px; }
+  .foot { position: absolute; left: 50%; bottom: 4px; width: 150px; margin-left: -75px; height: 18px;
+    background: var(--wood); clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%); border-radius: 2px; }
+  .pivot { position: absolute; left: 50%; top: 30px; width: 22px; height: 22px; margin-left: -11px; border-radius: 50%;
+    background: var(--navy); z-index: 3; }
+  .beam { position: absolute; top: 36px; height: 10px; border-radius: 5px; background: var(--navy); z-index: 2;
+    transition: transform .7s cubic-bezier(.3,1.4,.5,1); transform-origin: 50% 50%; }
+  .tray { position: absolute; left: 0; top: 0; transition: transform .7s cubic-bezier(.3,1.4,.5,1); z-index: 4; }
+  .tray svg.strings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .tray .hook { position: absolute; left: 50%; top: -5px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; border: 3px solid var(--metal); background: var(--card); }
+  .tray .dish { position: absolute; left: 0; right: 0; bottom: 0; height: 16px; background: linear-gradient(#b3bcc6, #7d8792);
+    border-radius: 0 0 50% 50% / 0 0 100% 100%; }
+  .tray .tiles { position: absolute; left: 10px; right: 10px; bottom: 16px; top: 34px; display: flex; flex-wrap: wrap;
+    align-content: flex-end; justify-content: center; gap: 3px; cursor: default; }
+  .tray.drop .tiles { cursor: copy; }
+  .tray.drop .dish { box-shadow: 0 0 0 3px var(--sel); }
+  .tray .side { position: absolute; bottom: -20px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--muted); }
+
+  /* Tiles */
+  .tile { --s: 34px; width: var(--s); height: var(--s); border-radius: 6px; border: 2px solid; display: inline-flex;
+    align-items: center; justify-content: center; font-family: Georgia, "Times New Roman", serif; font-style: italic;
+    font-weight: 700; font-size: calc(var(--s) * .55); cursor: pointer; padding: 0; position: relative; line-height: 1;
+    transition: transform .15s, opacity .35s; color: #fff; }
+  .tile:hover { transform: translateY(-2px); }
+  .tile.x { background: var(--x); border-color: #134f9c; }
+  .tile.y { background: var(--y); border-color: #6229a3; }
+  .tile.c { background: linear-gradient(#6b7480, #444c57); border-color: #2f353d; font-style: normal; font-family: inherit;
+    width: auto; min-width: var(--s); padding: 0 calc(var(--s) * .18); font-size: calc(var(--s) * .44);
+    border-radius: calc(var(--s) * .3) calc(var(--s) * .3) 4px 4px; }
+  /* negative tiles are balloons: they pull the pan up */
+  .tile.neg { font-size: calc(var(--s) * .4); letter-spacing: -.04em; border-style: dashed; border-radius: 50% 50% 46% 46% / 55% 55% 45% 45%; }
+  .tile.neg::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--s) * -.22); width: 0; height: 0;
+    margin-left: -4px; border: 4px solid transparent; border-bottom-color: inherit; transform: rotate(180deg); }
+  .tile.neg.x { background: var(--x-soft); color: var(--x); }
+  .tile.neg.y { background: var(--y-soft); color: var(--y); }
+  .tile.neg.c { background: var(--c-soft); color: var(--c); border-color: var(--c); }
+  .tile.sel { outline: 3px solid var(--sel); outline-offset: 2px; transform: translateY(-4px) scale(1.06); }
+  .tile.gone { animation: pop .45s forwards; pointer-events: none; }
+  .tile.new { animation: drop .4s; }
+  @keyframes pop { 40% { transform: scale(1.25); } 100% { transform: scale(0); opacity: 0; } }
+  @keyframes drop { from { transform: translateY(-30px); opacity: 0; } }
+  .palette .tile { --s: 34px; }
+  .palette .tile.c { cursor: pointer; }
+
+  .stools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; margin-top: 18px; }
+  .stools .grp { display: inline-flex; gap: 4px; align-items: center; }
+
+  .found { font-family: Georgia, "Times New Roman", serif; font-size: 22px; display: flex; gap: 22px; flex-wrap: wrap; align-items: baseline; }
+  .found .chk { font-family: inherit; font-size: 17px; }
+  .found .ok { color: var(--good); }
+  .working { font-family: Georgia, "Times New Roman", serif; font-size: 18px; margin: 0; padding-left: 0; list-style: none; }
+  .working li { padding: 3px 0; }
+  .working b { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 14px; display: inline-block; min-width: 1.6em; }
+  .working .o { color: var(--muted); font-size: 14px; font-family: -apple-system, "Segoe UI", sans-serif; }
+
+  details { margin-top: 4px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+  .opts { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 10px 2px 2px; align-items: center; font-size: 15px; }
+  .opts input[type=text] { width: 170px; font-family: Georgia, serif; }
+  #toast { min-height: 22px; font-size: 15px; font-weight: 600; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 820px) { .row2 { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .rig { height: 250px; } .seq { font-size: 19px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="../../index.html#simultaneous-equations">← Back to hub</a></div>
+  <h1>Simultaneous equations on the scales</h1>
+  <p class="lede">Each equation is a balanced set of scales. Whatever you do to one side, do to the other and it stays balanced.
+    Click two tiles to <b>cancel</b> them: <span class="vx">x</span> and a <span class="vx">−x</span> balloon on the same side make zero,
+    and the same tile on both sides can be taken off both. Put two scales together (A&nbsp;+&nbsp;B or A&nbsp;−&nbsp;B) to knock out a letter.
+    Balloons are negative: they pull the pan <i>up</i>.</p>
+
+  <div class="bar">
+    <button class="btn primary" id="newBtn">New pair (N)</button>
+    <select id="kind" aria-label="Type of question">
+      <option value="add">Add or subtract (step 2.1)</option>
+      <option value="m1">Multiply one first (3.1)</option>
+      <option value="m2">Multiply both first (3.2)</option>
+      <option value="mix">Mixed</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="negs"> Negative answers</label>
+    <span class="sep"></span>
+    <button class="btn" id="undoBtn">Undo (Z)</button>
+    <button class="btn" id="tidyAllBtn">Tidy all scales (T)</button>
+    <button class="btn" id="resetBtn">Start again</button>
+  </div>
+
+  <div class="row2">
+    <div class="panel">
+      <h2>Put two scales together</h2>
+      <div class="combine">
+        <select id="cA" aria-label="First scale"></select>
+        <select id="cOp" aria-label="Add or take away"><option value="1">+ add</option><option value="-1">− take away</option></select>
+        <select id="cB" aria-label="Second scale"></select>
+        <button class="btn primary" id="combineBtn">Make new scale</button>
+      </div>
+      <div class="hint" style="margin-top:6px">Taking away B means every tile from B goes in upside down: weights become balloons and balloons become weights.</div>
+    </div>
+    <div class="panel">
+      <h2>Add tiles <span class="hint" style="text-transform:none;letter-spacing:0">– pick one, then click a pan</span></h2>
+      <div class="palette" id="palette">
+        <button class="tile x pt" data-k="x" data-v="1" aria-label="x tile">x</button>
+        <button class="tile x neg pt" data-k="x" data-v="-1" aria-label="negative x balloon">−x</button>
+        <button class="tile y pt" data-k="y" data-v="1" aria-label="y tile">y</button>
+        <button class="tile y neg pt" data-k="y" data-v="-1" aria-label="negative y balloon">−y</button>
+        <button class="tile c pt" data-k="c" data-v="w" aria-label="number weight">#</button>
+        <input type="number" id="wv" value="1" aria-label="Weight value">
+        <label class="chk"><input type="checkbox" id="both" checked> Both sides</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="found" id="found"></div>
+    <div id="toast" aria-live="polite"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="panel" style="margin-top:12px">
+    <details open>
+      <summary>Written working</summary>
+      <ol class="working" id="working"></ol>
+    </details>
+  </div>
+
+  <div class="panel">
+    <details>
+      <summary>Set your own equations</summary>
+      <div class="opts">
+        <label>A: <input type="text" id="ownA" value="3x + 2y = 16"></label>
+        <label>B: <input type="text" id="ownB" value="x + 2y = 8"></label>
+        <button class="btn" id="ownBtn">Put on the scales</button>
+        <button class="btn" id="blankBtn">Empty scales (build your own)</button>
+      </div>
+      <p class="hint">Type equations like 2x − 3y = 7, y = 2x + 1 or 4x = 10 − y. With empty scales, use the tiles above (untick “Both sides”), then press <b>Lock in</b> so the scales know x and y.</p>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ---------- state ---------- */
+let S = null;          // { scales, found, sol, nid, building }
+let hist = [];
+let sel = null;        // { sid, side, id }
+let pal = null;        // palette choice { k, v }
+let S0 = null;         // the starting pair, for Start again
+
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const LET = ["x", "y"];
+const MINUS = "−";
+
+function tile(k, v) { return { k, v, id: S.nid++ }; }
+function snap() { hist.push(JSON.stringify(S)); if (hist.length > 80) hist.shift(); }
+function scaleById(id) { return S.scales.find(s => s.id === id); }
+function nextName() {
+  const used = S.scales.map(s => s.id);
+  for (const ch of "ABCDEFGHJKLMNPQRSTUVW") if (!used.includes(ch)) return ch;
+  return "Z" + S.nid;
+}
+
+/* ---------- equations <-> tiles ---------- */
+function parseSide(str) {
+  const t = str.replace(/\s+/g, "").replace(/[−–]/g, "-").toLowerCase();
+  if (!/^[+-]?(\d*[xy]|\d+)([+-](\d*[xy]|\d+))*$/.test(t)) return null;
+  const out = [];
+  for (const m of t.matchAll(/([+-]?)(\d*)([xy]?)/g)) {
+    if (!m[0]) continue;
+    const sg = m[1] === "-" ? -1 : 1;
+    if (m[3]) { const n = m[2] === "" ? 1 : +m[2]; for (let i = 0; i < n; i++) out.push([m[3], sg]); }
+    else if (+m[2] !== 0) out.push(["c", sg * +m[2]]);
+  }
+  return out;
+}
+function parseEq(str) {
+  const p = str.split("=");
+  if (p.length !== 2) return null;
+  const L = parseSide(p[0]), R = parseSide(p[1]);
+  if (!L || !R) return null;
+  if (L.filter(t => t[0] !== "c").length + R.filter(t => t[0] !== "c").length > 30) return null;
+  return { left: L.map(([k, v]) => tile(k, v)), right: R.map(([k, v]) => tile(k, v)) };
+}
+function fromCoeffs(a, b, c) {   // ax + by = c
+  const left = [];
+  for (let i = 0; i < Math.abs(a); i++) left.push(tile("x", Math.sign(a)));
+  for (let i = 0; i < Math.abs(b); i++) left.push(tile("y", Math.sign(b)));
+  return { left, right: c ? [tile("c", c)] : [] };
+}
+function net(tiles) {
+  const n = { x: 0, y: 0, c: 0 };
+  for (const t of tiles) n[t.k] += t.v;
+  return n;
+}
+function term(n, k, first) {   // one term with sign
+  if (n === 0) return "";
+  const a = Math.abs(n), sg = n < 0 ? MINUS : "+";
+  const body = k === "c" ? String(a) : `${a === 1 ? "" : a}<i class="v${k}">${k}</i>`;
+  return first ? (n < 0 ? MINUS + body : body) : ` ${sg} ${body}`;
+}
+function joinTerms(list) {   // list of [n, k]
+  let s = "", first = true;
+  for (const [n, k] of list) { if (!n) continue; s += term(n, k, first); first = false; }
+  return s || "0";
+}
+// as the tiles stand: like terms grouped but nothing cancelled
+function rawSide(tiles) {
+  const list = [];
+  for (const k of LET) {
+    const p = tiles.filter(t => t.k === k && t.v > 0).length, n = tiles.filter(t => t.k === k && t.v < 0).length;
+    list.push([p, k], [-n, k]);
+  }
+  for (const t of tiles) if (t.k === "c") list.push([t.v, "c"]);
+  return joinTerms(list);
+}
+function tidySide(tiles) { const n = net(tiles); return joinTerms([[n.x, "x"], [n.y, "y"], [n.c, "c"]]); }
+function value(tiles) {
+  if (!S.sol) return 0;
+  return tiles.reduce((a, t) => a + (t.k === "c" ? t.v : t.v * S.sol[t.k]), 0);
+}
+function balanced(s) { return !S.sol || Math.abs(value(s.left) - value(s.right)) < 1e-9; }
+function coeffs(s) {   // ax + by = c form
+  const L = net(s.left), R = net(s.right);
+  return { a: L.x - R.x, b: L.y - R.y, c: R.c - L.c };
+}
+function solveAB() {
+  const A = scaleById("A"), B = scaleById("B");
+  if (!A || !B) return null;
+  const p = coeffs(A), q = coeffs(B), d = p.a * q.b - q.a * p.b;
+  if (d === 0) return null;
+  return { x: (p.c * q.b - q.c * p.b) / d, y: (p.a * q.c - q.a * p.c) / d };
+}
+// x = 4 or 4 = x, with nothing else on the scale
+function solvedFor(s) {
+  for (const [P, Q] of [[s.left, s.right], [s.right, s.left]]) {
+    if (P.length === 1 && P[0].k !== "c" && P[0].v === 1 && Q.every(t => t.k === "c") && Q.length <= 1)
+      return { k: P[0].k, val: Q.length ? Q[0].v : 0 };
+  }
+  return null;
+}
+
+/* ---------- generating questions ---------- */
+function gen(kind) {
+  const neg = $("negs").checked;
+  if (kind === "mix") kind = pick(["add", "m1", "m2"]);
+  const val = () => neg ? pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6]) : rnd(1, 7);
+  const sgn = () => neg && Math.random() < .35 ? -1 : 1;
+  for (let tries = 0; tries < 500; tries++) {
+    const x = val(), y = val();
+    let a1, b1, a2, b2;
+    if (kind === "add") {
+      const m = rnd(1, 4);
+      a1 = rnd(1, 5) * sgn(); a2 = rnd(1, 5) * sgn();
+      b1 = m; b2 = Math.random() < .5 ? m : -m;
+      if (!neg && b2 < 0 && Math.random() < .5) b2 = m;
+    } else if (kind === "m1") {
+      const m = rnd(1, 3), f = rnd(2, 3);
+      a1 = rnd(1, 4) * sgn(); a2 = rnd(1, 5) * sgn();
+      b1 = m; b2 = m * f * (Math.random() < .4 ? -1 : 1);
+    } else {
+      [b1, b2] = pick([[2, 3], [3, 2], [3, 4], [4, 3], [2, 5], [3, 5]]);
+      [a1, a2] = pick([[2, 3], [3, 2], [4, 3], [3, 4], [2, 5], [5, 2], [3, 5]]);
+      if (Math.random() < .5) b2 = -b2; else if (neg && Math.random() < .5) a2 = -a2;
+    }
+    if (Math.random() < .5) { [a1, b1] = [b1, a1]; [a2, b2] = [b2, a2]; }   // sometimes x is the letter to match
+    if (Math.random() < .5) { [a1, a2] = [a2, a1]; [b1, b2] = [b2, b1]; }   // and the order of the equations
+    if (a1 * b2 - a2 * b1 === 0) continue;
+    const c1 = a1 * x + b1 * y, c2 = a2 * x + b2 * y;
+    if (!neg && (c1 <= 0 || c2 <= 0)) continue;
+    if (Math.abs(c1) > 45 || Math.abs(c2) > 45) continue;
+    return [[a1, b1, c1], [a2, b2, c2]];
+  }
+  return [[3, 2, 16], [1, 2, 8]];
+}
+
+function start(eqA, eqB, how) {
+  S = { scales: [], found: {}, sol: null, nid: 1, building: false };
+  hist = []; sel = null;
+  const A = typeof eqA === "string" ? parseEq(eqA) : fromCoeffs(...eqA);
+  const B = typeof eqB === "string" ? parseEq(eqB) : fromCoeffs(...eqB);
+  S.scales.push({ id: "A", origin: "", ...A }, { id: "B", origin: "", ...B });
+  S.sol = solveAB();
+  S0 = JSON.stringify(S);
+  render();
+  say(S.sol ? (how || "") : "These two equations don’t have one answer (their lines are parallel), so the scales can’t tell x and y.", !S.sol);
+}
+function newPair() { const [p, q] = gen($("kind").value); start(p, q, "New pair. Which letter will you get rid of first?"); }
+
+/* ---------- actions ---------- */
+function say(msg, bad) { const t = $("toast"); t.innerHTML = msg || ""; t.style.color = bad ? "var(--bad)" : "var(--ink)"; }
+function scaleMsg(sid, msg, cls) { const el = document.querySelector(`.scale[data-id="${sid}"] .smsg`); if (el) { el.innerHTML = msg; el.className = "smsg " + (cls || ""); } }
+function nm(t) { return t.k === "c" ? fmt(t.v) : (t.v < 0 ? MINUS : "") + t.k; }
+function fmt(n) { return n < 0 ? MINUS + Math.abs(n) : String(n); }
+
+// fade tiles out, then change the state
+function vanish(ids, then) {
+  for (const id of ids) { const el = document.querySelector(`.tile[data-id="${id}"]`); if (el) el.classList.add("gone"); }
+  setTimeout(() => { then(); render(); }, ids.length ? 420 : 0);
+}
+
+function clickTile(sid, side, id) {
+  const s = scaleById(sid);
+  if (pal) { dropOn(sid, side); return; }
+  if (!sel) { sel = { sid, side, id }; render(); return; }
+  if (sel.id === id) { sel = null; render(); return; }
+  if (sel.sid !== sid) { sel = { sid, side, id }; render(); return; }
+  const a = s[sel.side].find(t => t.id === sel.id), b = s[side].find(t => t.id === id);
+  const aSide = sel.side; sel = null;
+  if (!a || !b) { render(); return; }
+  pair(s, a, aSide, b, side);
+}
+
+function pair(s, a, as, b, bs) {
+  const both = [a.id, b.id];
+  if (as === bs) {
+    if (a.k === "c" && b.k === "c") {
+      snap();
+      const sum = a.v + b.v;
+      scaleMsg(s.id, `${fmt(a.v)} and ${fmt(b.v)} make ${fmt(sum)}`, sum === 0 ? "good" : "");
+      vanish(sum === 0 ? both : [b.id], () => {
+        const arr = s[as];
+        s[as] = arr.filter(t => t.id !== b.id && (sum !== 0 || t.id !== a.id));
+        if (sum !== 0) a.v = sum;
+      });
+      return;
+    }
+    if (a.k !== b.k) { render(); scaleMsg(s.id, `${nm(a)} and ${nm(b)} are different things – they can’t cancel.`, "bad"); return; }
+    if (a.v === b.v) { render(); scaleMsg(s.id, `Both are ${nm(a)} – they add up, they don’t cancel.`, "bad"); return; }
+    snap();
+    scaleMsg(s.id, `${a.k} and ${MINUS}${a.k} cancel out: a zero pair`, "good");
+    vanish(both, () => { s[as] = s[as].filter(t => !both.includes(t.id)); });
+    return;
+  }
+  // opposite sides of the scale
+  if (a.k !== b.k) { render(); scaleMsg(s.id, `To take something off both sides it has to be the same on both sides.`, "bad"); return; }
+  if (a.k === "c") {
+    if (Math.sign(a.v) !== Math.sign(b.v)) { render(); scaleMsg(s.id, `One’s a weight, one’s a balloon. Add a ${fmt(-a.v)} to both sides instead.`, "bad"); return; }
+    snap();
+    const m = Math.sign(a.v) * Math.min(Math.abs(a.v), Math.abs(b.v));
+    scaleMsg(s.id, m > 0 ? `Took ${m} off both sides` : `Popped a ${fmt(m)} balloon on both sides (same as adding ${-m})`, "good");
+    vanish([a, b].filter(t => t.v === m).map(t => t.id), () => {
+      a.v -= m; b.v -= m;
+      s[as] = s[as].filter(t => t.v !== 0); s[bs] = s[bs].filter(t => t.v !== 0);
+    });
+    return;
+  }
+  if (a.v !== b.v) { render(); scaleMsg(s.id, `${nm(a)} and ${nm(b)} aren’t the same. Add ${a.k} to both sides instead, then cancel.`, "bad"); return; }
+  snap();
+  scaleMsg(s.id, a.v > 0 ? `Took ${a.k} off both sides` : `Popped a ${MINUS}${a.k} balloon on both sides`, "good");
+  vanish(both, () => { s[as] = s[as].filter(t => t.id !== a.id); s[bs] = s[bs].filter(t => t.id !== b.id); });
+}
+
+// cancel every zero pair and combine the weights on each side
+function tidy(s, quiet, noSnap) {
+  const gone = [];
+  const plan = {};
+  for (const side of ["left", "right"]) {
+    const T = s[side], keep = [];
+    for (const k of LET) {
+      const p = T.filter(t => t.k === k && t.v > 0), n = T.filter(t => t.k === k && t.v < 0);
+      const z = Math.min(p.length, n.length);
+      gone.push(...p.slice(0, z).map(t => t.id), ...n.slice(0, z).map(t => t.id));
+      keep.push(...p.slice(z), ...n.slice(z));
+    }
+    const cs = T.filter(t => t.k === "c"), sum = cs.reduce((a, t) => a + t.v, 0);
+    if (cs.length > 1 || (cs.length === 1 && sum === 0)) {
+      gone.push(...cs.slice(sum === 0 ? 0 : 1).map(t => t.id));
+      if (sum !== 0) keep.push({ ...cs[0], v: sum });
+    } else keep.push(...cs);
+    plan[side] = keep;
+  }
+  const changed = gone.length || ["left", "right"].some(sd => plan[sd].some((t, i) => t.k === "c" && s[sd].find(u => u.id === t.id).v !== t.v));
+  if (!changed) { if (!quiet) scaleMsg(s.id, "Nothing left to cancel on either side."); return false; }
+  if (!noSnap) snap();
+  vanish(gone, () => { s.left = plan.left; s.right = plan.right; });
+  return true;
+}
+
+function multiply(s, n) {
+  if (!Number.isInteger(n) || n === 0 || n === 1) { scaleMsg(s.id, "Pick a whole number other than 0 or 1.", "bad"); return; }
+  const count = sd => s[sd].filter(t => t.k !== "c").length * Math.abs(n);
+  if (Math.max(count("left"), count("right")) > 40) { scaleMsg(s.id, "That’s too many tiles to fit – tidy up first.", "bad"); return; }
+  snap();
+  for (const sd of ["left", "right"]) {
+    const out = [];
+    for (const t of s[sd]) {
+      if (t.k === "c") out.push({ ...t, v: t.v * n });
+      else for (let i = 0; i < Math.abs(n); i++) out.push(tile(t.k, t.v * Math.sign(n)));
+    }
+    s[sd] = out;
+  }
+  s.origin = s.origin ? `${s.origin}, then × ${fmt(n)}` : `${s.id} × ${fmt(n)}`;
+  render(); scaleMsg(s.id, `Everything on both sides × ${fmt(n)}${n < 0 ? ": weights and balloons swap" : ""}`, "good");
+}
+
+function divide(s, n) {
+  if (!Number.isInteger(n) || n === 0 || n === 1) { scaleMsg(s.id, "Pick a whole number other than 0 or 1.", "bad"); return; }
+  const m = Math.abs(n);
+  for (const sd of ["left", "right"]) {
+    for (const k of LET) {
+      const p = s[sd].filter(t => t.k === k && t.v > 0).length, q = s[sd].filter(t => t.k === k && t.v < 0).length;
+      if (p % m || q % m) { scaleMsg(s.id, `Can’t share the ${k} tiles into ${m} equal groups. Tidy up first, or try another number.`, "bad"); return; }
+    }
+    if (s[sd].some(t => t.k === "c" && t.v % n)) {
+      scaleMsg(s.id, `A weight doesn’t divide exactly by ${fmt(n)}. Tidy up first, or try another number.`, "bad"); return;
+    }
+  }
+  snap();
+  for (const sd of ["left", "right"]) {
+    const out = [];
+    for (const k of LET) {
+      for (const sg of [1, -1]) {
+        const T = s[sd].filter(t => t.k === k && t.v === sg);
+        out.push(...T.slice(0, T.length / m).map(t => ({ ...t, v: t.v * Math.sign(n) })));
+      }
+    }
+    for (const t of s[sd]) if (t.k === "c") out.push({ ...t, v: t.v / n });
+    s[sd] = out;
+  }
+  s.origin = s.origin ? `${s.origin}, then ÷ ${fmt(n)}` : `${s.id} ÷ ${fmt(n)}`;
+  render(); scaleMsg(s.id, `Shared both sides into ${m} equal groups and kept one${n < 0 ? ", upside down" : ""}`, "good");
+}
+
+function combine(aId, op, bId) {
+  const A = scaleById(aId), B = scaleById(bId);
+  if (!A || !B) return;
+  if (aId === bId) { say("Pick two different scales.", true); return; }
+  if (S.scales.length >= 10) { say("That’s a lot of scales – delete some you don’t need (×).", true); return; }
+  const n = A.left.length + B.left.length, m = A.right.length + B.right.length;
+  if (Math.max(n, m) > 48) { say("Too many tiles to fit on one scale – tidy up first.", true); return; }
+  snap();
+  const flip = t => tile(t.k, t.v * op);
+  const id = nextName();
+  S.scales.push({
+    id, origin: `${aId} ${op > 0 ? "+" : MINUS} ${bId}`,
+    left: [...A.left.map(t => tile(t.k, t.v)), ...B.left.map(flip)],
+    right: [...A.right.map(t => tile(t.k, t.v)), ...B.right.map(flip)]
+  });
+  fresh = id;
+  render();
+  say(`Scale ${id} is ${aId} ${op > 0 ? "+" : MINUS} ${bId}. Now cancel the zero pairs: click an ${pick(LET)} and its balloon, or press Tidy.`);
+  scrollToScale(id);
+}
+
+function substitute(s, k, val) {
+  if (S.scales.length >= 10) { say("That’s a lot of scales – delete some you don’t need (×).", true); return; }
+  snap();
+  const id = nextName(), sw = t => t.k === k ? (val ? [tile("c", t.v * val)] : []) : [tile(t.k, t.v)];
+  S.scales.push({ id, origin: `${s.id} with ${k} = ${fmt(val)}`, left: s.left.flatMap(sw), right: s.right.flatMap(sw) });
+  fresh = id;
+  render();
+  say(`Scale ${id}: every ${k} tile in ${s.id} swapped for a ${fmt(val)} weight${val < 0 ? " (a balloon)" : ""}. Now solve it for ${k === "x" ? "y" : "x"}.`);
+  scrollToScale(id);
+}
+
+function dropOn(sid, side) {
+  const s = scaleById(sid);
+  let k = pal.k, v = pal.v;
+  if (k === "c") { v = Math.round(+$("wv").value); if (!v) { say("Type a number for the weight (not 0).", true); return; } }
+  const sides = $("both").checked ? ["left", "right"] : [side];
+  if (sides.some(sd => s[sd].length >= 45)) { scaleMsg(sid, "That pan is full – tidy up first.", "bad"); return; }
+  snap();
+  for (const sd of sides) { const t = tile(k, v); s[sd].push(t); justAdded.add(t.id); }
+  render();
+  const what = k === "c" ? fmt(v) : (v < 0 ? MINUS : "") + k;
+  if (sides.length === 2) scaleMsg(sid, `Added ${what} to both sides`, "good");
+  else if (!balanced(s)) scaleMsg(sid, `Added ${what} to one side only – it’s tipped!`, "bad");
+}
+
+function removeTile(sid, side, id) {
+  const s = scaleById(sid);
+  snap();
+  sel = null;
+  vanish([id], () => { s[side] = s[side].filter(t => t.id !== id); });
+  setTimeout(() => { if (!balanced(s)) scaleMsg(sid, "Taken off one side only – it’s tipped!", "bad"); }, 450);
+}
+
+function lockIn() {
+  const sol = solveAB();
+  if (!sol) { say("Scales A and B need to be two different equations with one answer – keep building.", true); return; }
+  snap();
+  S.sol = sol; S.building = false;
+  S0 = JSON.stringify(S);
+  render(); say("Locked in. The scales know x and y now, so they’ll tip if you only change one side.");
+}
+
+/* ---------- drawing ---------- */
+let fresh = null;
+const justAdded = new Set();
+
+function render() {
+  // record anything solved
+  if (S.sol) for (const s of S.scales) {
+    const r = solvedFor(s);
+    if (r && balanced(s) && S.found[r.k] === undefined) S.found[r.k] = r.val;
+  }
+  const g = $("grid");
+  g.innerHTML = "";
+  for (const s of S.scales) g.appendChild(scaleEl(s));
+  for (const s of S.scales) place(s, fresh, justAdded);
+  justAdded.clear(); fresh = null;
+  renderFound(); renderWorking(); renderCombine();
+  $("undoBtn").disabled = !hist.length;
+  document.querySelectorAll("#palette .pt").forEach(b => b.classList.toggle("on", !!pal && b.dataset.k === pal.k && String(pal.v) === b.dataset.v));
+}
+
+function tileEl(t, sid, side, size, isNew) {
+  const b = document.createElement("button");
+  b.className = `tile ${t.k}${t.v < 0 ? " neg" : ""}${sel && sel.id === t.id ? " sel" : ""}${isNew ? " new" : ""}`;
+  b.style.setProperty("--s", size + "px");
+  b.dataset.id = t.id;
+  b.textContent = t.k === "c" ? fmt(t.v) : (t.v < 0 ? MINUS : "") + t.k;
+  b.setAttribute("aria-label", t.k === "c" ? (t.v < 0 ? `balloon ${fmt(t.v)}` : `weight ${t.v}`) : (t.v < 0 ? `negative ${t.k} balloon` : `${t.k} tile`));
+  b.title = t.v < 0 ? "Balloon (negative)" : "";
+  b.onclick = e => { e.stopPropagation(); clickTile(sid, side, t.id); };
+  return b;
+}
+
+// biggest tile size that fits the fuller pan
+function fitSize(s, w, h) {
+  const units = sd => s[sd].reduce((a, t) => a + (t.k === "c" ? 1 + String(Math.abs(t.v)).length * .35 : 1), 0);
+  const n = Math.max(units("left"), units("right"), 1);
+  for (const sz of [46, 40, 34, 30, 26, 22, 19, 16, 14]) {
+    const cols = Math.floor((w + 3) / (sz + 3)), rows = Math.floor((h + 3) / (sz + 3));
+    if (cols * rows >= Math.ceil(n * 1.08)) return sz;
+  }
+  return 12;
+}
+
+function scaleEl(s) {
+  const el = document.createElement("div");
+  const sol = solvedFor(s), ok = balanced(s);
+  el.className = "scale" + (!ok ? " off" : sol && S.sol ? " solved" : "");
+  el.dataset.id = s.id;
+  const del = s.id === "A" || s.id === "B" ? "" : `<button class="sdel" title="Delete this scale" aria-label="Delete scale ${s.id}">×</button>`;
+  const orig = s.origin ? `= ${s.origin}` : (S.building ? "building…" : "");
+  el.innerHTML = `
+    <div class="shead"><span class="sname">${s.id}</span><span class="sorigin">${orig}</span>${del}</div>
+    <div class="seq">${rawSide(s.left)} <span class="${ok ? "" : "ne"}">${ok ? "=" : "≠"}</span> ${rawSide(s.right)}</div>
+    <div class="rig">
+      <div class="post"></div><div class="foot"></div>
+      <div class="beam"></div><div class="pivot"></div>
+      <div class="tray" data-side="left"><svg class="strings"></svg><div class="hook"></div><div class="tiles"></div><div class="dish"></div><div class="side">left side</div></div>
+      <div class="tray" data-side="right"><svg class="strings"></svg><div class="hook"></div><div class="tiles"></div><div class="dish"></div><div class="side">right side</div></div>
+    </div>
+    <div class="smsg"></div>
+    <div class="stools">
+      <span class="grp"><button class="btn small" data-a="mul">× both sides by</button><input type="number" class="mn" value="2" aria-label="Multiply by"></span>
+      <span class="grp"><button class="btn small" data-a="div">÷ both sides by</button><input type="number" class="dn" value="${guessDiv(s)}" aria-label="Divide by"></span>
+      <button class="btn small" data-a="tidy">Tidy</button>
+      ${S.building && s.id === "B" ? `<button class="btn small primary" data-a="lock">Lock in</button>` : ""}
+      ${subButtons(s)}
+    </div>`;
+  if (!ok) el.querySelector(".smsg").innerHTML = "Not balanced – do the same to the other side";
+  else if (sol && S.sol) { const m = el.querySelector(".smsg"); m.className = "smsg good"; m.innerHTML = `${sol.k} = ${fmt(sol.val)} ✓`; }
+  el.querySelectorAll(".tray").forEach(tr => {
+    tr.onclick = () => { if (pal) dropOn(s.id, tr.dataset.side); else if (sel) { sel = null; render(); } };
+  });
+  el.querySelector("[data-a=mul]").onclick = () => multiply(s, +el.querySelector(".mn").value);
+  el.querySelector("[data-a=div]").onclick = () => divide(s, +el.querySelector(".dn").value);
+  el.querySelector("[data-a=tidy]").onclick = () => tidy(s);
+  const lk = el.querySelector("[data-a=lock]"); if (lk) lk.onclick = lockIn;
+  el.querySelectorAll("[data-sub]").forEach(b => b.onclick = () => substitute(s, b.dataset.sub, S.found[b.dataset.sub]));
+  const d = el.querySelector(".sdel");
+  if (d) d.onclick = () => { snap(); S.scales = S.scales.filter(t => t.id !== s.id); render(); };
+  return el;
+}
+
+function guessDiv(s) {
+  const n = net(s.left), m = net(s.right);
+  const c = [n.x, n.y, m.x, m.y].find(v => v && Math.abs(v) !== 1 && v !== 0);
+  return c || 2;
+}
+function subButtons(s) {
+  if (!S.sol) return "";
+  return LET.filter(k => S.found[k] !== undefined && [...s.left, ...s.right].some(t => t.k === k) && !solvedFor(s))
+    .map(k => `<button class="btn small" data-sub="${k}">Put ${k} = ${fmt(S.found[k])} in</button>`).join("");
+}
+
+function place(s, fr, ja) {
+  const el = document.querySelector(`.scale[data-id="${s.id}"]`);
+  if (!el) return;
+  const rig = el.querySelector(".rig"), W = rig.clientWidth, H = rig.clientHeight;
+  const cx = W / 2, by = 41, h = W * .3, tw = W * .38, th = H - 86;
+  const L = value(s.left), R = value(s.right);
+  const deg = S.sol ? -11 * Math.tanh((L - R) / (1 + .15 * (Math.abs(L) + Math.abs(R)))) : 0;
+  const beam = el.querySelector(".beam"), trays = [...el.querySelectorAll(".tray")];
+  beam.style.left = (cx - h - 8) + "px"; beam.style.width = (2 * h + 16) + "px";
+  for (const tr of trays) {
+    tr.style.width = tw + "px"; tr.style.height = th + "px";
+    tr.querySelector(".strings").innerHTML =
+      `<line x1="50%" y1="4" x2="3%" y2="${th - 14}" stroke="#9aa3ad" stroke-width="2"/>
+       <line x1="50%" y1="4" x2="97%" y2="${th - 14}" stroke="#9aa3ad" stroke-width="2"/>`;
+    tr.classList.toggle("drop", !!pal);
+  }
+  const pose = d => {
+    const r = d * Math.PI / 180;
+    beam.style.transform = `rotate(${d}deg)`;
+    for (const tr of trays) {
+      const sg = tr.dataset.side === "left" ? -1 : 1;
+      tr.style.transform = `translate(${cx + sg * h * Math.cos(r) - tw / 2}px, ${by + sg * h * Math.sin(r)}px)`;
+    }
+  };
+  // the DOM is rebuilt each time, so jump to the old angle and then swing to the new one
+  const moving = [beam, ...trays];
+  moving.forEach(e => e.style.transition = "none");
+  pose(lastDeg[s.id] ?? 0);
+  void rig.offsetWidth;
+  moving.forEach(e => e.style.transition = "");
+  pose(deg);
+  lastDeg[s.id] = deg;
+  const size = fitSize(s, tw - 20, th - 50);
+  for (const tr of trays) {
+    const box = tr.querySelector(".tiles"), sd = tr.dataset.side;
+    for (const t of s[sd]) box.appendChild(tileEl(t, s.id, sd, size, fr === s.id || ja.has(t.id)));
+  }
+}
+const lastDeg = {};
+
+function renderFound() {
+  const f = S.found, sol = S.sol;
+  let h = "";
+  if (S.building) h = `<span class="hint" style="font-family:inherit;font-size:16px">Building scales A and B. Untick “Both sides” to put tiles on one side at a time, then press <b>Lock in</b> on scale B.</span>`;
+  else if (!sol) h = `<span class="hint">No single answer for these two equations.</span>`;
+  else {
+    h = LET.map(k => `<span>${`<i class="v${k}">${k}</i>`} = ${f[k] !== undefined ? `<b>${fmt(f[k])}</b>` : "?"}</span>`).join("");
+    if (f.x !== undefined && f.y !== undefined) {
+      const chk = ["A", "B"].map(id => {
+        const s = scaleById(id); if (!s) return "";
+        const ev = tiles => {
+          const n = net(tiles), parts = [];
+          for (const k of LET) if (n[k]) parts.push([n[k], k]);
+          let str = "", first = true;
+          for (const [c, k] of parts) {
+            const a = Math.abs(c), co = a === 1 ? "" : a, v = f[k] < 0 ? `(${fmt(f[k])})` : f[k];
+            str += (first ? (c < 0 ? MINUS : "") : (c < 0 ? ` ${MINUS} ` : " + ")) + (co === "" ? v : `${co}(${fmt(f[k])})`);
+            first = false;
+          }
+          if (n.c) str += first ? fmt(n.c) : (n.c < 0 ? ` ${MINUS} ${-n.c}` : ` + ${n.c}`);
+          return [str || "0", value(tiles)];
+        };
+        const [ls, lv] = ev(s.left), [rs, rv] = ev(s.right);
+        const rHas = s.right.some(t => t.k !== "c");
+        return `<span class="chk">Check ${id}: ${ls} = ${fmt(lv)}${rHas ? `, &nbsp;${rs} = ${fmt(rv)}` : ""} <span class="ok">✓</span></span>`;
+      }).join("");
+      h += `<span class="chk ok"><b>Solved!</b></span>${chk}`;
+    } else if (f.x !== undefined || f.y !== undefined) {
+      const k = f.x !== undefined ? "x" : "y";
+      h += `<span class="hint" style="font-size:15px;font-family:inherit">Now use “Put ${k} = ${fmt(f[k])} in” on scale A or B to find the other letter.</span>`;
+    }
+  }
+  $("found").innerHTML = h;
+}
+
+function renderWorking() {
+  $("working").innerHTML = S.scales.map(s => {
+    const r = solvedFor(s);
+    const how = s.origin ? `<span class="o">(${s.origin})</span> ` : "";
+    return `<li><b>${s.id}</b> ${how}${tidySide(s.left)} = ${tidySide(s.right)}${r && S.sol ? " ✓" : ""}</li>`;
+  }).join("");
+}
+
+function renderCombine() {
+  const opts = S.scales.map(s => `<option>${s.id}</option>`).join("");
+  const a = $("cA").value, b = $("cB").value;
+  $("cA").innerHTML = opts; $("cB").innerHTML = opts;
+  $("cA").value = S.scales.some(s => s.id === a) ? a : "A";
+  $("cB").value = S.scales.some(s => s.id === b) ? b : "B";
+}
+
+function scrollToScale(id) {
+  const el = document.querySelector(`.scale[data-id="${id}"]`);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ---------- wiring ---------- */
+$("newBtn").onclick = newPair;
+$("kind").onchange = newPair;
+$("negs").onchange = newPair;
+$("undoBtn").onclick = undo;
+$("resetBtn").onclick = () => {
+  if (!S0) return;
+  snap(); S = JSON.parse(S0); sel = null; render(); say("Back to the start.");
+};
+$("tidyAllBtn").onclick = tidyAll;
+$("combineBtn").onclick = () => combine($("cA").value, +$("cOp").value, $("cB").value);
+$("ownBtn").onclick = () => {
+  const a = $("ownA").value, b = $("ownB").value;
+  S = S || { nid: 1 };
+  const ok = parseEq(a) && parseEq(b);
+  if (!ok) { say("Couldn’t read that. Use x and y with whole numbers, e.g. 3x − 2y = 7 (up to 30 letter tiles).", true); return; }
+  start(a, b, "Your equations are on the scales.");
+};
+$("blankBtn").onclick = () => {
+  S = { scales: [{ id: "A", origin: "", left: [], right: [] }, { id: "B", origin: "", left: [], right: [] }], found: {}, sol: null, nid: 1, building: true };
+  hist = []; sel = null; S0 = JSON.stringify(S); pal = { k: "x", v: 1 }; $("both").checked = false;
+  render(); say("Pick a tile, then click a pan to put it there.");
+};
+document.querySelectorAll("#palette .pt").forEach(b => b.onclick = () => {
+  const v = b.dataset.v === "w" ? "w" : +b.dataset.v, k = b.dataset.k;
+  pal = pal && pal.k === k && String(pal.v) === String(v) ? null : { k, v };
+  sel = null; render();
+  if (pal) say(`Click a pan to add ${k === "c" ? "a weight" : (v < 0 ? "a " + MINUS + k + " balloon" : "an " + k)}${$("both").checked ? " to both sides" : ""}. Esc to stop.`);
+  else say("");
+});
+$("wv").onfocus = () => { pal = { k: "c", v: "w" }; render(); };
+
+function undo() {
+  if (!hist.length) return;
+  S = JSON.parse(hist.pop()); sel = null; render(); say("Undone.");
+}
+function tidyAll() {
+  const before = JSON.stringify(S);
+  let any = false;
+  for (const s of S.scales) any = tidy(s, true, true) || any;
+  if (any) { hist.push(before); say("Cancelled every zero pair and combined the weights."); }
+  else say("Nothing left to cancel.");
+}
+
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, select, textarea")) return;
+  const k = e.key.toLowerCase();
+  if ((e.metaKey || e.ctrlKey) && k === "z") { e.preventDefault(); undo(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (k === "n") newPair();
+  else if (k === "z" || k === "u") undo();
+  else if (k === "t") tidyAll();
+  else if (k === "escape") { sel = null; pal = null; render(); say(""); }
+  else if ((k === "delete" || k === "backspace") && sel) removeTile(sel.sid, sel.side, sel.id);
+});
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(render, 120); });
+
+newPair();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "nat5/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000 scaffold for every question_B.pdf", "files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000-table_G_E.pdf", "files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T1 03 Measurement Angles/Making_180_Angles_Workbooklet.pdf", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Negative Numbers - Bridging Through Zero (MNU 3-04a).pdf", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Compound area of rectangles worksheet MTH 3-11a.pdf", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/H) Fractions/Summary Sheets/Operations with fractions summary sheet pdf.pdf", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-B-A4 (1).pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-C-A4.pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-D-A4.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Preparation_Pack_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_Supported_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_Supported_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Preparation_Pack_FDP_Ratio_Circles_Volume_Money_MNU3-07a_3-08a_MTH4-16b_MNU3-11a_3-09a.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Preparation_Pack_All_S1_Topics.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Prep_MTH3-05a_MTH3-06a_MTH3-13a.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Preparation_Pack_Fractions_Scale_Bearings_Statistics_MTH3-07bc_3-17bc_3-20b_3-21a.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Preparation_Pack_Brackets_Finance_Straight_Line_MTH4-14ab_MNU4-09abc_MTH4-13abcd.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Preparation_Pack_Tolerance_Equations_Fractions_SDT_Areas_Volumes.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Preparation_Pack_Powers_SciNotation_Pythagoras_Trig_MTH4-06ab_MTH4-16a.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Preparation_Pack_Circles_Factorising_Indices_Surds_MTH4-17a_4-16a_4-14b_4-06a.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection_Supported.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 1 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 2 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 3 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 4 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 5 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 6 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 7 - Integration.pdf", "files/higher/Revision/formulae-list-pupil.pdf", "files/higher/Revision/formulae-to-learn.pdf", "files/higher/Revision/revision-cards.pdf", "files/higher/topics/applications-of-calculus/applications-of-calculus-notes.pdf", "files/higher/topics/circle/circle-notes.pdf", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/differentiation/differentiation-notes.pdf", "files/higher/topics/functions-and-graphs/composite-inverse-functions-questions.pdf", "files/higher/topics/functions-and-graphs/functions-notes.pdf", "files/higher/topics/functions-and-graphs/trig-graph-transformations.pdf", "files/higher/topics/integration/integration-notes.pdf", "files/higher/topics/logs-and-exponentials/logs-and-exponentials-notes.pdf", "files/higher/topics/polynomials/polynomials-notes.pdf", "files/higher/topics/quadratics/quadratics-explorer.html", "files/higher/topics/quadratics/quadratics-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-summary-sheet.pdf", "files/higher/topics/straight-line/straight-line-notes.pdf", "files/higher/topics/trig-equations/trig-equations-notes.pdf", "files/higher/topics/trig-expressions/degrees-radians-war-card-game.pdf", "files/higher/topics/trig-expressions/trig-expressions-notes.pdf", "files/higher/topics/vectors/vectors-notes.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_Term1_Assessment_Prep_Pack.pdf", "files/nat5/Homework/Term 1/Term1_Homework_Pupil.pdf", "files/nat5/Homework/Term 2/Term2_Homework_Pupil.pdf", "files/nat5/Revision/formulae-list-pupil.pdf", "files/nat5/Revision/revision-cards.pdf", "files/nat5/topics/algebraic-fractions/algebraic-fractions-notes.pdf", "files/nat5/topics/angles-and-circles/angles-and-circles-notes.pdf", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-notes.pdf", "files/nat5/topics/changing-the-subject/changing-the-subject-notes.pdf", "files/nat5/topics/equations-and-inequations/equations-and-inequations-notes.pdf", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-notes.pdf", "files/nat5/topics/fractions/fractions-notes.pdf", "files/nat5/topics/function-notation/function-notation-notes.pdf", "files/nat5/topics/percentages/percentages-notes.pdf", "files/nat5/topics/pythagoras/pythagoras-notes.pdf", "files/nat5/topics/quadratic-equations/quadratic-equations-notes.pdf", "files/nat5/topics/quadratic-functions/quadratic-functions-notes.pdf", "files/nat5/topics/similarity/similarity-notes.pdf", "files/nat5/topics/simultaneous-equations/balance-scales.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-notes.pdf", "files/nat5/topics/statistics/statistics-notes.pdf", "files/nat5/topics/straight-line/straight-line-notes.pdf", "files/nat5/topics/surds-and-indices/surds-and-indices-notes.pdf", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-notes.pdf", "files/nat5/topics/trigonometry/trigonometry-notes.pdf", "files/nat5/topics/vectors/vectors-notes.pdf"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>
