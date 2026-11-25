@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simultaneous equations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6F5; --paper:#FFFFFF; --ink:#17262E; --muted:#55666E;
+  --sea:#1C6670; --sea-soft:#DCEDEC; --deep:#0E3A42; --sand:#F3C64F; --sand-soft:#FCEFC4; --line:#D3DCDB;
+  --good:#2E7D4F; --bad:#B23B3B; --neg:#B4532A; --neg-soft:#F8E1D6;
+  --lineA:#1C6670; --lineB:#B4532A;
+  --head:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.0625rem;line-height:1.55}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+a{color:var(--sea)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{background:var(--paper);border-bottom:1px solid var(--line);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.brand{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--deep);text-decoration:none}
+.crumbs{color:var(--muted);font-size:.95rem}
+.crumbs a{color:var(--muted)}
+
+.layout{display:grid;grid-template-columns:minmax(300px,360px) 1fr;min-height:calc(100vh - 52px)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* Learning sequence */
+.sequence{background:var(--deep);color:#E8F1F0;padding:1.75rem 1.1rem 2rem}
+@media (min-width:901px){.sequence{position:sticky;top:0;height:100vh;overflow-y:auto}}
+.sequence h2{font-size:1.25rem;color:#fff;padding:0 .3rem}
+.sequence .hint{font-size:.92rem;color:#A9C4C3;margin:.35rem .3rem 1rem}
+.wk{font-family:var(--head);font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#A9C4C3;margin:1rem .3rem .3rem}
+.wk:first-of-type{margin-top:0}
+.steps{list-style:none;margin:0;padding:0;position:relative}
+.steps::before{content:"";position:absolute;left:25px;top:20px;bottom:20px;width:2px;background:#2C5F67}
+.step{width:100%;text-align:left;background:transparent;border:2px solid transparent;color:#E8F1F0;border-radius:10px;
+  display:grid;grid-template-columns:32px 1fr;gap:.75rem;align-items:start;padding:.55rem .55rem;cursor:pointer;position:relative}
+.step:hover{background:#174C55}
+.step[aria-current="true"]{background:#174C55;border-color:var(--sand)}
+.num{width:32px;height:32px;border-radius:50%;background:var(--sand);color:var(--deep);font-family:var(--head);font-weight:700;display:grid;place-items:center;font-size:.8rem;position:relative}
+.step .txt{font-size:.98rem;line-height:1.4}
+.step .eg{display:block;color:#A9C4C3;font-size:.88rem;margin-top:.2rem}
+.whole{margin-top:1rem;border-top:1px solid #2C5F67;padding-top:1rem}
+.whole .num{background:#E8F1F0;font-size:1.1rem}
+
+/* Main */
+main{padding:1.75rem clamp(1rem,3vw,2.75rem) 3rem;max-width:1150px;min-width:0}
+.kicker{font-family:var(--head);font-weight:600;color:var(--sea);font-size:.95rem;margin:0 0 .3rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--deep);max-width:30ch}
+.hero p.eg{color:var(--muted);margin:.5rem 0 0;font-size:1.05rem;max-width:65ch;white-space:pre-line}
+.stepnav{display:flex;gap:.5rem;flex-wrap:wrap}
+.jump{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0;padding:0;list-style:none;align-items:center}
+.jump a{display:block;padding:.4rem .85rem;border:1.5px solid var(--line);border-radius:999px;background:var(--paper);text-decoration:none;color:var(--ink);font-size:.95rem}
+.jump a:hover{border-color:var(--sea);color:var(--sea)}
+
+section.block{margin-top:2.25rem;scroll-margin-top:1rem}
+.block-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:2px solid var(--deep);padding-bottom:.4rem;margin-bottom:1rem}
+.block-head h2{font-size:1.45rem;color:var(--deep)}
+.block-head p{margin:0;color:var(--muted);font-size:.95rem}
+
+.btn{border:0;border-radius:8px;padding:.55rem 1rem;cursor:pointer;font-weight:700;background:var(--sea);color:#fff}
+.btn:hover{background:var(--deep)}
+.btn.alt{background:var(--paper);color:var(--deep);border:1.5px solid var(--deep)}
+.btn.alt:hover{background:var(--sand-soft)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* Worked examples */
+.exs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.ex{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--sand);border-radius:8px;padding:1rem 1.1rem}
+.ex .exq{font-family:var(--head);font-size:1.3rem;font-weight:700;color:var(--deep);white-space:pre-line;line-height:1.45}
+.ex .exq.long{font-family:var(--body);font-size:1.05rem;line-height:1.4}
+.ex ol{margin:.4rem 0;padding-left:1.3rem}
+.ex li{margin:.15rem 0}
+.ex .exa{font-family:var(--head);font-weight:700;font-size:1.15rem;color:var(--sea)}
+.ex .note{background:var(--sand-soft);border-radius:6px;padding:.45rem .7rem;font-size:.95rem;margin-top:.5rem}
+.ex .try{margin-top:.6rem}
+
+/* Questions */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1.25rem}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem 1.25rem;align-items:center;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+.chips span{font-size:.92rem;color:var(--muted);margin-right:.25rem}
+.chip{min-width:40px;height:34px;padding:0 .4rem;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);cursor:pointer;font-family:var(--head);font-weight:600;color:var(--muted);font-size:.9rem}
+.chip[aria-pressed="true"]{background:var(--sand);border-color:var(--sand);color:var(--deep)}
+.controls label{font-size:.95rem;color:var(--muted)}
+.controls select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line)}
+.btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-left:auto}
+.qs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem;counter-reset:q}
+.qs li{counter-increment:q;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;display:flex;flex-direction:column;gap:.2rem;background:#FBFCFC}
+.qs.wordy{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+@media (max-width:560px){.qs.wordy{grid-template-columns:1fr}}
+.qs li::before{content:counter(q);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem}
+.qs .q{font-family:var(--head);font-size:1.35rem;font-weight:600;line-height:1.45;font-variant-numeric:tabular-nums}
+.qs .q.long{font-family:var(--body);font-size:1.05rem;font-weight:400;line-height:1.4}
+.qs .a{font-family:var(--head);font-size:1.2rem;color:var(--sea);font-weight:700;visibility:hidden;margin-top:auto;padding-top:.3rem}
+.qs.show .a{visibility:visible}
+.qs .from{font-size:.8rem;color:var(--muted)}
+#qPanel:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#qPanel:fullscreen .qs .q,#qPanel:fullscreen .qs .a{font-size:2.2rem}
+#qPanel:fullscreen .qs .q.long,#qPanel:fullscreen .qs .a.long{font-size:1.5rem}
+
+/* Scaffolds */
+.scaffold h3{font-size:1.15rem;color:var(--deep)}
+.scaffold .sub{color:var(--muted);margin:.25rem 0 1rem;font-size:.95rem}
+.feedback{font-weight:700;min-height:1.6rem;margin-top:.5rem}
+.feedback.ok{color:var(--good)}.feedback.no{color:var(--bad)}
+.tool-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.tool-head .btn{text-decoration:none;white-space:nowrap}
+#toolFrame{display:block;width:100%;height:1150px;border:0;margin-top:.25rem}
+.bd-q{font-family:var(--head);font-size:1.6rem;font-weight:700;color:var(--deep);white-space:pre-line;line-height:1.45}
+.bd-q.long{font-family:var(--body);font-size:1.2rem;line-height:1.45;max-width:60ch}
+.bd-steps{margin:.75rem 0;padding-left:1.4rem}
+.bd-steps li{margin:.3rem 0}
+.bd-answer{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.bd-answer label{display:inline-flex;gap:.35rem;align-items:center;font-family:var(--head);font-weight:600;color:var(--deep)}
+.bd-answer input,.g-ans input{width:6.5rem;padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem}
+
+/* Graph scaffold */
+.g-wrap{display:grid;grid-template-columns:minmax(260px,460px) 1fr;gap:1.25rem;align-items:start}
+@media (max-width:760px){.g-wrap{grid-template-columns:1fr}}
+svg.graph{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:8px;cursor:crosshair;touch-action:manipulation}
+svg.graph .gl{stroke:#E3E9E8;stroke-width:1}
+svg.graph .ax{stroke:var(--ink);stroke-width:2}
+svg.graph .lbl{font-family:var(--head);font-size:12px;fill:var(--muted);text-anchor:middle}
+svg.graph .ln{stroke-width:3.5;stroke-linecap:round}
+svg.graph .pt{stroke:#fff;stroke-width:2}
+svg.graph .pick{fill:none;stroke:var(--deep);stroke-width:3}
+.g-legend{display:flex;flex-direction:column;gap:.6rem}
+.g-line{border:1px solid var(--line);border-radius:8px;padding:.6rem .8rem;border-left:6px solid}
+.g-line b{font-family:var(--head);font-size:1.15rem}
+.g-line table{border-collapse:collapse;margin:.45rem 0;font-family:var(--head)}
+.g-line th,.g-line td{border:1px solid var(--line);padding:.2rem .45rem;text-align:center;min-width:3rem}
+.g-line th{background:#F3F6F5;color:var(--muted);font-weight:600}
+.g-line td input{width:3.2rem;padding:.2rem .3rem;border:1.5px solid var(--line);border-radius:5px;font-family:var(--head);font-size:1rem;text-align:center}
+.g-line td input.bad{border-color:var(--bad);background:var(--neg-soft)}
+.g-line .done{color:var(--good);font-weight:700;font-size:.95rem}
+.g-ans{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.g-ans label{display:inline-flex;gap:.35rem;align-items:center;font-family:var(--head);font-weight:600;color:var(--deep)}
+.g-ans input{width:4.5rem}
+
+/* Flashcards */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.fc-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;width:100%}
+.fc-top label{color:var(--muted);font-size:.95rem}
+.fc-top select{padding:.3rem .4rem;border-radius:6px;border:1.5px solid var(--line);margin-left:.3rem}
+.fc-count{font-family:var(--head);color:var(--muted);font-size:.95rem}
+.fc-card{width:min(580px,100%);height:270px;perspective:1200px;cursor:pointer;border:0;background:none;padding:0}
+.fc-inner{position:relative;width:100%;height:100%;transition:transform .5s ease;transform-style:preserve-3d}
+.fc-card.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;text-align:center}
+.fc-front{background:var(--paper);border:2px solid var(--deep);box-shadow:0 6px 0 var(--deep)}
+.fc-back{background:var(--sand);border:2px solid #C99C25;box-shadow:0 6px 0 #C99C25;transform:rotateY(180deg)}
+.fc-side{position:absolute;top:.8rem;left:1rem;font-size:.85rem;color:var(--muted)}
+.fc-back .fc-side{color:#6B5413}
+.fc-text{font-family:var(--head);font-weight:600;font-size:clamp(1.05rem,2.4vw,1.5rem);color:var(--deep);line-height:1.35;max-width:32ch;white-space:pre-line}
+.fc-tap{position:absolute;bottom:.8rem;font-size:.85rem;color:var(--muted)}
+.fc-btns{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.btn.got{background:var(--good)}.btn.got:hover{background:#215C3A}
+.btn.notyet{background:var(--bad)}.btn.notyet:hover{background:#8A2D2D}
+.fc-end{text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.fc-end p{font-family:var(--head);font-size:1.4rem;color:var(--deep);margin:0 0 .75rem}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem}
+.card h3{font-size:1.05rem;color:var(--deep)}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.card p.task{color:var(--ink)}
+.card a.open{margin-top:auto;font-weight:700;padding-top:.5rem}
+.card .kind{font-size:.78rem;font-weight:700;color:var(--sea);text-transform:uppercase;letter-spacing:.04em}
+.card details{margin-top:auto;font-size:.95rem}
+.card summary{cursor:pointer;font-weight:700;color:var(--sea)}
+.card.empty{background:transparent;border:2px dashed #BFCBCA;justify-content:center;min-height:120px}
+.card.empty h3{color:var(--muted)}
+.pattern{font-family:var(--head);font-variant-numeric:tabular-nums;margin:.2rem 0;line-height:1.6}
+
+/* Word scramble */
+.ws-top{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;margin-bottom:1rem}
+.ws-top .fc-count{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--deep);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);color:var(--deep);padding:.45rem .9rem;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--deep);color:#fff}
+.tog{display:inline-flex;gap:.4rem;align-items:center;font-size:.95rem;color:var(--muted);cursor:pointer}
+.tog input{width:1.1rem;height:1.1rem;accent-color:var(--sea)}
+.ws-one{text-align:center}
+.ws-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin:.5rem 0 1rem}
+.ws-tiles .gap{width:1.2rem}
+.ws-tiles span.t{width:2.6rem;height:3rem;display:grid;place-items:center;background:var(--sand);border-radius:8px;font-family:var(--head);font-weight:700;font-size:1.6rem;color:var(--deep);box-shadow:0 3px 0 #C99C25}
+.ws-def{background:var(--sand-soft);border-radius:8px;padding:.6rem .9rem;max-width:52ch;margin:0 auto 1rem;text-align:left}
+.ws-def b{font-family:var(--head);color:var(--deep)}
+.ws-ans{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center}
+.ws-ans input{width:min(16rem,100%);padding:.45rem .6rem;border:1.5px solid var(--line);border-radius:6px;font-family:var(--head);font-size:1.1rem;text-transform:uppercase}
+.ws-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;counter-reset:w}
+.ws-list li{counter-increment:w;border:1px solid var(--line);border-radius:8px;padding:.8rem 1rem;background:#FBFCFC}
+.ws-list li::before{content:counter(w);font-family:var(--head);font-weight:700;color:var(--sea);font-size:.9rem;display:block}
+.ws-list .scr{font-family:var(--head);font-weight:700;font-size:1.45rem;letter-spacing:.12em;color:var(--deep)}
+.ws-list .word{font-family:var(--head);font-weight:700;color:var(--sea);font-size:1.15rem;visibility:hidden}
+.ws-list.show .word{visibility:visible}
+.ws-list .d{font-size:.92rem;color:var(--muted);margin-top:.2rem}
+#vocab:fullscreen{background:var(--bg);padding:2rem;overflow:auto}
+#vocab:fullscreen .ws-list .scr{font-size:2rem}
+
+footer{color:var(--muted);font-size:.85rem;margin-top:3rem}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="../../index.html#simultaneous-equations">National 5 Maths</a>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html#simultaneous-equations">Hub</a> › Relationships › Simultaneous equations</nav>
+</header>
+
+<div class="layout">
+  <aside class="sequence" aria-labelledby="seq-title">
+    <h2 id="seq-title">Learning sequence</h2>
+    <p class="hint">Choose a step to see examples, questions, help and links for that step.</p>
+    <div id="seqWrap"></div>
+    <div class="whole">
+      <button class="step" data-view="all"><span class="num">★</span><span class="txt">Whole topic<span class="eg">Mixed check in, flashcards, rich tasks</span></span></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="hero">
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="eg" id="heroEg"></p>
+      <ul class="jump" id="jump"></ul>
+    </div>
+
+    <section class="block" id="examples" data-for="step" aria-labelledby="ex-title">
+      <div class="block-head"><h2 id="ex-title">Worked examples</h2><p>Read these first, step by step.</p></div>
+      <div class="exs" id="exs"></div>
+    </section>
+
+    <section class="block" id="questions" aria-labelledby="q-title">
+      <div class="block-head"><h2 id="q-title">Questions</h2><p id="qSub"></p></div>
+      <div class="panel" id="qPanel">
+        <div class="controls">
+          <div class="chips" id="chips"><span>Steps</span></div>
+          <label>Questions
+            <select id="count"><option>4</option><option selected>6</option><option>8</option><option>10</option><option>12</option></select>
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="newQs">New questions</button>
+            <button class="btn alt" id="showAns" aria-pressed="false">Show answers</button>
+            <button class="btn alt" id="fullBtn">Full screen</button>
+          </div>
+        </div>
+        <ol class="qs" id="qs"></ol>
+      </div>
+    </section>
+
+    <section class="block" id="scaffold" data-for="step" aria-labelledby="sc-title">
+      <div class="block-head"><h2 id="sc-title">Practise with a scaffold</h2><p>Use this while you're learning, then try without.</p></div>
+
+      <!-- Graph -->
+      <div class="panel scaffold" id="sc-graph">
+        <h3 id="gTitle">Where do the lines cross?</h3>
+        <p class="sub" id="gSub"></p>
+        <div class="g-wrap">
+          <svg class="graph" id="graph" viewBox="0 0 460 460" role="img" aria-label="Coordinate grid from −1 to 10"></svg>
+          <div>
+            <div class="g-legend" id="gLegend"></div>
+            <p class="sub" style="margin:1rem 0 .4rem">Click the crossing point on the grid, or type it here.</p>
+            <div class="g-ans">
+              <label>x = <input id="gx" inputmode="numeric"></label>
+              <label>y = <input id="gy" inputmode="numeric"></label>
+              <button class="btn" id="gCheck">Check</button>
+              <button class="btn alt" id="gNew">New lines</button>
+            </div>
+            <div class="feedback" id="gFb" role="status"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Balance scales teaching tool -->
+      <div class="panel scaffold" id="sc-scales">
+        <div class="tool-head">
+          <div><h3>Simultaneous equations on the scales</h3>
+            <p class="sub">Each equation is a balanced set of scales. Put two scales together (A + B or A − B) to knock out a letter, click tiles to cancel them, then share to find x. Balloons are negative: they pull the pan up.</p></div>
+          <a class="btn alt" id="toolOpen" href="balance-scales.html" target="_blank" rel="noopener">Open full size ↗</a>
+        </div>
+        <iframe id="toolFrame" title="Simultaneous equations on the scales"></iframe>
+      </div>
+
+      <!-- Break it down -->
+      <div class="panel scaffold" id="sc-bd">
+        <h3>Break it down</h3>
+        <p class="sub">Try the question. If you're stuck, reveal a hint one step at a time.</p>
+        <div class="bd-q" id="bdQ"></div>
+        <ol class="bd-steps" id="bdSteps"></ol>
+        <div class="bd-answer">
+          <span id="bdIns"></span>
+          <button class="btn" id="bdCheck">Check</button>
+          <button class="btn alt" id="bdHint">Show a hint</button>
+          <button class="btn alt" id="bdNew">New question</button>
+        </div>
+        <div class="feedback" id="bdFb" role="status"></div>
+      </div>
+    </section>
+
+    <section class="block" id="flashcards" aria-labelledby="fc-title">
+      <div class="block-head"><h2 id="fc-title">Flashcards</h2><p>Read the question, say or jot your answer, then flip to check.</p></div>
+      <div class="panel fc-wrap">
+        <div class="fc-top">
+          <label>Deck <select id="fcDeck"></select></label>
+          <span class="fc-count" id="fcCount" aria-live="polite"></span>
+          <button class="btn alt" id="fcRestart">Shuffle and start again</button>
+        </div>
+        <button class="fc-card" id="fcCard" aria-label="Flashcard. Press to flip.">
+          <div class="fc-inner">
+            <div class="fc-face fc-front"><span class="fc-side">Question</span><div class="fc-text" id="fcFront"></div><span class="fc-tap">Press the card to flip</span></div>
+            <div class="fc-face fc-back"><span class="fc-side">Answer</span><div class="fc-text" id="fcBack"></div></div>
+          </div>
+        </button>
+        <div class="fc-btns" id="fcBtns">
+          <button class="btn alt" id="fcFlip">Flip</button>
+          <button class="btn notyet" id="fcNo" disabled>Not yet</button>
+          <button class="btn got" id="fcYes" disabled>Got it</button>
+        </div>
+        <div class="fc-end" id="fcEnd" hidden></div>
+      </div>
+    </section>
+
+    <section class="block" id="vocab" data-for="vocab" aria-labelledby="ws-title">
+      <div class="block-head"><h2 id="ws-title">Word scramble</h2><p>Unscramble the key words for this topic.</p></div>
+      <div class="panel">
+        <div class="ws-top">
+          <div class="seg" role="group" aria-label="Layout">
+            <button id="wsModeOne" aria-pressed="true">One at a time</button>
+            <button id="wsModeAll" aria-pressed="false">Whole list</button>
+          </div>
+          <label class="tog"><input type="checkbox" id="wsDefs"> Show the definitions</label>
+          <span class="fc-count" id="wsCount" aria-live="polite"></span>
+        </div>
+
+        <div class="ws-one" id="wsOne">
+          <div class="ws-tiles" id="wsTiles" aria-label="Scrambled letters"></div>
+          <div class="ws-def" id="wsDef" hidden></div>
+          <div class="ws-ans">
+            <label for="wsIn" class="sr">Your word</label>
+            <input id="wsIn" autocomplete="off" spellcheck="false" placeholder="Type the word">
+            <button class="btn" id="wsCheck">Check</button>
+            <button class="btn alt" id="wsDefBtn">Show the definition</button>
+            <button class="btn alt" id="wsReveal">Reveal</button>
+            <button class="btn alt" id="wsNext">Next word</button>
+          </div>
+          <div class="feedback" id="wsFb" role="status"></div>
+        </div>
+
+        <div id="wsAll" hidden>
+          <div class="controls">
+            <div class="btn-row" style="margin-left:0">
+              <button class="btn" id="wsReshuffle">New scramble</button>
+              <button class="btn alt" id="wsShowAll" aria-pressed="false">Show answers</button>
+              <button class="btn alt" id="wsFull">Full screen</button>
+            </div>
+          </div>
+          <ol class="ws-list" id="wsList"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="links" data-for="step" aria-labelledby="ln-title">
+      <div class="block-head"><h2 id="ln-title">Useful links and files</h2><p>Websites open in a new tab.</p></div>
+      <div class="cards" id="linkCards"></div>
+    </section>
+
+    <section class="block" id="tasks" data-for="all" aria-labelledby="rt-title">
+      <div class="block-head"><h2 id="rt-title">Rich tasks</h2><p>Think hard, explain your reasoning.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Starter</span><h3>Think of two numbers</h3>
+          <p class="task">Two numbers add to 31. Their difference is 7. What are they?</p>
+          <p class="task">Two numbers add to 20. Three times the first plus the second is 44. What are they?</p>
+          <p>Extra: make up a puzzle like this for a partner. Can you make one where the answers are negative?</p>
+          <details><summary>Answer</summary>19 and 12 (add the equations: 2a = 38). 12 and 8 (subtract: 2a = 24).</details></div>
+        <div class="card"><span class="kind">Spot the mistake</span><h3>What went wrong?</h3>
+          <p class="task">Hamish solves 3x + 2y = 16 and x − 2y = 0.</p>
+          <div class="pattern">He subtracts: 2x = 16<br>so x = 8 and y = 4</div>
+          <p>Find his mistake, then solve it properly. How could he have spotted it himself?</p>
+          <details><summary>Answer</summary>The y terms have opposite signs (+2y and −2y), so he should add: 4x = 16, x = 4, y = 2. Checking in the first equation would show it: 3(8) + 2(4) = 32, not 16.</details></div>
+        <div class="card"><span class="kind">Which method?</span><h3>Pick the best method</h3>
+          <p class="task">For each pair, say which method you would use and why. Then solve one.</p>
+          <div class="pattern">A: 4x + y = 14,  2x − y = 4<br>B: y = 2x − 1,  3x + 2y = 19<br>C: 3x + 2y = 12,  2x + 5y = 19<br>D: 5x + 3y = 21,  5x + y = 17</div>
+          <details><summary>Answer</summary>A: add (opposite signs on y), x = 3, y = 2. B: substitution (y = … already), x = 3, y = 5. C: multiply both (×2 and ×3 to match x), x = 2, y = 3. D: subtract (same signs on 5x), x = 3, y = 2.</details></div>
+        <div class="card"><span class="kind">Think about it</span><h3>No answer, or every answer?</h3>
+          <p class="task">Try to solve 2x + y = 3 and 2x + y = 5. What happens? Now try x + y = 4 and 2x + 2y = 8.</p>
+          <p>Sketch each pair of lines. What does this tell you about the lines?</p>
+          <details><summary>Answer</summary>The first pair gives 0 = 2, which is impossible: the lines are parallel and never cross, so there is no solution. The second pair gives 0 = 0: it is the same line twice, so every point on it is a solution.</details></div>
+        <div class="card"><span class="kind">Challenge</span><h3>Find a and b</h3>
+          <p class="task">The line ax + by = 13 passes through the points (2, 3) and (5, 1). Find a and b.</p>
+          <p>Extra: find the equation of the line through (1, 7) and (4, −2) in the form y = mx + c.</p>
+          <details><summary>Answer</summary>2a + 3b = 13 and 5a + b = 13, so a = 2, b = 3: 2x + 3y = 13. Extra: m + c = 7 and 4m + c = −2, so m = −3, c = 10: y = −3x + 10.</details></div>
+      </div>
+    </section>
+
+    <section class="block" id="games" data-for="all" aria-labelledby="gm-title">
+      <div class="block-head"><h2 id="gm-title">Tools and files</h2><p>Practice for the whole topic.</p></div>
+      <div class="cards">
+        <div class="card"><span class="kind">Teaching tool</span><h3>Simultaneous equations on the scales</h3><p>Each equation is a set of balance scales. Add or take away whole scales to knock out a letter. Type your own equations or get a new pair.</p>
+          <a class="open" href="balance-scales.html" target="_blank" rel="noopener">Open tool</a></div>
+        <div class="card"><span class="kind">Notes</span><h3>Simultaneous equations: pupil notes</h3><p>Key facts, Examples 1–17 each with a “Your turn”, a test-yourself table and answers.</p>
+          <a class="open" href="simultaneous-equations-notes.pdf" target="_blank" rel="noopener">Open file</a></div>
+        <div class="card"><span class="kind">Website</span><h3>Desmos graphing calculator</h3><p>Type in both equations to see where the lines cross. Use it to check your algebra.</p>
+          <a class="open" href="https://www.desmos.com/calculator" target="_blank" rel="noopener">Open Desmos</a></div>
+        <div class="card empty"><h3>Add a game</h3><p>Title, one line on how to play, and a link or file.</p></div>
+      </div>
+    </section>
+
+    <footer>National 5 · Relationships · Simultaneous equations</footer>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT HERE: steps, worked examples, links and files
+   Step codes (1.1, 2.1 …) match the teacher sequence.
+   ===================================================================== */
+const SECTIONS = [
+  {label:"1 · Solving graphically",            steps:["1.1","1.2"]},
+  {label:"2 · Elimination: adding or subtracting", steps:["2.1"]},
+  {label:"3 · Elimination: multiplying first", steps:["3.1","3.2","3.3"]},
+  {label:"4 · Substitution",                   steps:["4.1"]},
+  {label:"5 · Forming and solving",            steps:["5.1","5.2"]}
+];
+const STEPS = {
+  "1.1":{s:"I can read the solution to a pair of equations from where their lines cross.", eg:"e.g. y = x + 2 and y = 8 − x cross at (3, 5)"},
+  "1.2":{s:"I can draw two lines and use them to solve the equations graphically.", eg:"e.g. x + y = 10 and y = x + 4"},
+  "2.1":{s:"I can solve simultaneous equations by adding or subtracting them.", eg:"e.g. 2x + y = 11, x − y = 1"},
+  "3.1":{s:"I can multiply one equation first, then eliminate a letter.", eg:"e.g. x + 3y = 11, 2x + y = 7"},
+  "3.2":{s:"I can multiply both equations first, then eliminate a letter.", eg:"e.g. 2x + 5y = 19, 3x + 2y = 12"},
+  "3.3":{s:"I can rearrange equations to line them up before eliminating.", eg:"e.g. 3y = x + 7, 2x + 3y = 13"},
+  "4.1":{s:"I can solve simultaneous equations by substitution.", eg:"e.g. y = x + 3, 4x + y = 18"},
+  "5.1":{s:"I can write and solve simultaneous equations from a problem.", eg:"e.g. 2 burgers and 3 drinks cost £13"},
+  "5.2":{s:"I can use simultaneous equations for fixed charges and to find the equation of a line.", eg:"e.g. a joining fee plus a monthly fee; the line through (1, 5) and (3, 11)"}
+};
+const CODES = SECTIONS.flatMap(s=>s.steps);
+// Scaffold for each step: graph = draw and read lines, scales = balance scales tool, bd = break it down
+const SCAFFOLD = {"1.1":"graph","1.2":"graph","2.1":"scales","3.1":"scales","3.2":"scales","3.3":"bd","4.1":"bd","5.1":"bd","5.2":"bd"};
+const SCALE_KIND = {"2.1":"add","3.1":"m1","3.2":"m2"};
+
+const LINKS = [
+  {steps:["1.1","1.2"], title:"Desmos", text:"Type in both equations to see the lines and where they cross.", url:"https://www.desmos.com/calculator"},
+  {steps:CODES, title:"BBC Bitesize", text:"Search for “National 5 simultaneous equations” for revision notes and a test.", url:"https://www.bbc.co.uk/bitesize"},
+  {steps:CODES, title:"Corbettmaths", text:"Videos and practice questions. Search for “simultaneous equations”.", url:"https://corbettmaths.com/contents/"}
+];
+const FILES = [
+  {steps:["1.1","1.2"], kind:"Notes", title:"Pupil notes: Examples 1–2 (graphs)", path:"simultaneous-equations-notes.pdf"},
+  {steps:["2.1","3.1","3.2","3.3"], kind:"Notes", title:"Pupil notes: Examples 3–9 (elimination)", path:"simultaneous-equations-notes.pdf"},
+  {steps:["4.1"], kind:"Notes", title:"Pupil notes: Examples 10–12 (substitution)", path:"simultaneous-equations-notes.pdf"},
+  {steps:["5.1","5.2"], kind:"Notes", title:"Pupil notes: Examples 13–17 (forming)", path:"simultaneous-equations-notes.pdf"},
+  {steps:["2.1","3.1","3.2"], kind:"Teaching tool", title:"Simultaneous equations on the scales (full size)", path:"balance-scales.html"}
+];
+
+/* Worked examples. Pairs use [a, b, c] for ax + by = c. Steps for pairs are written out by the same code as the hints. */
+const WE = {
+ "1.1":[
+   {q:"Where do y = x + 2 and y = 8 − x cross?",long:true,
+    steps:["The solution is the point that is on both lines.","Draw both lines, or try values of x in both equations.","When x = 3: y = 3 + 2 = 5 and y = 8 − 3 = 5. Both give 5."],
+    a:"(3, 5): x = 3, y = 5", graph:[[-1,1,2,"y = x + 2"],[1,1,8,"y = 8 − x"]],
+    note:"Write the answer as x = … , y = … . Check you haven't got the coordinates the wrong way round."},
+   {q:"Where do y = 2x and y = 6 − x cross?",long:true,
+    steps:["Try x = 2: y = 2 × 2 = 4 and y = 6 − 2 = 4.","Both give y = 4, so (2, 4) is on both lines."],
+    a:"(2, 4): x = 2, y = 4", graph:[[-2,1,0,"y = 2x"],[1,1,6,"y = 6 − x"]]}],
+ "1.2":[
+   {q:"Solve graphically: x + y = 10 and y = x + 4",long:true,
+    steps:["x + y = 10: when x = 0, y = 10; when x = 4, y = 6; when x = 10, y = 0.","y = x + 4: when x = 0, y = 4; when x = 2, y = 6; when x = 4, y = 8.","Plot both lines and read off where they cross: (3, 7).","Check: 3 + 7 = 10 ✓ and 3 + 4 = 7 ✓"],
+    a:"x = 3, y = 7", graph:[[1,1,10,"x + y = 10"],[-1,1,4,"y = x + 4"]], draw:true},
+   {q:"Solve graphically: x + 2y = 8 and y = x + 1",long:true,
+    steps:["x + 2y = 8: when x = 0, y = 4; when x = 8, y = 0. (Cover up x, then cover up y.)","y = x + 1: when x = 0, y = 1; when x = 2, y = 3.","The lines cross at (2, 3)."],
+    a:"x = 2, y = 3", graph:[[1,2,8,"x + 2y = 8"],[-1,1,1,"y = x + 1"]], draw:true,
+    note:"Graphs only give exact answers when the crossing point is on the grid. That's why we need the algebra methods next."}],
+ "2.1":[
+   {pair:[[2,1,11],[1,-1,1]],note:"Opposite signs (+y and −y): add."},
+   {pair:[[3,1,14],[1,1,6]],note:"Same signs (+y and +y): subtract. Same Sign Subtract."},
+   {pair:[[5,-2,1],[3,2,23]],note:"Watch the signs: −2y + 2y = 0."}],
+ "3.1":[
+   {pair:[[1,3,11],[2,1,7]],note:"Multiply every term, including the number on the right."},
+   {pair:[[4,3,17],[1,2,8]]}],
+ "3.2":[
+   {pair:[[2,5,19],[3,2,12]],note:"Like a common denominator: find a common multiple of the coefficients."},
+   {pair:[[3,4,10],[5,-3,7]],note:"Choose the letter with opposite signs, so you can add. Adding is safer than subtracting negatives."}],
+ "3.3":[
+   {rearr:["3y = x + 7",[-1,3,7]],pair:[[-1,3,7],[2,3,13]]},
+   {rearr:["2y = 5x − 4",[-5,2,-4]],pair:[[-5,2,-4],[3,2,12]],note:"When a term moves across the equals sign, its sign changes."}],
+ "4.1":[
+   {sub:{iso:"y",m:1,k:3,eq:[4,1,18]}},
+   {sub:{iso:"y",m:3,k:-5,eq:[2,1,15]}},
+   {sub:{iso:"x",m:4,k:-1,eq:[2,-3,8]},note:"Always use a bracket: 2(4y − 1), not 8y − 1."}],
+ "5.1":[
+   {q:"2 burgers and 3 drinks cost £13.\nA burger and 2 drinks cost £7.50.\nFind the cost of a burger and of a drink.",long:true,
+    steps:["Let b = the cost of a burger and d = the cost of a drink, in pence.","2b + 3d = 1300 (1)\nb + 2d = 750 (2)","Multiply (2) by 2: 2b + 4d = 1500","Same signs on 2b, so subtract: d = 200","Put d = 200 into (2): b + 400 = 750, so b = 350","Check in (1): 700 + 600 = 1300 ✓"],
+    a:"A burger costs £3.50 and a drink costs £2.00",note:"Working in pence avoids decimals. Always answer in a sentence, with units."},
+   {q:"5 notebooks and 2 pens cost £8.20.\n3 notebooks and 4 pens cost £6.60.\nFind the cost of each.",long:true,
+    steps:["Let n = the cost of a notebook and p = the cost of a pen, in pence.","5n + 2p = 820 (1)\n3n + 4p = 660 (2)","Multiply (1) by 2: 10n + 4p = 1640","Same signs on 4p, so subtract (2): 7n = 980, n = 140","Put n = 140 into (1): 700 + 2p = 820, so p = 60"],
+    a:"A notebook costs £1.40 and a pen costs 60p",note:"Don't mix pounds and pence in the same equation."}],
+ "5.2":[
+   {q:"Find the equation of the line through (1, 5) and (3, 11).",long:true,
+    steps:["Put each point into y = mx + c.","(1, 5): m + c = 5 (1)\n(3, 11): 3m + c = 11 (2)","Same signs on c, so subtract (1) from (2): 2m = 6, m = 3","Put m = 3 into (1): 3 + c = 5, so c = 2"],
+    a:"y = 3x + 2"},
+   {q:"A gym charges a joining fee plus a monthly fee.\n3 months cost £95 in total. 7 months cost £175.\nFind the joining fee and the monthly fee.",long:true,
+    steps:["Let j = the joining fee and m = the monthly fee, in £.","j + 3m = 95 (1)\nj + 7m = 175 (2)","Subtract (1) from (2): 4m = 80, m = 20","Put m = 20 into (1): j + 60 = 95, so j = 35"],
+    a:"The joining fee is £35 and the monthly fee is £20",note:"Answer in context, not with letters."}]
+};
+
+const RULES = [
+  {q:"What is the solution to a pair of simultaneous equations?",a:"The values of x and y that make both equations true.\nIt's where the two lines cross."},
+  {q:"The letter you want to eliminate has the same sign in both equations. Add or subtract?",a:"Subtract.\nSame Sign Subtract"},
+  {q:"The letter you want to eliminate has opposite signs. Add or subtract?",a:"Add.\n+3y and −3y make 0"},
+  {q:"No coefficients match. What do you do?",a:"Multiply one or both equations so that one letter's coefficients match."},
+  {q:"Multiply 2x + 3y = 7 by 3",a:"6x + 9y = 21\nMultiply every term, including the number on the right."},
+  {q:"3y − (−2y) = ?",a:"5y"},
+  {q:"You've found x. What next?",a:"Put it into one equation to find y.\nThen check in the other equation."},
+  {q:"When is substitution the best method?",a:"When an equation already starts y = … or x = …\nPut it into the other equation in a bracket."},
+  {q:"The question says “solve algebraically”. Can you draw a graph?",a:"No.\nA graphical answer gets no marks."},
+  {q:"Forming equations: what do you write first?",a:"Say what each letter stands for, with units.\ne.g. let b = the cost of a burger in pence"},
+  {q:"The two lines are parallel. How many solutions?",a:"None.\nParallel lines never cross."},
+  {q:"How do you find the line through two points with simultaneous equations?",a:"Put each point into y = mx + c.\nThen solve for m and c."}
+];
+const WORDS = [
+  {q:"Simultaneous",a:"At the same time. Simultaneous equations are both true at the same time."},
+  {q:"Equation",a:"A statement that two things are equal, with an equals sign, e.g. 2x + y = 11."},
+  {q:"Variable",a:"A letter that stands for a number we don't know yet, e.g. x or y."},
+  {q:"Coefficient",a:"The number in front of a letter, e.g. 3 in 3x."},
+  {q:"Eliminate",a:"Get rid of. We add or subtract the equations to eliminate one letter."},
+  {q:"Substitute",a:"Put a number or expression in place of a letter."},
+  {q:"Solution",a:"The values that make the equations true."},
+  {q:"Intersection",a:"The point where two lines cross."},
+  {q:"Graphically",a:"By drawing a graph and reading from it."},
+  {q:"Algebraically",a:"By using algebra, not a graph."},
+  {q:"Parallel",a:"Lines with the same gradient. They never cross."},
+  {q:"Gradient",a:"How steep a line is: m in y = mx + c."}
+];
+
+/* ---------- Helpers ---------- */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rnd(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const N=v=>v<0?'−'+(-v):String(v);          // −5
+const B=v=>v<0?'('+N(v)+')':String(v);      // (−5)
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const html=s=>esc(s).replace(/\n/g,'<br>');
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const lcm=(a,b)=>Math.abs(a*b)/gcd(a,b);
+const pounds=p=>p%100===0||p>=100?'£'+(p/100).toFixed(2):p+'p';
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+
+// Terms like [[3,'x'],[-2,'y'],[5,'']] → "3x − 2y + 5"
+function T(list){
+  let out='';
+  for(const [n,l] of list){
+    if(n===0) continue;
+    const mag=Math.abs(n)===1&&l?'':String(Math.abs(n));
+    out+= out ? (n<0?' − ':' + ')+mag+l : (n<0?'−':'')+mag+l;
+  }
+  return out||'0';
+}
+const eqStr=(e,V=['x','y'])=>`${T([[e[0],V[0]],[e[1],V[1]]])} = ${N(e[2])}`;
+const ansXY=(s,V=['x','y'])=>`${V[0]} = ${N(s[0])}, ${V[1]} = ${N(s[1])}`;
+
+/* Elimination hints for a·x + b·y = c pairs: the same steps a pupil would write */
+function elimSteps(e1,e2,sol,V=['x','y']){
+  const score=j=>{const p=Math.abs(e1[j]),q=Math.abs(e2[j]);
+    if(!p||!q) return 99; if(p===q) return 0; if(p%q===0||q%p===0) return 1;
+    return 2+(Math.sign(e1[j])===Math.sign(e2[j])?.5:0);};
+  const j=score(1)<=score(0)?1:0, o=1-j;
+  const L=lcm(e1[j],e2[j]), k1=L/Math.abs(e1[j]), k2=L/Math.abs(e2[j]);
+  const f1=e1.map(v=>v*k1), f2=e2.map(v=>v*k2), out=[];
+  if(k1>1) out.push(`Multiply every term in (1) by ${k1}: ${eqStr(f1,V)}`);
+  if(k2>1) out.push(`Multiply every term in (2) by ${k2}: ${eqStr(f2,V)}`);
+  const same=Math.sign(f1[j])===Math.sign(f2[j]);
+  let r, how;
+  if(same){ r=f1.map((v,i)=>v-f2[i]); how='subtract: (1) − (2)'; if(r[o]<0){r=r.map(v=>-v);how='subtract: (2) − (1)';} }
+  else { r=f1.map((v,i)=>v+f2[i]); how='add: (1) + (2)'; }
+  out.push(`The ${V[j]} terms are ${T([[f1[j],V[j]]])} and ${T([[f2[j],V[j]]])}: ${same?'same signs':'opposite signs'}, so ${how}.`);
+  out.push(`${T([[r[o],V[o]]])} = ${N(r[2])}`+(r[o]===1?'':`, so ${V[o]} = ${N(sol[o])}`));
+  const known=e1[o]*sol[o], terms=[[0,''],[0,'']];
+  terms[j]=[e1[j],V[j]]; terms[o]=[known,''];
+  out.push(`Put ${V[o]} = ${N(sol[o])} into (1): ${T(terms)} = ${N(e1[2])}`+
+    (known?`, so ${T([[e1[j],V[j]]])} = ${N(e1[2]-known)}`:'')+(e1[j]===1?'':` and ${V[j]} = ${N(sol[j])}`));
+  out.push(`Check in (2): ${T([[e2[0]*sol[0],''],[e2[1]*sol[1],'']])} = ${N(e2[2])} ✓`);
+  return out;
+}
+
+/* Pairs for elimination: same idea as the balance scales tool */
+function genPair(kind,neg){
+  if(kind==='mix') kind=pick(['add','m1','m2']);
+  const val=()=>neg?pick([-5,-4,-3,-2,-1,1,2,3,4,5,6]):rnd(1,7);
+  const sgn=()=>neg&&Math.random()<.35?-1:1;
+  for(let t=0;t<500;t++){
+    const x=val(),y=val(); let a1,b1,a2,b2;
+    if(kind==='add'){const m=rnd(1,4);a1=rnd(1,5)*sgn();a2=rnd(1,5)*sgn();b1=m;b2=Math.random()<.5?m:-m;}
+    else if(kind==='m1'){const m=rnd(1,3),f=rnd(2,3);a1=rnd(1,4)*sgn();a2=rnd(1,5)*sgn();b1=m;b2=m*f*(Math.random()<.4?-1:1);}
+    else{[b1,b2]=pick([[2,3],[3,2],[3,4],[4,3],[2,5],[3,5]]);[a1,a2]=pick([[2,3],[3,2],[4,3],[3,4],[2,5],[5,2],[3,5]]);
+      if(Math.random()<.5) b2=-b2; else if(neg&&Math.random()<.5) a2=-a2;}
+    if(Math.random()<.5){[a1,b1]=[b1,a1];[a2,b2]=[b2,a2];}
+    if(Math.random()<.5){[a1,a2]=[a2,a1];[b1,b2]=[b2,b1];}
+    if(a1*b2-a2*b1===0) continue;
+    if(Math.abs(a1)===Math.abs(a2)&&Math.abs(b1)===Math.abs(b2)) continue;
+    const c1=a1*x+b1*y,c2=a2*x+b2*y;
+    if(!neg&&(c1<=0||c2<=0)) continue;
+    if(Math.abs(c1)>45||Math.abs(c2)>45) continue;
+    return {e1:[a1,b1,c1],e2:[a2,b2,c2],s:[x,y]};
+  }
+  return {e1:[3,2,16],e2:[1,2,8],s:[4,2]};
+}
+function pairQ(p){
+  return {q:eqStr(p.e1)+'\n'+eqStr(p.e2),pair:true,a:ansXY(p.s),vals:[['x',p.s[0]],['y',p.s[1]]],
+    steps:elimSteps(p.e1,p.e2,p.s),scales:[eqStr(p.e1),eqStr(p.e2)]};
+}
+
+/* Lines for the graph steps: {a,b,c,f} means ax + by = c, shown as f */
+function lineObj(m,k){
+  if(Math.random()<.5) return {a:-m,b:1,c:k,f:`y = ${T([[m,'x'],[k,'']])}`};
+  const s=m>0?-1:1;   // write as ax + by = c with a positive x term
+  const e=[-m*s,s,k*s];
+  return {a:e[0],b:e[1],c:e[2],f:eqStr(e)};
+}
+function genLines(){
+  for(let t=0;t<500;t++){
+    const x0=rnd(0,6),y0=rnd(1,8),m1=pick([-3,-2,-1,1,2,3]),m2=pick([-3,-2,-1,1,2,3]);
+    if(m1===m2) continue;
+    const k1=y0-m1*x0,k2=y0-m2*x0;
+    if(Math.abs(k1)>12||Math.abs(k2)>12) continue;
+    const L1=lineObj(m1,k1),L2=lineObj(m2,k2);
+    if(tableXs(L1).length<3||tableXs(L2).length<3) continue;
+    return {L:[L1,L2],s:[x0,y0]};
+  }
+}
+const yAt=(L,x)=>(L.c-L.a*x)/L.b;
+function tableXs(L){   // three whole-number points on the grid, spread out
+  const xs=[];for(let x=0;x<=9;x++){const y=yAt(L,x);if(Number.isInteger(y)&&y>=0&&y<=10)xs.push(x);}
+  if(xs.length<3) return xs;
+  return [xs[0],xs[Math.floor(xs.length/2)],xs[xs.length-1]];
+}
+
+/* ---------- Question generators: {q, a, vals [[label, number]], steps (hints)} ---------- */
+const NAMES=['Iona','Calum','Eilidh','Finlay','Isla','Ruaridh','Kirsty','Ewan','Mairi','Lewis'];
+const GEN = {
+ "1.1":()=>{const g=genLines(),[L1,L2]=g.L,[x,y]=g.s;
+   return {q:`Where do the lines ${L1.f} and ${L2.f} cross?`,a:`(${N(x)}, ${N(y)})`,vals:[['x',x],['y',y]],lines:g.L,
+     steps:['The crossing point is on both lines, so it fits both equations.',`Draw both lines, or try whole-number values of x in both equations.`,`When x = ${x}: ${L1.f} gives y = ${N(y)}, and ${L2.f} also gives y = ${N(y)}.`]};},
+ "1.2":()=>{const g=genLines(),[L1,L2]=g.L,[x,y]=g.s;
+   const tab=L=>tableXs(L).map(v=>`x = ${v}, y = ${N(yAt(L,v))}`).join('; ');
+   return {q:`Draw the lines ${L1.f} and ${L2.f}, and use them to solve the equations.`,a:ansXY([x,y]),vals:[['x',x],['y',y]],lines:g.L,draw:true,
+     steps:[`Make a table of values for each line.`,`${L1.f}: ${tab(L1)}`,`${L2.f}: ${tab(L2)}`,`Plot and join each set of points. They cross at (${N(x)}, ${N(y)}).`]};},
+ "2.1":()=>pairQ(genPair('add',Math.random()<.2)),
+ "3.1":()=>pairQ(genPair('m1',Math.random()<.2)),
+ "3.2":()=>pairQ(genPair('m2',Math.random()<.25)),
+ "3.3":()=>{
+   let {e1,e2,s}=genPair(pick(['add','m1','m2']),Math.random()<.15);
+   const f=rnd(0,2), lead=f===1?0:1;
+   if(e1[lead]<0) e1=e1.map(v=>-v);
+   const show=f===0?`${T([[e1[1],'y']])} = ${T([[e1[2],''],[-e1[0],'x']])}`
+            :f===1?`${T([[e1[0],'x']])} = ${T([[e1[2],''],[-e1[1],'y']])}`
+                  :`${T([[e1[1],'y']])} = ${T([[-e1[0],'x'],[e1[2],'']])}`;
+   const top=Math.random()<.5;
+   return {q:top?show+'\n'+eqStr(e2):eqStr(e2)+'\n'+show,pair:true,a:ansXY(s),vals:[['x',s[0]],['y',s[1]]],
+     steps:[`Line up ${show} as ${eqStr(e1)} (call it (1)).`,...elimSteps(e1,e2,s)]};},
+ "4.1":()=>{
+   const neg=Math.random()<.2, v=()=>neg?pick([-3,-2,-1,1,2,3,4,5]):rnd(1,7);
+   for(let t=0;t<500;t++){
+     const x=v(),y=v(),r=Math.random();
+     if(r<.25){ // both y = …
+       const m1=pick([-2,-1,1,2,3,4]),m2=pick([-3,-2,-1,1,2,3]);if(m1===m2)continue;
+       const k1=y-m1*x,k2=y-m2*x;if(!k1||!k2||Math.abs(k1)>15||Math.abs(k2)>15)continue;
+       const r1=T([[m1,'x'],[k1,'']]),r2=T([[m2,'x'],[k2,'']]);
+       return {q:`y = ${r1}\ny = ${r2}`,pair:true,a:ansXY([x,y]),vals:[['x',x],['y',y]],
+         steps:[`Both equations say what y equals, so set them equal: ${r1} = ${r2}`,
+           `Collect: ${T([[m1-m2,'x']])} = ${N(k2-k1)}, so x = ${N(x)}`,
+           `Put x = ${N(x)} into y = ${r1}: y = ${T([[m1*x,''],[k1,'']])} = ${N(y)}`,
+           `Check: ${T([[m2*x,''],[k2,'']])} = ${N(y)} ✓`]};
+     }
+     const iso=r<.65?'y':'x', oth=iso==='y'?'x':'y', sv=iso==='y'?y:x, ov=iso==='y'?x:y;
+     const m=pick([-2,-1,1,2,3,4]),k=sv-m*ov; if(!k||Math.abs(k)>12) continue;
+     const co=pick([1,2,3,4,5]),cs=pick([-3,-2,-1,1,2,3,4]); if(co+cs*m===0) continue;
+     const eq=iso==='y'?[co,cs,co*x+cs*y]:[cs,co,cs*x+co*y];
+     if(Math.abs(eq[2])>50) continue;
+     return subQ({iso,m,k,eq});
+   }},
+ "5.1":()=>{
+   const C=pick([['burger','drink','b','d'],['adult ticket','child ticket','a','c'],['coffee','cake','c','k'],['notebook','pen','n','p'],
+                 ['pizza','portion of chips','p','c'],['bag of apples','bag of pears','a','p'],['bus ticket','train ticket','b','t']]);
+   const many=(n,w)=>n===1?`a ${w}`:`${n} ${w.includes(' of ')?w.replace(/^(\w+)/,'$1s'):w+'s'}`;
+   for(let t=0;t<500;t++){
+     const pa=rnd(10,60)*10,pb=rnd(5,40)*10; if(pa===pb) continue;
+     const q1=[rnd(1,5),rnd(1,5)],q2=[rnd(1,5),rnd(1,5)];
+     if(q1[0]*q2[1]-q1[1]*q2[0]===0) continue;
+     const e1=[q1[0],q1[1],q1[0]*pa+q1[1]*pb],e2=[q2[0],q2[1],q2[0]*pa+q2[1]*pb],V=[C[2],C[3]];
+     const [n1,n2]=shuffle(NAMES);
+     return {q:`${n1} buys ${many(q1[0],C[0])} and ${many(q1[1],C[1])} for £${(e1[2]/100).toFixed(2)}.\n${n2} buys ${many(q2[0],C[0])} and ${many(q2[1],C[1])} for £${(e2[2]/100).toFixed(2)}.\nFind the cost of one ${C[0]} and one ${C[1]}.`,
+       a:`${cap(C[0])} ${pounds(pa)}, ${C[1]} ${pounds(pb)}`,vals:[[C[0]+' (£)',pa/100,true],[C[1]+' (£)',pb/100,true]],
+       steps:[`Let ${V[0]} = the cost of a ${C[0]} and ${V[1]} = the cost of a ${C[1]}, in pence.`,
+         `${eqStr(e1,V)}  (1)\n${eqStr(e2,V)}  (2)`,...elimSteps(e1,e2,[pa,pb],V),
+         `So a ${C[0]} costs ${pounds(pa)} and a ${C[1]} costs ${pounds(pb)}.`]};
+   }},
+ "5.2":()=>{
+   if(Math.random()<.5){
+     for(let t=0;t<500;t++){
+       const m=pick([-3,-2,-1,1,2,3,4]),c=rnd(-5,8),x1=rnd(0,3),x2=x1+rnd(1,4),y1=m*x1+c,y2=m*x2+c;
+       const e1=[x1,1,y1],e2=[x2,1,y2],V=['m','c'];
+       return {q:`A straight line passes through (${x1}, ${N(y1)}) and (${x2}, ${N(y2)}).\nUse simultaneous equations to find its equation.`,
+         a:`y = ${T([[m,'x'],[c,'']])}`,vals:[['m',m],['c',c]],
+         steps:[`Put each point into y = mx + c.`,`(${x1}, ${N(y1)}): ${eqStr(e1,V)}  (1)\n(${x2}, ${N(y2)}): ${eqStr(e2,V)}  (2)`,
+           ...elimSteps(e1,e2,[m,c],V),`The equation is y = ${T([[m,'x'],[c,'']])}`]};
+     }
+   }
+   const C=pick([
+     ['A gym charges a joining fee plus a monthly fee','month','joining fee','monthly fee','j','m'],
+     ['A plumber charges a call-out fee plus an hourly rate','hour','call-out fee','hourly rate','f','h'],
+     ['A taxi firm charges a fixed amount plus a charge for each mile','mile','fixed charge','charge per mile','f','r'],
+     ['A hall costs a booking fee plus a charge for each hour','hour','booking fee','hourly charge','b','h']]);
+   const F=C[1]==='mile'?rnd(2,6):rnd(2,9)*5, R=C[1]==='mile'?rnd(2,4):rnd(3,9)*5, n1=rnd(2,5), n2=n1+rnd(2,5);
+   const e1=[1,n1,F+n1*R],e2=[1,n2,F+n2*R],V=[C[4],C[5]];
+   return {q:`${C[0]}.\n${n1} ${C[1]}s cost £${e1[2]}. ${n2} ${C[1]}s cost £${e2[2]}.\nFind the ${C[2]} and the ${C[3]}.`,
+     a:`${cap(C[2])} £${F}, ${C[3]} £${R}`,vals:[[C[2]+' (£)',F],[C[3]+' (£)',R]],
+     steps:[`Let ${V[0]} = the ${C[2]} and ${V[1]} = the ${C[3]}, in £.`,`${eqStr(e1,V)}  (1)\n${eqStr(e2,V)}  (2)`,
+       ...elimSteps(e1,e2,[F,R],V),`The ${C[2]} is £${F} and the ${C[3]} is £${R}.`]};
+ }
+};
+/* Substitution: iso = the letter on its own (iso = m·other + k), eq = [a, b, c] for ax + by = c */
+function subQ({iso,m,k,eq}){
+  const oth=iso==='y'?'x':'y', io=iso==='y'?1:0, oo=1-io;
+  const rhs=T([[m,oth],[k,'']]), ov=(eq[2]-eq[io]*k)/(eq[oo]+eq[io]*m), sv=m*ov+k;
+  const s=iso==='y'?[ov,sv]:[sv,ov], c=eq[io];
+  const brk=`${Math.abs(c)===1?(c<0?'−':''):N(c)}(${rhs})`;
+  const lhs=io===1?`${T([[eq[0],'x']])} ${c<0?'−':'+'} ${brk.replace(/^−/,'')}`:`${brk} ${eq[1]<0?'−':'+'} ${T([[Math.abs(eq[1]),'y']])}`;
+  const exp=io===1?T([[eq[0],'x'],[c*m,'x'],[c*k,'']]):T([[c*m,'y'],[c*k,''],[eq[1],'y']]);
+  return {q:`${iso} = ${rhs}\n${eqStr(eq)}`,pair:true,a:ansXY(s),vals:[['x',s[0]],['y',s[1]]],
+    steps:[`The first equation says what ${iso} is. Put (${rhs}) in place of ${iso} in the second: ${lhs} = ${N(eq[2])}`,
+      `Multiply out the bracket: ${exp} = ${N(eq[2])}`,
+      `Collect: ${T([[eq[oo]+c*m,oth]])} = ${N(eq[2]-c*k)}, so ${oth} = ${N(ov)}`,
+      `Put ${oth} = ${N(ov)} into ${iso} = ${rhs}: ${iso} = ${T([[m*ov,''],[k,'']])} = ${N(sv)}`,
+      `Check: ${T([[eq[0]*s[0],''],[eq[1]*s[1],'']])} = ${N(eq[2])} ✓`]};
+}
+function makeQs(steps,n){
+  const out=[],seen=new Set(),order=shuffle(steps); let i=0,guard=0;
+  while(out.length<n && guard++<400){const st=order[i++%order.length];const g=GEN[st]();if(seen.has(g.q))continue;seen.add(g.q);out.push({...g,st});}
+  return out;
+}
+const isLong=g=>!g.pair;
+
+/* ---------- Sidebar ---------- */
+const seqWrap=document.getElementById('seqWrap');
+seqWrap.innerHTML=SECTIONS.map(w=>`<p class="wk">${esc(w.label)}</p><ol class="steps">`+
+  w.steps.map(c=>`<li><button class="step" data-view="${c}"><span class="num">${c}</span>
+    <span class="txt">${esc(STEPS[c].s)}<span class="eg">${esc(STEPS[c].eg)}</span></span></button></li>`).join('')+'</ol>').join('');
+document.querySelector('.sequence').addEventListener('click',e=>{
+  const b=e.target.closest('[data-view]'); if(!b) return;
+  location.hash = b.dataset.view==='all' ? 'whole-topic' : 'step-'+b.dataset.view;
+});
+
+/* ---------- Views ---------- */
+let view='all';
+const qSel=new Set(CODES);
+function showView(v){
+  view=v;
+  const isStep=v!=='all', at=CODES.indexOf(v);
+  document.querySelectorAll('.step').forEach(b=>b.setAttribute('aria-current', String(b.dataset.view===v)));
+  document.querySelectorAll('[data-for]').forEach(s=>s.hidden = s.dataset.for==='vocab' ? !(v==='all'||v==='1.1') : (s.dataset.for==='step')!==isStep);
+  const jumps=isStep
+    ? [['examples','Worked examples'],['questions','Questions'],['scaffold','Scaffold'],['flashcards','Flashcards'],...(v==='1.1'?[['vocab','Word scramble']]:[]),['links','Links and files']]
+    : [['questions','Check in'],['flashcards','Flashcards'],['vocab','Word scramble'],['tasks','Rich tasks'],['games','Tools and files']];
+  document.getElementById('jump').innerHTML=jumps.map(([id,t])=>`<li><a href="#${id}" data-jump>${t}</a></li>`).join('')+
+    (isStep?`<li class="stepnav">${at>0?`<button class="btn alt" data-go="${CODES[at-1]}">← Step ${CODES[at-1]}</button>`:''}${at<CODES.length-1?`<button class="btn" data-go="${CODES[at+1]}">Step ${CODES[at+1]} →</button>`:''}</li>`:'');
+  const kicker=document.getElementById('kicker'),title=document.getElementById('title'),heroEg=document.getElementById('heroEg');
+  if(isStep){
+    const sec=SECTIONS.find(s=>s.steps.includes(v));
+    kicker.textContent=`Step ${v} · Section ${sec.label}`;
+    title.textContent=STEPS[v].s; heroEg.textContent=STEPS[v].eg;
+    renderExamples(v); renderScaffold(v); renderLinks(v);
+    document.getElementById('q-title').textContent='Questions';
+    document.getElementById('qSub').textContent=GEN[v]().pair?`Solve each pair. New questions every time.`:`New questions for step ${v} every time.`;
+  } else {
+    kicker.textContent='National 5 · Relationships';
+    title.textContent='Simultaneous equations';
+    heroEg.textContent='Two equations, two unknowns, one answer that fits both. Solving with graphs, elimination and substitution, then writing your own equations to solve problems.';
+    document.getElementById('q-title').textContent='Check in';
+    document.getElementById('qSub').textContent='Mixed questions. Choose which steps to include. Pairs of equations: solve them.';
+  }
+  document.getElementById('chips').hidden=isStep;
+  buildDeckMenu(v);
+  newChecks();
+}
+document.getElementById('jump').addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g) location.hash='step-'+g.dataset.go;
+  const j=e.target.closest('[data-jump]'); if(j){e.preventDefault();document.getElementById(j.getAttribute('href').slice(1)).scrollIntoView();}
+});
+function fromHash(){
+  const m=location.hash.match(/^#step-(\d\.\d)$/);
+  const v=m&&STEPS[m[1]]?m[1]:'all';
+  showView(v);
+  if(m||location.hash==='#whole-topic') window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',fromHash);
+
+/* ---------- Worked examples ---------- */
+function exFull(ex){   // fill in question, steps and answer for pair examples
+  if(ex.pair && !ex.sub){
+    const [e1,e2]=ex.pair, d=e1[0]*e2[1]-e2[0]*e1[1], s=[(e1[2]*e2[1]-e2[2]*e1[1])/d,(e1[0]*e2[2]-e2[0]*e1[2])/d];
+    const top=ex.rearr?ex.rearr[0]:eqStr(e1);
+    return {q:`${top}  (1)\n${eqStr(e2)}  (2)`,steps:[...(ex.rearr?[`Line up (1) as ${eqStr(e1)}`]:[]),...elimSteps(e1,e2,s)],a:ansXY(s),note:ex.note,
+      scales:ex.rearr?null:[eqStr(e1),eqStr(e2)]};
+  }
+  if(ex.sub){const g=subQ(ex.sub);return {q:g.q.replace('\n','  (1)\n')+'  (2)',steps:g.steps,a:g.a,note:ex.note};}
+  return ex;
+}
+function renderExamples(c){
+  document.getElementById('exs').innerHTML=(WE[c]||[]).map((raw,i)=>{const ex=exFull(raw);return `
+    <div class="ex">
+      <div class="exq${ex.long?' long':''}">${html(ex.q)}</div>
+      <ol>${ex.steps.map(s=>`<li>${html(s)}</li>`).join('')}</ol>
+      <div class="exa">${ex.long?'Answer: ':''}${esc(ex.a)}</div>
+      ${ex.note?`<div class="note">${esc(ex.note)}</div>`:''}
+      ${ex.scales&&SCALE_KIND[c]?`<button class="btn alt try" data-ex="${i}">Show it on the scales</button>`:''}
+      ${ex.graph?`<button class="btn alt try" data-ex="${i}">${ex.draw?'Draw it on the grid':'Show it on the grid'}</button>`:''}
+    </div>`;}).join('');
+}
+document.getElementById('exs').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ex]'); if(!t) return;
+  const ex=exFull(WE[view][+t.dataset.ex]);
+  if(ex.graph){graphLoad(ex.graph.map(([a,b,c,f])=>({a,b,c,f})),!!ex.draw);document.getElementById('sc-graph').scrollIntoView();}
+  else {toolLoad({q:ex.scales});document.getElementById('sc-scales').scrollIntoView();}
+});
+
+/* ---------- Questions ---------- */
+const chips=document.getElementById('chips'),qsEl=document.getElementById('qs');
+CODES.forEach(c=>{const b=document.createElement('button');
+  b.className='chip';b.textContent=c;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label',`Include step ${c}`);
+  b.onclick=()=>{qSel.has(c)?qSel.delete(c):qSel.add(c);b.setAttribute('aria-pressed',qSel.has(c));newChecks();};
+  chips.appendChild(b);});
+function newChecks(){
+  const steps=view==='all'?CODES.filter(c=>qSel.has(c)):[view];
+  if(!steps.length){qsEl.innerHTML='<li style="grid-column:1/-1">Choose at least one step to make questions.</li>';return;}
+  const out=makeQs(steps,+document.getElementById('count').value);
+  qsEl.classList.toggle('wordy',out.some(isLong));
+  qsEl.innerHTML=out.map(g=>`<li><span class="q${isLong(g)?' long':''}">${html(g.q)}</span><span class="a">${esc(g.a)}</span>${view==='all'?`<span class="from">Step ${g.st}</span>`:''}</li>`).join('');
+}
+document.getElementById('newQs').onclick=newChecks;
+document.getElementById('count').onchange=newChecks;
+const showBtn=document.getElementById('showAns');
+showBtn.onclick=()=>{const on=qsEl.classList.toggle('show');showBtn.setAttribute('aria-pressed',on);showBtn.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('fullBtn').onclick=()=>{const el=document.getElementById('qPanel');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+
+/* ---------- Scaffolds ---------- */
+function renderScaffold(c){
+  const k=SCAFFOLD[c];
+  ['graph','scales','bd'].forEach(id=>document.getElementById('sc-'+id).hidden=k!==id);
+  if(k==='graph') graphNew();
+  if(k==='scales') toolLoad({kind:SCALE_KIND[c]});
+  if(k==='bd') newBD();
+}
+
+/* Balance scales tool (separate file, shown in a frame) */
+const TOOL='balance-scales.html', toolFrame=document.getElementById('toolFrame');
+function toolLoad(o){
+  const h=o.q?'q='+o.q.map(encodeURIComponent).join(';'):'kind='+o.kind;
+  document.getElementById('toolOpen').href=TOOL+'#'+h;
+  toolFrame.src=TOOL+'#embed&'+h;   // only the # part changes after the first load, so the tool updates without reloading
+}
+window.addEventListener('message',e=>{ if(e.data && e.data.toolHeight) toolFrame.style.height=(e.data.toolHeight+4)+'px'; });
+
+/* Graph: grid from −1 to 10 */
+const SVGNS='http://www.w3.org/2000/svg', svg=document.getElementById('graph');
+const GLO=-1,GHI=10,px=v=>40+(v-GLO)*36,py=v=>420-(v-GLO)*36;
+const LCOL=['var(--lineA)','var(--lineB)'], LNAME=['A','B'];
+function el(tag,attrs,text){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e;}
+let gs=null;
+function graphNew(){const g=genLines();graphLoad(g.L,view==='1.2');}
+function graphLoad(lines,draw){
+  const [L1,L2]=lines, d=L1.a*L2.b-L2.a*L1.b;
+  gs={lines,draw,shown:[!draw,!draw],sol:[(L1.c*L2.b-L2.c*L1.b)/d,(L1.a*L2.c-L2.a*L1.c)/d],pick:null,xs:lines.map(tableXs)};
+  document.getElementById('gTitle').textContent=draw?'Draw the lines, then find where they cross':'Where do the lines cross?';
+  document.getElementById('gSub').textContent=draw
+    ?'Fill in each table of values and press Check and draw. When both lines are on the grid, find the crossing point.'
+    :'The crossing point is on both lines, so it fits both equations. Find it on the grid.';
+  document.getElementById('gLegend').innerHTML=lines.map((L,i)=>`<div class="g-line" style="border-left-color:${LCOL[i]}">
+    <b style="color:${LCOL[i]}">Line ${LNAME[i]}: ${esc(L.f)}</b>
+    ${draw?`<table><tr><th>x</th>${gs.xs[i].map(x=>`<td>${x}</td>`).join('')}</tr>
+      <tr><th>y</th>${gs.xs[i].map((x,j)=>`<td><input data-l="${i}" data-j="${j}" inputmode="numeric" aria-label="y when x is ${x}"></td>`).join('')}</tr></table>
+      <button class="btn alt" data-draw="${i}">Check and draw</button> <span class="done" id="gDone${i}"></span>`:''}
+  </div>`).join('');
+  ['gx','gy'].forEach(id=>document.getElementById(id).value='');
+  setG('');
+  drawGraph();
+}
+function setG(msg,ok){const f=document.getElementById('gFb');f.textContent=msg;f.className='feedback'+(msg?(ok?' ok':' no'):'');}
+function drawGraph(){
+  svg.innerHTML='';
+  const defs=el('defs',{}),cp=el('clipPath',{id:'gclip'});cp.appendChild(el('rect',{x:px(GLO),y:py(GHI),width:px(GHI)-px(GLO),height:py(GLO)-py(GHI)}));defs.appendChild(cp);svg.appendChild(defs);
+  for(let v=GLO;v<=GHI;v++){
+    svg.appendChild(el('line',{x1:px(v),x2:px(v),y1:py(GLO),y2:py(GHI),class:'gl'}));
+    svg.appendChild(el('line',{x1:px(GLO),x2:px(GHI),y1:py(v),y2:py(v),class:'gl'}));
+    if(v!==0){svg.appendChild(el('text',{x:px(v),y:py(0)+16,class:'lbl'},N(v)));svg.appendChild(el('text',{x:px(0)-12,y:py(v)+4,class:'lbl'},N(v)));}
+  }
+  svg.appendChild(el('text',{x:px(0)-10,y:py(0)+16,class:'lbl'},'0'));
+  svg.appendChild(el('line',{x1:px(GLO),x2:px(GHI)+8,y1:py(0),y2:py(0),class:'ax'}));
+  svg.appendChild(el('line',{x1:px(0),x2:px(0),y1:py(GLO),y2:py(GHI)-8,class:'ax'}));
+  svg.appendChild(el('text',{x:px(GHI)+10,y:py(0)-6,class:'lbl'},'x'));
+  svg.appendChild(el('text',{x:px(0)+10,y:py(GHI)-10,class:'lbl'},'y'));
+  gs.lines.forEach((L,i)=>{
+    if(!gs.shown[i]) return;
+    const g=el('g',{'clip-path':'url(#gclip)'});
+    const [x1,y1,x2,y2]=L.b?[GLO-1,yAt(L,GLO-1),GHI+1,yAt(L,GHI+1)]:[L.c/L.a,GLO-1,L.c/L.a,GHI+1];
+    g.appendChild(el('line',{x1:px(x1),y1:py(y1),x2:px(x2),y2:py(y2),class:'ln',stroke:LCOL[i]}));
+    svg.appendChild(g);
+    if(gs.draw) gs.xs[i].forEach(x=>svg.appendChild(el('circle',{cx:px(x),cy:py(yAt(L,x)),r:5,class:'pt',fill:LCOL[i]})));
+  });
+  if(gs.pick) svg.appendChild(el('circle',{cx:px(gs.pick[0]),cy:py(gs.pick[1]),r:9,class:'pick'}));
+}
+document.getElementById('gLegend').addEventListener('click',e=>{
+  const b=e.target.closest('[data-draw]'); if(!b) return;
+  const i=+b.dataset.draw, L=gs.lines[i]; let ok=true;
+  document.querySelectorAll(`#gLegend input[data-l="${i}"]`).forEach(inp=>{
+    const want=yAt(L,gs.xs[i][+inp.dataset.j]), got=Number(inp.value.replace(/[−–]/g,'-').trim());
+    const right=inp.value.trim()!==''&&got===want; inp.classList.toggle('bad',!right); if(!right) ok=false;});
+  if(!ok){setG(`Not yet. Check the red boxes: put each x into ${L.f}.`);return;}
+  gs.shown[i]=true; document.getElementById('gDone'+i).textContent='✓ Drawn'; drawGraph();
+  setG(gs.shown.every(Boolean)?'Both lines are drawn. Now find where they cross.':`Line ${LNAME[i]} is drawn. Now do the other line.`,true);
+});
+function gTry(x,y){
+  if(!gs.shown.every(Boolean)){setG('Draw both lines first.');return;}
+  gs.pick=[x,y]; drawGraph();
+  const on=gs.lines.map(L=>L.a*x+L.b*y===L.c);
+  if(x===gs.sol[0]&&y===gs.sol[1]) setG(`Yes! The lines cross at (${N(x)}, ${N(y)}), so x = ${N(x)} and y = ${N(y)}.`,true);
+  else if(on[0]||on[1]) setG(`(${N(x)}, ${N(y)}) is on line ${on[0]?'A':'B'}, but not on line ${on[0]?'B':'A'}. Follow the lines to where they meet.`);
+  else setG(`(${N(x)}, ${N(y)}) isn't on either line. Look for where the two lines meet.`);
+}
+svg.addEventListener('click',e=>{
+  const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());
+  const x=Math.round((q.x-40)/36+GLO),y=Math.round((420-q.y)/36+GLO);
+  if(x<GLO||x>GHI||y<GLO||y>GHI) return;
+  document.getElementById('gx').value=N(x);document.getElementById('gy').value=N(y);gTry(x,y);
+});
+document.getElementById('gCheck').onclick=()=>{
+  const r=id=>document.getElementById(id).value.replace(/[−–]/g,'-').trim();
+  if(r('gx')===''||r('gy')===''){setG('Type both x and y first.');return;}
+  gTry(Number(r('gx')),Number(r('gy')));
+};
+document.getElementById('gNew').onclick=graphNew;
+
+/* Break it down */
+let bd=null,shown=0;
+const bdQ=document.getElementById('bdQ'),bdSteps=document.getElementById('bdSteps'),bdIns=document.getElementById('bdIns'),bdFb=document.getElementById('bdFb'),bdHint=document.getElementById('bdHint');
+function newBD(){
+  bd=GEN[view==='all'?pick(['3.3','4.1','5.1','5.2']):view](); shown=0;
+  bdQ.textContent=bd.pair?'Solve:\n'+bd.q:bd.q; bdQ.classList.toggle('long',!bd.pair);
+  bdSteps.innerHTML=''; bdFb.textContent=''; bdFb.className='feedback';
+  bdIns.innerHTML=bd.vals.map(([l],i)=>`<label>${esc(l.length>2?cap(l):l)} = <input data-i="${i}" inputmode="decimal" autocomplete="off"></label>`).join(' ');
+  bdHint.disabled=false; bdHint.textContent='Show a hint';
+}
+bdHint.onclick=()=>{
+  if(shown<bd.steps.length){const li=document.createElement('li');li.innerHTML=html(bd.steps[shown++]);bdSteps.appendChild(li);}
+  if(shown>=bd.steps.length){bdHint.disabled=true;bdHint.textContent='No more hints';}
+};
+document.getElementById('bdCheck').onclick=()=>{
+  const ins=[...bdIns.querySelectorAll('input')];
+  const raw=ins.map(i=>i.value.replace(/[−–]/g,'-').replace(/£|p\b|\s|,/gi,''));
+  if(raw.some(r=>!r)){bdFb.textContent='Fill in every box first.';bdFb.className='feedback no';return;}
+  const ok=raw.map((r,i)=>{const [,want,money]=bd.vals[i],n=Number(r);
+    return /^-?\d+(\.\d+)?$/.test(r)&&(Math.abs(n-want)<1e-9||(money&&Math.abs(n-want*100)<1e-9));});
+  bdFb.textContent=ok.every(Boolean)?`Correct: ${bd.a}`:ok.some(Boolean)?'One is right, one is not yet. Check it in both equations.':'Not yet. Check your signs, or show a hint.';
+  bdFb.className='feedback '+(ok.every(Boolean)?'ok':'no');
+};
+bdIns.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('bdCheck').click();});
+document.getElementById('bdNew').onclick=newBD;
+
+/* ---------- Links and files ---------- */
+function renderLinks(c){
+  const web=LINKS.filter(l=>l.steps.includes(c)).map(l=>`<div class="card"><span class="kind">Website</span><h3>${esc(l.title)}</h3><p>${esc(l.text)}</p><a class="open" href="${esc(l.url)}" target="_blank" rel="noopener">Open ${esc(l.title)}</a></div>`);
+  const files=FILES.filter(f=>f.steps.includes(c)).map(f=>`<div class="card"><span class="kind">${esc(f.kind)}</span><h3>${esc(f.title)}</h3><a class="open" href="${esc(encodeURI(f.path))}" target="_blank" rel="noopener">Open file</a></div>`);
+  document.getElementById('linkCards').innerHTML=[...web,...files].join('')+`<div class="card empty"><h3>Add a link</h3><p>Title, one line on what it's for, and the web address.</p></div>`;
+}
+
+/* ---------- Flashcards ---------- */
+const fcCard=document.getElementById('fcCard'),fcFront=document.getElementById('fcFront'),fcBack=document.getElementById('fcBack'),
+      fcCount=document.getElementById('fcCount'),fcYes=document.getElementById('fcYes'),fcNo=document.getElementById('fcNo'),
+      fcBtns=document.getElementById('fcBtns'),fcEnd=document.getElementById('fcEnd'),fcDeck=document.getElementById('fcDeck');
+let fc={deck:[],i:0,known:0,again:[],flipped:false};
+function buildDeckMenu(v){
+  const opts=v==='all'
+    ? [['mixed','Mixed questions (all steps)'],['rules','Rules'],['words','Key words']]
+    : [['step',`Step ${v} questions`],['rules','Rules'],...(v==='1.1'||v==='5.1'?[['words','Key words']]:[])];
+  fcDeck.innerHTML=opts.map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  fcStart(makeDeck(fcDeck.value));
+}
+function makeDeck(type){
+  if(type==='rules') return shuffle(RULES);
+  if(type==='words') return shuffle(WORDS);
+  const steps=type==='step'?[view]:CODES;
+  return makeQs(steps,10).map(g=>({q:g.pair?'Solve:\n'+g.q:g.q,a:g.a}));
+}
+function fcStart(cards){fc={deck:cards,i:0,known:0,again:[],flipped:false};fcEnd.hidden=true;fcCard.hidden=false;fcBtns.hidden=false;fcShow();}
+function fcSetFlip(on){fc.flipped=on;fcCard.classList.toggle('flipped',on);fcYes.disabled=fcNo.disabled=!on;}
+function fcShow(){
+  if(fc.i>=fc.deck.length){fcFinish();return;}
+  const c=fc.deck[fc.i]; fcSetFlip(false); fcFront.textContent=c.q;
+  setTimeout(()=>{fcBack.textContent=c.a;},250);
+  fcCount.textContent=`Card ${fc.i+1} of ${fc.deck.length}`;
+}
+function fcFinish(){
+  fcCard.hidden=true;fcBtns.hidden=true;fcEnd.hidden=false;fcCount.textContent='';
+  const left=fc.again.length;
+  fcEnd.innerHTML=`<p>You knew ${fc.known} out of ${fc.deck.length}.</p>`+(left?`<button class="btn" id="fcAgain">Practise the ${left} card${left>1?'s':''} again</button>`:`<button class="btn" id="fcAgain">Start a new round</button>`);
+  document.getElementById('fcAgain').onclick=()=>fcStart(left?shuffle(fc.again):makeDeck(fcDeck.value));
+}
+function fcMark(knew){if(!fc.flipped)return;knew?fc.known++:fc.again.push(fc.deck[fc.i]);fc.i++;fcShow();}
+fcCard.onclick=()=>fcSetFlip(!fc.flipped);
+document.getElementById('fcFlip').onclick=()=>fcSetFlip(!fc.flipped);
+fcYes.onclick=()=>fcMark(true); fcNo.onclick=()=>fcMark(false);
+document.getElementById('fcRestart').onclick=()=>fcStart(makeDeck(fcDeck.value));
+fcDeck.onchange=()=>fcStart(makeDeck(fcDeck.value));
+
+/* ---------- Word scramble (uses WORDS) ---------- */
+const wsDefs=document.getElementById('wsDefs'),wsTiles=document.getElementById('wsTiles'),wsDef=document.getElementById('wsDef'),
+      wsIn=document.getElementById('wsIn'),wsFb=document.getElementById('wsFb'),wsCount=document.getElementById('wsCount'),
+      wsDefBtn=document.getElementById('wsDefBtn'),wsList=document.getElementById('wsList');
+function scramble(word){
+  return word.toUpperCase().split(' ').map(w=>{
+    if(w.length<2) return w; let s,g=0; do{s=shuffle([...w]).join('');}while(s===w&&g++<50); return s;}).join(' ');
+}
+let ws={order:[],i:0,solved:0,defOn:false};
+function wsStart(){ws={order:shuffle(WORDS),i:0,solved:0,defOn:false};wsShow();wsBuildList();}
+function wsShow(){
+  const w=ws.order[ws.i];
+  wsTiles.innerHTML=scramble(w.q).split('').map(c=>c===' '?'<span class="gap"></span>':`<span class="t">${esc(c)}</span>`).join('');
+  wsDef.innerHTML=`<b>Definition:</b> ${esc(w.a)}`;
+  ws.defOn=wsDefs.checked; wsDefSync();
+  wsIn.value=''; wsFb.textContent=''; wsFb.className='feedback';
+  wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+}
+function wsDefSync(){wsDef.hidden=!ws.defOn;wsDefBtn.textContent=ws.defOn?'Hide the definition':'Show the definition';}
+const norm=s=>s.toUpperCase().replace(/[^A-Z]/g,'');
+document.getElementById('wsCheck').onclick=()=>{
+  const w=ws.order[ws.i];
+  if(!wsIn.value.trim()){wsFb.textContent='Type your word first.';wsFb.className='feedback no';return;}
+  if(norm(wsIn.value)===norm(w.q)){
+    if(!wsFb.classList.contains('ok')) ws.solved++;
+    wsFb.textContent=`Correct: ${w.q.toUpperCase()}`;wsFb.className='feedback ok';
+    ws.defOn=true;wsDefSync();
+    wsCount.textContent=`Word ${ws.i+1} of ${ws.order.length} · ${ws.solved} solved`;
+  } else {wsFb.textContent='Not yet. Try the definition for a clue.';wsFb.className='feedback no';}
+};
+wsIn.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('wsCheck').click();});
+wsDefBtn.onclick=()=>{ws.defOn=!ws.defOn;wsDefSync();};
+document.getElementById('wsReveal').onclick=()=>{const w=ws.order[ws.i];wsFb.textContent=`The word is ${w.q.toUpperCase()}`;wsFb.className='feedback';ws.defOn=true;wsDefSync();};
+document.getElementById('wsNext').onclick=()=>{ws.i=(ws.i+1)%ws.order.length;if(ws.i===0){ws.order=shuffle(WORDS);ws.solved=0;}wsShow();};
+
+function wsBuildList(){
+  wsList.innerHTML=shuffle(WORDS).map(w=>`<li><div class="scr">${esc(scramble(w.q))}</div><div class="word">${esc(w.q.toUpperCase())}</div>${wsDefs.checked?`<div class="d">${esc(w.a)}</div>`:''}</li>`).join('');
+}
+wsDefs.onchange=()=>{ws.defOn=wsDefs.checked;wsDefSync();
+  wsList.querySelectorAll('li').forEach(li=>{const word=li.querySelector('.word').textContent,w=WORDS.find(x=>x.q.toUpperCase()===word);
+    let d=li.querySelector('.d'); if(wsDefs.checked&&!d){d=document.createElement('div');d.className='d';d.textContent=w.a;li.appendChild(d);} if(!wsDefs.checked&&d) d.remove();});};
+const modeOne=document.getElementById('wsModeOne'),modeAll=document.getElementById('wsModeAll');
+function wsMode(all){modeOne.setAttribute('aria-pressed',!all);modeAll.setAttribute('aria-pressed',all);
+  document.getElementById('wsOne').hidden=all;document.getElementById('wsAll').hidden=!all;wsCount.hidden=all;}
+modeOne.onclick=()=>wsMode(false); modeAll.onclick=()=>wsMode(true);
+document.getElementById('wsReshuffle').onclick=wsBuildList;
+const wsShowAll=document.getElementById('wsShowAll');
+wsShowAll.onclick=()=>{const on=wsList.classList.toggle('show');wsShowAll.setAttribute('aria-pressed',on);wsShowAll.textContent=on?'Hide answers':'Show answers';};
+document.getElementById('wsFull').onclick=()=>{const el=document.getElementById('vocab');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+wsStart();
+
+fromHash();
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "nat5/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000 scaffold for every question_B.pdf", "files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000-table_G_E.pdf", "files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T1 03 Measurement Angles/Making_180_Angles_Workbooklet.pdf", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Negative Numbers - Bridging Through Zero (MNU 3-04a).pdf", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Compound area of rectangles worksheet MTH 3-11a.pdf", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/H) Fractions/Summary Sheets/Operations with fractions summary sheet pdf.pdf", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-B-A4 (1).pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-C-A4.pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-D-A4.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Preparation_Pack_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_Supported_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_Supported_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Preparation_Pack_FDP_Ratio_Circles_Volume_Money_MNU3-07a_3-08a_MTH4-16b_MNU3-11a_3-09a.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Preparation_Pack_All_S1_Topics.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Prep_MTH3-05a_MTH3-06a_MTH3-13a.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Preparation_Pack_Fractions_Scale_Bearings_Statistics_MTH3-07bc_3-17bc_3-20b_3-21a.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Preparation_Pack_Brackets_Finance_Straight_Line_MTH4-14ab_MNU4-09abc_MTH4-13abcd.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Preparation_Pack_Tolerance_Equations_Fractions_SDT_Areas_Volumes.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Preparation_Pack_Powers_SciNotation_Pythagoras_Trig_MTH4-06ab_MTH4-16a.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Preparation_Pack_Circles_Factorising_Indices_Surds_MTH4-17a_4-16a_4-14b_4-06a.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection_Supported.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 1 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 2 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 3 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 4 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 5 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 6 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 7 - Integration.pdf", "files/higher/Revision/formulae-list-pupil.pdf", "files/higher/Revision/formulae-to-learn.pdf", "files/higher/Revision/revision-cards.pdf", "files/higher/topics/applications-of-calculus/applications-of-calculus-notes.pdf", "files/higher/topics/circle/circle-notes.pdf", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/differentiation/differentiation-notes.pdf", "files/higher/topics/functions-and-graphs/composite-inverse-functions-questions.pdf", "files/higher/topics/functions-and-graphs/functions-notes.pdf", "files/higher/topics/functions-and-graphs/trig-graph-transformations.pdf", "files/higher/topics/integration/integration-notes.pdf", "files/higher/topics/logs-and-exponentials/logs-and-exponentials-notes.pdf", "files/higher/topics/polynomials/polynomials-notes.pdf", "files/higher/topics/quadratics/quadratics-explorer.html", "files/higher/topics/quadratics/quadratics-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-summary-sheet.pdf", "files/higher/topics/straight-line/straight-line-notes.pdf", "files/higher/topics/trig-equations/trig-equations-notes.pdf", "files/higher/topics/trig-expressions/degrees-radians-war-card-game.pdf", "files/higher/topics/trig-expressions/trig-expressions-notes.pdf", "files/higher/topics/vectors/vectors-notes.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_December_Prelim_Prep_Pack.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_Term1_Assessment_Prep_Pack.pdf", "files/nat5/Homework/Term 1/Term1_Homework_Pupil.pdf", "files/nat5/Homework/Term 2/Term2_Homework_Pupil.pdf", "files/nat5/Revision/december-prelim-revision-pack.pdf", "files/nat5/Revision/formulae-list-pupil.pdf", "files/nat5/Revision/revision-cards.pdf", "files/nat5/topics/algebraic-fractions/algebraic-fractions-notes.pdf", "files/nat5/topics/angles-and-circles/angles-and-circles-notes.pdf", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-notes.pdf", "files/nat5/topics/changing-the-subject/changing-the-subject-notes.pdf", "files/nat5/topics/equations-and-inequations/equations-and-inequations-notes.pdf", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-notes.pdf", "files/nat5/topics/fractions/fractions-notes.pdf", "files/nat5/topics/function-notation/function-notation-notes.pdf", "files/nat5/topics/percentages/percentages-notes.pdf", "files/nat5/topics/pythagoras/pythagoras-notes.pdf", "files/nat5/topics/quadratic-equations/quadratic-equations-notes.pdf", "files/nat5/topics/quadratic-functions/quadratic-functions-notes.pdf", "files/nat5/topics/similarity/similarity-notes.pdf", "files/nat5/topics/simultaneous-equations/balance-scales.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-notes.pdf", "files/nat5/topics/simultaneous-equations/simultaneous-equations-topic-page.html", "files/nat5/topics/statistics/statistics-notes.pdf", "files/nat5/topics/straight-line/straight-line-notes.pdf", "files/nat5/topics/surds-and-indices/surds-and-indices-notes.pdf", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-notes.pdf", "files/nat5/topics/trigonometry/trigonometry-notes.pdf", "files/nat5/topics/vectors/vectors-notes.pdf"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>
