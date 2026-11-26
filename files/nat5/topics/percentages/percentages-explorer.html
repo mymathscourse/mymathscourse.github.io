@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Percentages</title>
+<!-- Made by Nat 5/Course planning/explorer-maker (build.py). Edit the files there, not this one. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1b2733; --muted: #5b6977; --paper: #f4f6f8; --panel: #ffffff; --line: #d8dfe6;
+    --accent: #2d6a8f; --accent-soft: #e3eef5; --btn: #ffffff; --on: #1b2733; --on-text: #ffffff;
+    --f: #2d70b3; --g: #6042a6; --hi: #e07a00; --sp: #c2185b;
+    --up: #2b7a3a; --down: #b83c38; --up-bg: #e3f2e6; --down-bg: #f8e3e2;
+    --c-bg: #e3f2e6; --c-ink: #22662f; --a-bg: #e8e2f6; --a-ink: #4d3391; --e-bg: #fbe3ec; --e-ink: #a0154c;
+    --answer-bg: #fff8dc; --answer-line: #e3c766; --shade: rgba(45, 112, 179, .16); --shade2: rgba(224, 122, 0, .18);
+    --grid: #e9ecf0; --axis: #5b6573;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e4ebf1; --muted: #9fadba; --paper: #121a21; --panel: #1a242d; --line: #2f3d49;
+      --accent: #7fb6d8; --accent-soft: #1f3342; --btn: #1d2731; --on: #e4ebf1; --on-text: #121a21;
+      --f: #6fa8e0; --g: #b39ce8; --hi: #ffa64d; --sp: #f06292;
+      --up: #7fd08d; --down: #f0918d; --up-bg: #1b3322; --down-bg: #3a1f1e;
+      --c-bg: #1b3322; --c-ink: #8fd89b; --a-bg: #2a2342; --a-ink: #c5b5f0; --e-bg: #3a1a28; --e-ink: #f48fb1;
+      --answer-bg: #2f2a14; --answer-line: #8a7630; --shade: rgba(111, 168, 224, .2); --shade2: rgba(255, 166, 77, .2);
+      --grid: #24303b; --axis: #8d9aa7;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px;
+  }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 12px 16px 32px; }
+  .back { color: var(--accent); font-size: 15px; }
+  h1 { font-size: 1.5rem; margin: 4px 0 10px; }
+  .keys { font-size: 13px; color: var(--muted); margin-left: auto; }
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+  .tabs button {
+    font: inherit; font-size: 15px; padding: 7px 12px; border-radius: 8px 8px 0 0; border: 1px solid var(--line);
+    border-bottom: 3px solid var(--line); background: var(--btn); color: var(--muted); cursor: pointer;
+  }
+  .tabs button[aria-selected=true] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
+  .tabs button .k { font-size: 12px; opacity: .7; margin-right: 4px; }
+  .seq { font-size: 14px; color: var(--muted); margin: 0 0 10px; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-bottom: 10px; }
+  button.btn, select, input.n {
+    font: inherit; font-size: 15px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 7px;
+    background: var(--btn); color: var(--ink);
+  }
+  button.btn, select { cursor: pointer; }
+  button.btn:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { button.primary { color: #121a21; } }
+  button[aria-pressed=true] { background: var(--on); color: var(--on-text); border-color: var(--on); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  input.n { width: 5em; text-align: center; padding: 5px 4px; font-size: 17px; }
+  input.n.w { width: 12em; text-align: left; padding: 5px 8px; }
+  input.n.bad { border-color: var(--down); outline: 2px solid var(--down); }
+  .own label { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; }
+  .err { color: var(--down); font-size: 14px; }
+  .hint { font-size: 13px; color: var(--muted); }
+  input[type=range] { accent-color: var(--accent); width: min(260px, 60vw); vertical-align: middle; }
+  .sl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 6px 0; font-size: 16px; }
+  .sl output { font-weight: 700; min-width: 3em; display: inline-block; }
+
+  .explore { margin-bottom: 14px; }
+  .exgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); gap: 12px; align-items: start; }
+  @media (max-width: 960px) { .exgrid { grid-template-columns: 1fr; } }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 1.1fr); gap: 12px; align-items: start; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+  .qtext { font-size: 19px; line-height: 1.6; }
+  .qtext .mm { font-size: 21px; }
+  svg.fig { display: block; width: 100%; max-width: 460px; height: auto; margin: 8px auto 0; }
+  svg.fig.wide { max-width: 640px; }
+  .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .gr, .calc { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .gr.C { background: var(--c-bg); color: var(--c-ink); }
+  .gr.A { background: var(--a-bg); color: var(--a-ink); }
+  .gr.E { background: var(--e-bg); color: var(--e-ink); }
+  .calc { background: var(--accent-soft); color: var(--accent); font-weight: 400; }
+
+  /* working */
+  .stepbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .stepbar .btn { font-size: 14px; padding: 5px 10px; }
+  .step { display: grid; grid-template-columns: 26px 1fr; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .step .num {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  @media (prefers-color-scheme: dark) { .step .num { color: #121a21; } }
+  .step .st { font-weight: 700; margin-bottom: 2px; }
+  .step.hid { cursor: pointer; }
+  .step.hid .num { background: var(--line); color: var(--muted); }
+  .step.hid .st { color: var(--muted); font-weight: 400; }
+  .step.hid .st::after { content: " – click to reveal"; font-size: 13px; }
+  .step.hid .bd { display: none; }
+  .mm { font-family: "Cambria Math", "STIX Two Math", "Times New Roman", Times, serif; font-size: 20px; line-height: 1.75; }
+  .bd .mm { display: block; }
+  .qtext .mm, .why .mm, td .mm, .ans .mm { display: inline; }
+  .why { font-size: 14px; color: var(--muted); margin: 2px 0 4px; }
+  .ans { margin-top: 6px; padding: 8px 12px; border-radius: 6px; background: var(--answer-bg); border: 1px solid var(--answer-line); font-size: 17px; }
+  .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .85em; line-height: 1.15; margin: 0 2px; }
+  .fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
+  sup { font-size: .7em; }
+  sup .fr { font-size: .8em; }
+  .ov { border-top: 1.5px solid currentColor; padding: 0 1px; }
+  .hl { color: var(--hi); font-weight: 700; }
+  .hb { color: var(--f); font-weight: 700; }
+  .vec { display: inline-flex; vertical-align: middle; align-items: center; }
+  .vec > span:nth-child(2) { display: inline-flex; flex-direction: column; text-align: center; line-height: 1.15; padding: 0 3px; font-size: .9em; }
+  .vec > b { font-weight: 300; font-size: 1.9em; line-height: 1; }
+  table.t { border-collapse: collapse; margin: 6px 0; font-size: 17px; }
+  table.t th, table.t td { border: 1px solid var(--line); padding: 3px 10px; text-align: center; }
+  table.t th { background: var(--paper); }
+  table.t td.hl { background: var(--answer-bg); }
+
+  /* svg */
+  svg .gl { stroke: var(--grid); stroke-width: 1; }
+  svg .ax { stroke: var(--axis); stroke-width: 1.6; }
+  svg .tk { font-size: 13px; fill: var(--muted); font-family: "Atkinson Hyperlegible", system-ui, sans-serif; }
+  svg .ln { stroke: var(--ink); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+  svg .thin { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+  svg .dash { stroke: var(--muted); stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  svg .shape { stroke: var(--ink); stroke-width: 2.2; fill: var(--shade); stroke-linejoin: round; }
+  svg .shape2 { stroke: var(--hi); stroke-width: 2.2; fill: var(--shade2); stroke-linejoin: round; }
+  svg .open { stroke: var(--ink); stroke-width: 2.2; fill: none; stroke-linejoin: round; }
+  svg .cf { stroke: var(--f); stroke-width: 3.2; fill: none; }
+  svg .cg { stroke: var(--g); stroke-width: 3.2; fill: none; }
+  svg .ch { stroke: var(--hi); stroke-width: 3.2; fill: none; }
+  svg .cr { stroke: var(--down); stroke-width: 3.2; fill: none; }
+  svg .am { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+  svg .pt { fill: var(--ink); }
+  svg .pf { fill: var(--f); stroke: var(--panel); stroke-width: 2; }
+  svg .ph { fill: var(--hi); stroke: var(--panel); stroke-width: 2; }
+  svg .drag { fill: var(--hi); stroke: var(--panel); stroke-width: 3; cursor: grab; }
+  svg .lab, svg .labs {
+    font-size: 17px; font-weight: 700; paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round;
+    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; fill: var(--ink);
+  }
+  svg .labs { font-size: 14px; font-weight: 400; }
+  svg .lab.f { fill: var(--f); } svg .lab.h { fill: var(--hi); } svg .lab.g { fill: var(--g); } svg .lab.r { fill: var(--down); }
+  svg .arr { fill: var(--ink); }
+  svg .arrf { fill: var(--f); } svg .arrg { fill: var(--g); } svg .arrh { fill: var(--hi); }
+
+  /* practice questions */
+  .practice { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px 14px; }
+  .phead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .phead h2 { font-size: 1.15rem; margin: 0 auto 0 0; }
+  .plist { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: pq; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 10px; align-items: start; }
+  .plist > li { counter-increment: pq; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 10px; break-inside: avoid; }
+  .pmeta { display: flex; gap: 6px; margin-bottom: 4px; }
+  .pq { font-size: 17px; line-height: 1.6; margin-bottom: 8px; }
+  .pq::before { content: counter(pq) ". "; font-weight: 700; }
+  .pq .mm { font-size: 19px; display: inline; }
+  .pq svg.fig { max-width: 340px; }
+  .psol { font-size: 14px !important; padding: 5px 10px !important; }
+  .pws { margin-top: 6px; }
+  .pnone { color: var(--muted); margin: 10px 0 0; }
+  @media (max-width: 960px) { .cols { grid-template-columns: 1fr; } }
+  @media print {
+    body { background: #fff; color: #000; }
+    .top, .tabs, .seq, .bar, .cols, .stepbar, .phead button, .phead label, .psol, .explore { display: none !important; }
+    .practice { border: 0; padding: 0; }
+    .plist { display: block; }
+    .plist > li { border: 0; border-bottom: 1px solid #ccc; border-radius: 0; margin-bottom: 8px; }
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="../../index.html#percentages">← Back to hub</a>
+    <span class="keys">Keys: 1–9 switch tab · N new example · W next step · B back a step</span>
+  </div>
+  <h1>Percentages</h1>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <p class="seq" id="seq"></p>
+  <div id="panes"></div>
+</div>
+<script>
+// ===================== Shared helpers (no page code here, so test.js can load it) =====================
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const nz = (a, b) => { let v = 0; while (!v) v = ri(a, b); return v; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = ri(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
+const lcm = (a, b) => Math.abs(a * b) / gcd(a, b);
+const MINUS = '−';
+const clean = x => parseFloat(Number(x).toFixed(10));
+// a number with a proper minus sign (no float noise)
+const N = x => { x = clean(x); return (x < 0 ? MINUS : '') + String(Math.abs(x)); };
+// fixed decimal places, trailing zeros kept
+const fx = (x, d = 2) => { const s = Math.abs(x).toFixed(d); return (x < 0 && Number(s) !== 0 ? MINUS : '') + s; };
+// rounded to d decimal places, trailing zeros dropped
+const rd = (x, d = 2) => N(Math.round(x * 10 ** d) / 10 ** d);
+// n significant figures, trailing zeros kept (e.g. 2.50)
+const sf = (x, n = 3) => {
+  if (x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x))), d = Math.max(0, n - 1 - e);
+  const r = Number(x.toPrecision(n));
+  return (r < 0 ? MINUS : '') + Math.abs(r).toFixed(d);
+};
+// money
+const gbp = x => { const r = Math.round(Math.abs(x) * 100) / 100; return '£' + (Number.isInteger(r) ? String(r) : r.toFixed(2)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+const big = x => N(x).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+// ---------- maths html ----------
+const mm = h => '<span class="mm">' + h + '</span>';
+const V = s => '<i>' + s + '</i>';
+const X = V('x'), Y = V('y');
+const sup = s => '<sup>' + s + '</sup>';
+const fr = (t, b) => '<span class="fr"><span>' + t + '</span><span>' + b + '</span></span>';
+const rt = s => '√<span class="ov">' + s + '</span>';
+const hl = s => '<span class="hl">' + s + '</span>';
+const hb = s => '<span class="hb">' + s + '</span>';
+const deg = '°';
+const pw = (v, p) => p === 0 ? '' : p === 1 ? v : v + sup(p);
+// one term c·v, as the first term (sign only if negative) or with " + " / " − " in front
+function tm(c, v = '', first = false) {
+  if (!c) return '';
+  const a = Math.abs(c), body = (a === 1 && v ? '' : N(a)) + v;
+  if (first) return (c < 0 ? MINUS : '') + body;
+  return (c < 0 ? ' − ' : ' + ') + body;
+}
+// [[c, v], ...] as an expression, skipping zero terms
+function ex(terms) {
+  let s = '', first = true;
+  for (const [c, v] of terms) { if (!c) continue; s += tm(c, v, first); first = false; }
+  return s || '0';
+}
+// ax + b style helpers
+const lin = (a, b, v = X) => ex([[a, v], [b, '']]);
+const quad = (a, b, c, v = X) => ex([[a, pw(v, 2)], [b, v], [c, '']]);
+// (x + a)
+const br = (a, b, v = X) => '(' + lin(a, b, v) + ')';
+// signed number for substitution: wraps negatives in brackets
+const sb = x => x < 0 ? '(' + N(x) + ')' : N(x);
+// " + 3" / " − 3"
+const pm = x => (x < 0 ? ' − ' : ' + ') + N(Math.abs(x));
+const vec = (...c) => '<span class="vec"><b>(</b><span>' + c.map(v => '<span>' + v + '</span>').join('') + '</span><b>)</b></span>';
+const bold = s => '<b>' + s + '</b>';
+const arrow = s => '<span style="display:inline-block;position:relative">' + s + '<span style="position:absolute;left:0;right:0;top:-.55em;text-align:center;font-size:.8em">→</span></span>';
+
+// ---------- exact fractions ----------
+const Q = (n, d = 1) => { if (d < 0) { n = -n; d = -d; } const g = gcd(n, d); return { n: n / g, d: d / g }; };
+const qadd = (a, b) => Q(a.n * b.d + b.n * a.d, a.d * b.d);
+const qsub = (a, b) => Q(a.n * b.d - b.n * a.d, a.d * b.d);
+const qmul = (a, b) => Q(a.n * b.n, a.d * b.d);
+const qdiv = (a, b) => Q(a.n * b.d, a.d * b.n);
+const qv = q => q.n / q.d;
+// html; mixed = true writes improper fractions as mixed numbers
+function qH(q, mixed = false) {
+  if (q.d === 1) return N(q.n);
+  const s = q.n < 0 ? MINUS : '', a = Math.abs(q.n);
+  if (mixed && a > q.d) return s + Math.floor(a / q.d) + fr(a % q.d, q.d);
+  return s + fr(a, q.d);
+}
+const mixH = (w, n, d) => (w ? w : '') + fr(n, d);
+
+// ---------- surds ----------
+// k√m with m square-free
+function surd(n) { let k = 1, m = n; for (let f = 2; f * f <= m; f++) while (m % (f * f) === 0) { m /= f * f; k *= f; } return { k, m }; }
+const sH = (k, m) => m === 1 ? N(k) : (k === 1 ? '' : k === -1 ? MINUS : N(k)) + rt(m);
+
+// ---------- svg ----------
+const f1 = v => Number(v).toFixed(1);
+const svg = (w, h, inner, cls = 'fig') => '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h + '" role="img">' + inner + '</svg>';
+const sL = (a, b, c = 'ln') => '<line class="' + c + '" x1="' + f1(a[0]) + '" y1="' + f1(a[1]) + '" x2="' + f1(b[0]) + '" y2="' + f1(b[1]) + '"/>';
+const sP = (pts, c = 'shape') => '<polygon class="' + c + '" points="' + pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ') + '"/>';
+const sPl = (pts, c = 'open') => '<polyline class="' + c + '" points="' + pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ') + '"/>';
+const sT = (x, y, s, c = 'lab', a = 'middle') => '<text class="' + c + '" x="' + f1(x) + '" y="' + f1(y) + '" text-anchor="' + a + '" dominant-baseline="middle">' + s + '</text>';
+const sC = (c, r, cl = 'open') => '<circle class="' + cl + '" cx="' + f1(c[0]) + '" cy="' + f1(c[1]) + '" r="' + f1(r) + '"/>';
+const sDot = (p, cl = 'pt', r = 4) => sC(p, r, cl);
+const it = s => '<tspan font-style="italic">' + s + '</tspan>';
+const sub2 = (a, b) => [a[0] - b[0], a[1] - b[1]];
+const unit = v => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+const cen = ps => [ps.reduce((s, p) => s + p[0], 0) / ps.length, ps.reduce((s, p) => s + p[1], 0) / ps.length];
+// maths coordinates (y up) to screen, scaled to fit W × H
+function fit(pts, W, H, pad = 40) {
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const s = Math.min((W - 2 * pad) / ((x1 - x0) || 1), (H - 2 * pad) / ((y1 - y0) || 1));
+  const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2;
+  return pts.map(p => [ox + (p[0] - x0) * s, H - oy - (p[1] - y0) * s]);
+}
+// a label beside side AB, on the outside (away from G)
+function sideLab(A, B, s, G, off = 16, c = 'lab') {
+  const m = mid(A, B); let [nx, ny] = unit([-(B[1] - A[1]), B[0] - A[0]]);
+  if ((m[0] - G[0]) * nx + (m[1] - G[1]) * ny < 0) { nx = -nx; ny = -ny; }
+  return sT(m[0] + nx * off, m[1] + ny * off, s, c);
+}
+// angle arc at V between rays VA and VB
+function angArc(V, A, B, r = 22, c = 'am') {
+  const a1 = Math.atan2(A[1] - V[1], A[0] - V[0]), a2 = Math.atan2(B[1] - V[1], B[0] - V[0]);
+  let d = a2 - a1; while (d <= -Math.PI) d += 2 * Math.PI; while (d > Math.PI) d -= 2 * Math.PI;
+  const p1 = [V[0] + r * Math.cos(a1), V[1] + r * Math.sin(a1)], p2 = [V[0] + r * Math.cos(a2), V[1] + r * Math.sin(a2)];
+  return '<path class="' + c + '" d="M' + f1(p1[0]) + ' ' + f1(p1[1]) + ' A' + r + ' ' + r + ' 0 0 ' + (d > 0 ? 1 : 0) + ' ' + f1(p2[0]) + ' ' + f1(p2[1]) + '"/>';
+}
+// label inside the angle at V
+function angLab(V, A, B, s, off = 36, c = 'labs') {
+  const u = unit(sub2(A, V)), w = unit(sub2(B, V)), b = unit([u[0] + w[0], u[1] + w[1]]);
+  return sT(V[0] + b[0] * off, V[1] + b[1] * off, s, c);
+}
+function rightMark(V, A, B, s = 13) {
+  const u = unit(sub2(A, V)), w = unit(sub2(B, V));
+  return sPl([[V[0] + u[0] * s, V[1] + u[1] * s], [V[0] + (u[0] + w[0]) * s, V[1] + (u[1] + w[1]) * s], [V[0] + w[0] * s, V[1] + w[1] * s]], 'thin');
+}
+// vertex name just outside the shape
+const vLab = (P, G, s, off = 16) => { const u = unit(sub2(P, G)); return sT(P[0] + u[0] * off, P[1] + u[1] * off, s); };
+function arrowHead(A, B, c = 'arr', s = 11) {
+  const u = unit(sub2(B, A)), n = [-u[1], u[0]];
+  return sP([B, [B[0] - u[0] * s + n[0] * s * .5, B[1] - u[1] * s + n[1] * s * .5], [B[0] - u[0] * s - n[0] * s * .5, B[1] - u[1] * s - n[1] * s * .5]], c);
+}
+// a triangle from its three side lengths: returns screen points for A, B, C (a opposite A etc.)
+function triPts(a, b, c, W = 420, H = 300, pad = 46) {
+  const cosA = (b * b + c * c - a * a) / (2 * b * c), A = Math.acos(Math.max(-1, Math.min(1, cosA)));
+  return fit([[0, 0], [c, 0], [b * Math.cos(A), b * Math.sin(A)]], W, H, pad);
+}
+// a labelled triangle: pts = [A, B, C] screen points, opts: { names, sides: [BC, CA, AB], angles: [A, B, C], right: index }
+function triFig(pts, o = {}, W = 420, H = 300) {
+  const G = cen(pts), [A, B, C] = pts;
+  let s = sP(pts);
+  const sides = o.sides || [], angles = o.angles || [];
+  if (sides[0]) s += sideLab(B, C, sides[0], G);
+  if (sides[1]) s += sideLab(C, A, sides[1], G);
+  if (sides[2]) s += sideLab(A, B, sides[2], G);
+  const vx = [[A, B, C], [B, C, A], [C, A, B]];
+  vx.forEach(([P, Q1, R], i) => {
+    if (o.right === i) s += rightMark(P, Q1, R);
+    else if (angles[i]) s += angArc(P, Q1, R) + angLab(P, Q1, R, angles[i]);
+  });
+  if (o.names) pts.forEach((P, i) => { s += vLab(P, G, o.names[i]); });
+  return svg(W, H, s);
+}
+
+// ---------- coordinate graphs ----------
+// Graph({ x0, x1, y0, y1, W, H, step, lab }) – draw into it, then .svg()
+function Graph(o) {
+  const W = o.W || 420, H = o.H || 420, step = o.step || 1, ls = o.lab || step, ys = o.ystep || step, yl = o.ylab || ls;
+  const sx = x => (x - o.x0) / (o.x1 - o.x0) * W, sy = y => H - (y - o.y0) / (o.y1 - o.y0) * H;
+  const under = [], items = [], top = [];
+  const near = (v, s) => Math.abs(v / s - Math.round(v / s)) < 1e-6;
+  for (let x = Math.ceil(o.x0 / step) * step; x <= o.x1 + 1e-9; x += step) under.push(sL([sx(x), 0], [sx(x), H], 'gl'));
+  for (let y = Math.ceil(o.y0 / ys) * ys; y <= o.y1 + 1e-9; y += ys) under.push(sL([0, sy(y)], [W, sy(y)], 'gl'));
+  const ax = Math.max(2, Math.min(W - 2, sx(0))), ay = Math.max(2, Math.min(H - 2, sy(0)));
+  under.push(sL([0, ay], [W, ay], 'ax'), sL([ax, 0], [ax, H], 'ax'));
+  if (!o.nolab) {
+    for (let x = Math.ceil(o.x0 / ls) * ls; x <= o.x1 + 1e-9; x += ls) if (Math.abs(x) > 1e-9 && near(x, ls) && sx(x) > 8 && sx(x) < W - 8) under.push(sT(sx(x), Math.min(H - 9, ay + 13), N(x), 'tk'));
+    for (let y = Math.ceil(o.y0 / yl) * yl; y <= o.y1 + 1e-9; y += yl) if (Math.abs(y) > 1e-9 && near(y, yl) && sy(y) > 8 && sy(y) < H - 8) under.push(sT(Math.max(12, ax - 7), sy(y), N(y), 'tk', 'end'));
+    under.push(sT(W - 8, ay - 12, it(o.xn || 'x'), 'labs'), sT(ax + 12, 10, it(o.yn || 'y'), 'labs'));
+  }
+  const cid = 'c' + Math.random().toString(36).slice(2);
+  const G = {
+    W, H, sx, sy,
+    p: (x, y) => [sx(x), sy(y)],
+    fn(f, cls = 'cf', from = o.x0, to = o.x1, n = 400) {
+      let d = '', pen = false;
+      for (let i = 0; i <= n; i++) {
+        const x = from + (to - from) * i / n, y = f(x);
+        if (!isFinite(y) || Math.abs(y) > 1e4) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + f1(sx(x)) + ' ' + f1(Math.max(-H, Math.min(2 * H, sy(y))));
+        pen = true;
+      }
+      items.push('<path class="' + cls + '" d="' + d + '"/>');
+      return G;
+    },
+    seg(x1, y1, x2, y2, cls = 'cf') { items.push(sL([sx(x1), sy(y1)], [sx(x2), sy(y2)], cls)); return G; },
+    raw(s) { items.push(s); return G; },
+    top(s) { top.push(s); return G; },
+    dot(x, y, cls = 'pf', lab = '', dx = 10, dy = -14, lc = 'lab') {
+      top.push(sDot([sx(x), sy(y)], cls, 5.5));
+      if (lab) top.push(sT(sx(x) + dx, sy(y) + dy, lab, lc, dx < 0 ? 'end' : 'start'));
+      return G;
+    },
+    svg(cls = 'fig') {
+      return svg(W, H, '<defs><clipPath id="' + cid + '"><rect width="' + W + '" height="' + H + '"/></clipPath></defs>' + under.join('') +
+        '<g clip-path="url(#' + cid + ')">' + items.join('') + '</g>' + top.join(''), cls);
+    }
+  };
+  return G;
+}
+
+// a step of working: [title, maths html (one line per array item), optional note]
+const S = (title, lines, why) => why ? [title, Array.isArray(lines) ? lines : [lines], why] : [title, Array.isArray(lines) ? lines : [lines]];
+
+// Percentages
+const mult = (r, up) => clean(1 + (up ? r : -r) / 100);
+const pc = r => N(r) + '%';
+const RATES = [1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 8, 12, 15, 18, 20, 25];
+const money = x => gbp(x);
+
+const TOPIC = {
+  title: "Percentages",
+  folder: "percentages",
+  tabs: [
+    {
+      id: 'explore', name: 'Explore', seq: 'Compound growth and depreciation: each year the value is multiplied by the same multiplier. Change the numbers and watch the bars.',
+      build(host) {
+        host.innerHTML = '<div class="exgrid"><div class="panel"><div class="bar own"><label>Start £<input class="n w0" value="2000"></label><label>Rate <input class="n rt" value="4"> %</label><label>Years <input class="n yr" value="5"></label>' +
+          '<select class="dir"><option value="up">increase (interest, growth)</option><option value="down">decrease (depreciation)</option></select></div><div class="gw"></div></div><div class="panel qtext out"></div></div>';
+        const g = c => Number(host.querySelector(c).value) || 0;
+        function draw() {
+          const P = Math.max(0, g('.w0')), r = Math.max(0, Math.min(100, g('.rt'))), n = Math.max(1, Math.min(15, Math.round(g('.yr')))), up = host.querySelector('.dir').value === 'up', m = mult(r, up);
+          const vals = [P]; for (let i = 1; i <= n; i++) vals.push(vals[i - 1] * m);
+          const top = Math.max(...vals) * 1.1 || 1, W = 460, H = 260, bw = (W - 40) / (n + 1);
+          let s = sL([30, H - 24], [W - 4, H - 24], 'ax');
+          vals.forEach((v, i) => { const h = v / top * (H - 50), x = 34 + i * bw; s += '<rect class="' + (i ? 'shape' : 'shape2') + '" x="' + f1(x) + '" y="' + f1(H - 24 - h) + '" width="' + f1(bw - 6) + '" height="' + f1(h) + '"/>' + sT(x + (bw - 6) / 2, H - 12, i, 'tk'); });
+          s += sT(W / 2, 12, 'Value at the end of each year', 'labs');
+          host.querySelector('.gw').innerHTML = svg(W, H, s, 'fig wide');
+          host.querySelector('.out').innerHTML = '<p>Multiplier: ' + mm((up ? '100% + ' : '100% − ') + pc(r) + ' = ' + pc(up ? 100 + r : 100 - r) + ' = ' + hb(N(m))) + '</p>' +
+            '<p>After ' + n + ' year' + (n > 1 ? 's' : '') + ': ' + mm(money(P) + ' × ' + N(m) + sup(n) + ' = ' + hb(money(vals[n]))) + '</p>' +
+            '<table class="t"><tr><th>Year</th><th>Value</th><th>Change</th></tr>' + vals.slice(1).map((v, i) => '<tr><td>' + (i + 1) + '</td><td>' + money(v) + '</td><td>' + (up ? '+' : MINUS) + money(Math.abs(v - vals[i])) + '</td></tr>').join('') + '</table>' +
+            '<p class="hint">' + (up ? 'The change grows each year: you earn interest on the interest.' : 'The value never reaches zero: it loses a percentage of what is left.') + ' Simple interest would add ' + money(P * r / 100) + ' every year.</p>';
+        }
+        host.querySelectorAll('input, select').forEach(e => { e.oninput = draw; e.onchange = draw; });
+        draw();
+      },
+      types: []
+    },
+    {
+      id: 'change', name: 'Multipliers and change', seq: 'Teacher sequence 1.1–1.2: a multiplier does an increase or decrease in one step. Percentage change = change ÷ original × 100.',
+      types: [
+        {
+          name: 'Find a multiplier', g: 'C', calc: false,
+          gen() { const r = pick(RATES.concat([0.5, 7, 9, 35])), up = Math.random() < 0.5; return { q: 'Write down the multiplier for ' + (up ? 'an increase' : 'a decrease') + ' of ' + pc(r) + '.', steps: [S('Start from 100%', '100% ' + (up ? '+' : '−') + ' ' + pc(r) + ' = ' + pc(clean(up ? 100 + r : 100 - r))), S('Change to a decimal', pc(clean(up ? 100 + r : 100 - r)) + ' = ' + N(mult(r, up)))], ans: mm(N(mult(r, up))) }; }
+        },
+        {
+          name: 'Percentage change', g: 'C', calc: true,
+          gen() {
+            const o = ri(20, 400) * 5, n = Math.round(o * (1 + nz(-40, 60) / 100)), ch = n - o, p = ch / o * 100;
+            if (!ch) return null;
+            const item = pick(['a bike', 'a concert ticket', 'a phone', 'a holiday']);
+            return { q: 'The price of ' + item + ' changed from £' + o + ' to £' + n + '. Calculate the percentage ' + (ch > 0 ? 'increase' : 'decrease') + ' to 1 decimal place.', steps: [S('Change', n + ' − ' + o + ' = ' + N(ch)), S('Divide by the original and × 100', fr(Math.abs(ch), o) + ' × 100 = ' + fx(Math.abs(p), 3) + '%', 'Always divide by the original amount.')], ans: fx(Math.abs(p), 1) + '% ' + (ch > 0 ? 'increase' : 'decrease') };
+          }
+        },
+        {
+          name: 'Profit and loss', g: 'A', calc: true,
+          gen() {
+            const C = ri(8, 60) * 10, n = ri(20, 120), each = Math.round(C / n * (1 + nz(-30, 60) / 100) * 20) / 20;
+            const T = each * n, P2 = T - C, p2 = P2 / C * 100;
+            if (!P2) return null;
+            return { q: 'A shop buys ' + n + ' T-shirts for £' + C + ' altogether and sells them all for ' + money(each) + ' each. Calculate the percentage ' + (P2 > 0 ? 'profit' : 'loss') + ' to 1 decimal place.', steps: [S('Total taken in', n + ' × ' + money(each) + ' = ' + money(T)), S(P2 > 0 ? 'Profit' : 'Loss', money(T) + ' − £' + C + ' = ' + (P2 < 0 ? MINUS : '') + money(Math.abs(P2))), S('As a percentage of the cost', fr(money(Math.abs(P2)), '£' + C) + ' × 100 = ' + fx(Math.abs(p2), 3) + '%')], ans: fx(Math.abs(p2), 1) + '% ' + (P2 > 0 ? 'profit' : 'loss') };
+          }
+        }
+      ]
+    },
+    {
+      id: 'compound', name: 'Compound percentages', seq: 'Teacher sequence 2.1–2.3: multiply by the multiplier once for each year. Different rates: one multiplier per year.',
+      types: [
+        {
+          name: 'Compound interest', g: 'C', calc: true,
+          gen() {
+            const P = ri(4, 100) * 50, r = pick([1.5, 2, 2.5, 3, 3.2, 3.5, 4, 4.5, 5]), n = ri(2, 6), m = mult(r, true), A = P * m ** n;
+            return { q: money(P) + ' is invested at ' + pc(r) + ' compound interest per year. Calculate the value after ' + n + ' years.', steps: [S('Multiplier', '100% + ' + pc(r) + ' = ' + N(m)), S('Multiply once for each year', money(P) + ' × ' + N(m) + sup(n) + ' = ' + fx(A, 4))], ans: money(A) };
+          }
+        },
+        {
+          name: 'Depreciation', g: 'C', calc: true,
+          gen() {
+            const P = ri(40, 400) * 100, r = pick([8, 10, 12, 15, 18, 20, 22, 25]), n = ri(2, 5), m = mult(r, false), A = P * m ** n, what = pick(['A car', 'A van', 'A motorbike', 'A machine']);
+            return { q: what + ' bought for ' + money(P) + ' depreciates by ' + pc(r) + ' each year. Find its value after ' + n + ' years.', steps: [S('Multiplier for a decrease', '100% − ' + pc(r) + ' = ' + N(m)), S('Multiply once for each year', money(P) + ' × ' + N(m) + sup(n) + ' = ' + fx(A, 4))], ans: money(A) };
+          }
+        },
+        {
+          name: 'Different rates each year', g: 'A', calc: true,
+          gen() {
+            const P = ri(10, 200) * 50, r1 = pick([2, 3, 4, 5, 6]), r2 = pick([1.5, 2.5, 3.5, 4.5]), n2 = ri(2, 3), up2 = Math.random() < 0.7, m1 = mult(r1, true), m2 = mult(r2, up2), A = P * m1 * m2 ** n2;
+            const pctOverall = (A / P - 1) * 100;
+            return { q: 'A house worth ' + money(P) + ' rose in value by ' + pc(r1) + ' in the first year and then ' + (up2 ? 'rose' : 'fell') + ' by ' + pc(r2) + ' in each of the next ' + n2 + ' years. Find its value after ' + (1 + n2) + ' years, and the overall percentage change to 1 decimal place.', steps: [S('Multipliers', 'year 1: ' + N(m1) + ',  next ' + n2 + ' years: ' + N(m2)), S('Multiply them all', money(P) + ' × ' + N(m1) + ' × ' + N(m2) + sup(n2) + ' = ' + fx(A, 2)), S('Overall change', fr(fx(Math.abs(A - P), 2), P) + ' × 100 = ' + fx(Math.abs(pctOverall), 2) + '%', 'Don’t just add the percentages: each year works on a different amount.')], ans: money(A) + ', overall ' + (pctOverall >= 0 ? 'increase' : 'decrease') + ' of ' + fx(Math.abs(pctOverall), 1) + '%' };
+          }
+        },
+        {
+          name: 'How many years?', g: 'A', calc: true,
+          gen() {
+            const P = ri(10, 80) * 100, up = Math.random() < 0.5, r = up ? pick([3, 4, 5, 6, 8]) : pick([10, 12, 15, 20]), m = mult(r, up), target = up ? P * pick([1.2, 1.25, 1.3, 1.5]) : P * pick([0.5, 0.6, 0.4]);
+            let n = 0, v = P; const rows = [];
+            while ((up ? v <= target : v >= target) && n < 40) { n++; v *= m; rows.push('<tr><td>' + n + '</td><td>' + money(v) + '</td></tr>'); }
+            return { q: (up ? money(P) + ' is invested at ' + pc(r) + ' per year compound interest. After how many complete years will it first be worth more than ' + money(target) + '?' : 'A boat worth ' + money(P) + ' loses ' + pc(r) + ' of its value each year. After how many years will it first be worth less than ' + money(target) + '?'), steps: [S('Multiplier', N(m)), S('Multiply year by year until you pass ' + money(target), ['<table class="t"><tr><th>Year</th><th>Value</th></tr>' + rows.join('') + '</table>'])], ans: n + ' years' };
+          }
+        }
+      ]
+    },
+    {
+      id: 'reverse', name: 'Reverse percentages', seq: 'Teacher sequence 3.1–3.2: the new amount is the original × multiplier, so the original = new amount ÷ multiplier. Never take the percentage off the new amount.',
+      types: [
+        {
+          name: 'Find the original', g: 'A', calc: true,
+          gen() {
+            const orig = ri(8, 80) * 5, up = Math.random() < 0.5, r = pick([5, 10, 12.5, 15, 20, 25, 30, 40]), m = mult(r, up), now = orig * m;
+            if (Math.abs(now * 100 - Math.round(now * 100)) > 1e-6) return null;
+            const ctx = up ? 'After a ' + pc(r) + ' price rise, a games console costs ' + money(now) + '.' : 'In a sale, everything is reduced by ' + pc(r) + '. A jacket now costs ' + money(now) + '.';
+            return { q: ctx + ' What was the original price?', steps: [S('The new price is a percentage of the original', money(now) + ' is ' + pc(clean(up ? 100 + r : 100 - r)) + ' of the original, so original × ' + N(m) + ' = ' + money(now)), S('Divide by the multiplier', money(now) + ' ÷ ' + N(m) + ' = ' + money(orig))], ans: money(orig) };
+          }
+        },
+        {
+          name: 'Reverse compound', g: 'A', calc: true,
+          gen() {
+            const r = pick([2, 2.5, 3, 4, 5]), n = ri(2, 4), now = ri(500, 9000) + ri(0, 99) / 100, m = mult(r, true), orig = now / m ** n;
+            return { q: 'After ' + n + ' years at ' + pc(r) + ' compound interest per year, an investment is worth ' + money(now) + '. How much was invested to begin with? Give your answer to the nearest penny.', steps: [S('Original × ' + N(m) + sup(n) + ' = ' + money(now), 'Multiplier ' + N(m) + ', applied ' + n + ' times'), S('Divide', money(now) + ' ÷ ' + N(m) + sup(n) + ' = ' + fx(orig, 4))], ans: money(orig) };
+          }
+        },
+        {
+          name: 'Comparing offers', g: 'E', calc: true,
+          gen() {
+            const P = ri(30, 200) * 10, a = pick([20, 25, 30]), b = pick([10, 15]), c = pick([10, 15, 20]);
+            const A = P * (1 - a / 100), B = P * (1 - b / 100) * (1 - c / 100);
+            return { q: 'A sofa costs ' + money(P) + '. Shop A offers ' + pc(a) + ' off. Shop B offers ' + pc(b) + ' off, then a further ' + pc(c) + ' off the reduced price. Which shop is cheaper, and by how much?', steps: [S('Shop A', money(P) + ' × ' + N(mult(a, false)) + ' = ' + money(A)), S('Shop B: two multipliers', money(P) + ' × ' + N(mult(b, false)) + ' × ' + N(mult(c, false)) + ' = ' + money(B), pc(b) + ' then ' + pc(c) + ' is not the same as ' + pc(b + c) + ' off.'), S('Compare', money(Math.max(A, B)) + ' − ' + money(Math.min(A, B)) + ' = ' + money(Math.abs(A - B)))], ans: Math.abs(A - B) < 0.005 ? 'They cost the same.' : 'Shop ' + (A < B ? 'A' : 'B') + ' is cheaper by ' + money(Math.abs(A - B)) };
+          }
+        }
+      ]
+    }
+  ]
+};
+
+// ===================== Page: tabs, worked examples, practice questions =====================
+// TOPIC = { title, folder, tabs: [tab] }
+// tab = { id, name, seq, types: [type], own?, build? }
+//   type = { name, g: 'C' | 'A' | 'E', calc: true/false, gen: () => example, demo: false (practice only) }
+//   example = { q: html, fig?: svg, steps: [S(title, lines, why)], ans: html }
+//   own = { fields: [[key, label, default]], make: values => example (throw a message if they don't work) }
+//   build(host) (optional) draws an interactive explorer at the top of the tab; it replaces the worked-example stepper unless examples: true
+(function () {
+const GRADE = { C: 'C', A: 'A', E: 'Extension' };
+const chips = t => '<span class="gr ' + t.g + '">' + GRADE[t.g] + '</span>' + (t.calc == null ? '' : '<span class="calc">' + (t.calc ? 'Calculator' : 'Non-calculator') + '</span>');
+const lineH = l => /^\s*<(table|svg|p|div)/.test(l) ? l : '<div class="mm">' + l + '</div>';
+function stepsH(ex) {
+  const st = ex.steps.slice();
+  if (ex.ans) st.push(['Answer', ['<div class="ans">' + ex.ans + '</div>']]);
+  return st;
+}
+const stepH = (s, i, hid) => '<div class="step' + (hid ? ' hid' : '') + '" data-i="' + i + '"><div class="num">' + (i + 1) + '</div><div class="body"><div class="st">' + s[0] + '</div><div class="bd">' +
+  s[1].map(lineH).join('') + (s[2] ? '<p class="why">' + s[2] + '</p>' : '') + '</div></div></div>';
+function safeGen(t) {
+  for (let k = 0; k < 80; k++) { try { const e = t.gen(); if (e) return e; } catch (err) { console.error(err); } }
+  return null;
+}
+
+// worked example with steps revealed one at a time
+function Stepper(host) {
+  host.innerHTML = '<div class="stepbar"><button class="btn sn">Next step</button><button class="btn sb">Back</button><button class="btn sa">Show all</button><button class="btn sr">Hide all</button></div><div class="steps"></div>';
+  const list = host.querySelector('.steps');
+  let st = [], n = 0;
+  function draw() { list.innerHTML = st.map((s, i) => stepH(s, i, i >= n)).join(''); }
+  const go = k => { n = Math.max(0, Math.min(st.length, k)); draw(); };
+  host.querySelector('.sn').onclick = () => go(n + 1);
+  host.querySelector('.sb').onclick = () => go(n - 1);
+  host.querySelector('.sa').onclick = () => go(st.length);
+  host.querySelector('.sr').onclick = () => go(0);
+  list.addEventListener('click', e => { const s = e.target.closest('.step.hid'); if (s) go(Number(s.dataset.i) + 1); });
+  return { set(ex) { st = stepsH(ex); go(0); }, next: () => go(n + 1), back: () => go(n - 1) };
+}
+
+function buildExamples(pane, tab) {
+  const types = tab.types.filter(t => t.demo !== false);
+  const box = document.createElement('div');
+  box.innerHTML = '<div class="bar"><label>Example <select class="typ">' + types.map((t, i) => '<option value="' + i + '">' + t.name + ' (' + GRADE[t.g] + ')</option>').join('') +
+    (tab.own ? '<option value="own">Your own…</option>' : '') + '</select></label><button class="btn primary nx">New example</button><span class="chips"></span></div>' +
+    '<div class="bar own" hidden></div>' +
+    '<div class="cols"><div class="panel"><div class="qtext"></div><div class="figw"></div></div><div class="panel wk"></div></div>';
+  pane.appendChild(box);
+  const sel = box.querySelector('.typ'), q = box.querySelector('.qtext'), figw = box.querySelector('.figw'), ch = box.querySelector('.chips'), own = box.querySelector('.own');
+  const st = Stepper(box.querySelector('.wk'));
+  function show(ex, t) {
+    q.innerHTML = ex.q; figw.innerHTML = ex.fig || ''; ch.innerHTML = t ? chips(t) : '';
+    st.set(ex);
+  }
+  if (tab.own) {
+    own.innerHTML = tab.own.fields.map(([k, lab, d, w]) => '<label>' + lab + ' <input class="n' + (w ? ' w' : '') + '" data-k="' + k + '" value="' + d + '"></label>').join('') +
+      '<button class="btn primary go">Show working</button><span class="err"></span>';
+    const err = own.querySelector('.err');
+    const runOwn = () => {
+      const v = {};
+      own.querySelectorAll('input').forEach(i => { v[i.dataset.k] = i.value.trim(); });
+      try { const e = tab.own.make(v); err.textContent = ''; show(e, null); }
+      catch (e) { err.textContent = typeof e === 'string' ? e : 'Those values don’t work here.'; if (typeof e !== 'string') console.error(e); }
+    };
+    own.querySelector('.go').onclick = runOwn;
+    own.addEventListener('keydown', e => { if (e.key === 'Enter') runOwn(); });
+  }
+  function next() {
+    if (sel.value === 'own') { own.querySelector('.go').click(); return; }
+    const t = types[Number(sel.value)], e = safeGen(t);
+    if (e) show(e, t);
+  }
+  sel.onchange = () => { own.hidden = sel.value !== 'own'; next(); };
+  box.querySelector('.nx').onclick = next;
+  if (types.length) next(); else if (tab.own) { sel.value = 'own'; own.hidden = false; next(); }
+  return { next, st };
+}
+
+// practice questions: pick by level, C → A → extension
+function choose(types, level, n) {
+  const by = g => shuffle(types.filter(t => t.g === g));
+  const take = (pool, k) => { const out = []; for (let i = 0; i < k && pool.length; i++) out.push(pool[i % pool.length]); return out; };
+  if (level !== 'mix') return take(by(level), n);
+  const c = by('C'), a = by('A'), e = by('E');
+  let ne = e.length ? Math.max(1, Math.round(n / 6)) : 0, na = a.length ? Math.max(1, Math.round(n / 3)) : 0, nc = n - ne - na;
+  if (!c.length) { na += nc; nc = 0; }
+  return [...take(c, nc), ...take(a, na), ...take(e, ne)];
+}
+function PracticeBox(host, types, title = 'Practice questions', start = 6) {
+  const has = g => types.some(t => t.g === g);
+  const box = document.createElement('div');
+  box.className = 'practice';
+  box.innerHTML = '<div class="phead"><h2>' + title + '</h2>' +
+    '<label>Level <select class="plev"><option value="mix">Mixed: C, then A, then extension</option>' + ['C', 'A', 'E'].filter(has).map(g => '<option value="' + g + '">' + GRADE[g] + (g === 'E' ? '' : ' only') + '</option>').join('') + '</select></label>' +
+    '<label>How many <select class="pcount">' + [2, 4, 6, 8, 10, 12].map(k => '<option' + (k === start ? ' selected' : '') + '>' + k + '</option>').join('') + '</select></label>' +
+    '<button class="btn primary pnew">New questions</button><button class="btn pall">Show all solutions</button><button class="btn pprint">Print</button></div><ol class="plist"></ol>';
+  host.appendChild(box);
+  const list = box.querySelector('.plist'), allB = box.querySelector('.pall');
+  function fill() {
+    const n = Number(box.querySelector('.pcount').value), plan = choose(types, box.querySelector('.plev').value, n), seen = new Set(), items = [];
+    plan.forEach(t => {
+      for (let k = 0; k < 25; k++) {
+        const e = safeGen(t);
+        const key = e && e.q + (e.fig || '') + e.ans;
+        if (!e || seen.has(key)) continue;
+        seen.add(key); items.push([t, e]); break;
+      }
+    });
+    list.innerHTML = items.length ? items.map(([t, e]) => '<li><div class="pmeta">' + chips(t) + '</div><div class="pq">' + e.q + '</div>' + (e.fig || '') +
+      '<button class="btn psol" aria-expanded="false">Show worked solution</button><div class="pws" hidden>' + stepsH(e).map((s, i) => stepH(s, i, false)).join('') + '</div></li>').join('')
+      : '<li class="pnone">No questions at this level here.</li>';
+    allB.textContent = 'Show all solutions';
+  }
+  function toggle(b, open) {
+    const w = b.nextElementSibling; w.hidden = !open;
+    b.textContent = open ? 'Hide worked solution' : 'Show worked solution'; b.setAttribute('aria-expanded', String(open));
+  }
+  list.addEventListener('click', e => { const b = e.target.closest('.psol'); if (b) toggle(b, b.nextElementSibling.hidden); });
+  allB.addEventListener('click', () => {
+    const open = allB.textContent.startsWith('Show');
+    list.querySelectorAll('.psol').forEach(b => toggle(b, open));
+    allB.textContent = open ? 'Hide all solutions' : 'Show all solutions';
+  });
+  box.querySelector('.pnew').addEventListener('click', fill);
+  box.querySelector('.pcount').addEventListener('change', fill);
+  box.querySelector('.plev').addEventListener('change', fill);
+  box.querySelector('.pprint').addEventListener('click', () => window.print());
+  fill();
+  return { fill };
+}
+
+// ---------- tabs ----------
+const TABS = TOPIC.tabs.slice();
+const allTypes = [...new Set(TABS.flatMap(t => t.types || []))];
+if (TABS.length > 1) TABS.push({ id: 'mixed', name: 'Mixed practice', seq: 'Questions from every tab, C grade first, then A grade, then extension.', mixed: true });
+const tabsEl = document.getElementById('tabs'), panesEl = document.getElementById('panes'), seqEl = document.getElementById('seq');
+const built = {};
+let current = null;
+TABS.forEach((t, i) => {
+  const b = document.createElement('button');
+  b.setAttribute('role', 'tab'); b.dataset.tab = t.id;
+  b.innerHTML = '<span class="k">' + ((i + 1) % 10) + '</span>' + t.name;
+  b.addEventListener('click', () => show(t.id));
+  tabsEl.appendChild(b);
+  const p = document.createElement('section'); p.id = 'p-' + t.id; p.hidden = true; panesEl.appendChild(p);
+});
+function show(id) {
+  const t = TABS.find(x => x.id === id) || TABS[0];
+  current = t.id;
+  TABS.forEach(x => { document.getElementById('p-' + x.id).hidden = x.id !== t.id; });
+  tabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t.id)));
+  seqEl.textContent = t.seq || '';
+  if (!built[t.id]) {
+    const pane = document.getElementById('p-' + t.id);
+    if (t.mixed) { built[t.id] = {}; PracticeBox(pane, allTypes, 'Mixed practice', 10); }
+    else {
+      built[t.id] = {};
+      if (t.build) { const ex = document.createElement('div'); ex.className = 'explore'; pane.appendChild(ex); built[t.id] = t.build(ex) || {}; }
+      if (!t.build || t.examples) Object.assign(built[t.id], buildExamples(pane, t));
+      if (t.types && t.types.length) PracticeBox(pane, t.types);
+    }
+  }
+  history.replaceState(null, '', '#' + t.id);
+}
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest('input, select, textarea')) return;
+  const k = e.key.toLowerCase(), api = built[current];
+  if (/^[0-9]$/.test(k)) { const i = k === '0' ? 9 : Number(k) - 1; if (TABS[i]) show(TABS[i].id); return; }
+  if (!api) return;
+  if (k === 'w' && api.st) api.st.next();
+  else if (k === 'b' && api.st) api.st.back();
+  else if (k === 'n' && api.next) api.next();
+  else return;
+  e.preventDefault();
+});
+show(location.hash.slice(1) || TABS[0].id);
+})();
+
+</script>
+<script>window.PUPIL_SITE={"root": "../../../..", "home": "nat5/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000 scaffold for every question_B.pdf", "files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000-table_G_E.pdf", "files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T1 03 Measurement Angles/Making_180_Angles_Workbooklet.pdf", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Negative Numbers - Bridging Through Zero (MNU 3-04a).pdf", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Compound area of rectangles worksheet MTH 3-11a.pdf", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/H) Fractions/Summary Sheets/Operations with fractions summary sheet pdf.pdf", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-B-A4 (1).pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-C-A4.pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-D-A4.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Preparation_Pack_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_Supported_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_Supported_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Preparation_Pack_FDP_Ratio_Circles_Volume_Money_MNU3-07a_3-08a_MTH4-16b_MNU3-11a_3-09a.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Preparation_Pack_All_S1_Topics.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Prep_MTH3-05a_MTH3-06a_MTH3-13a.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Preparation_Pack_Fractions_Scale_Bearings_Statistics_MTH3-07bc_3-17bc_3-20b_3-21a.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Preparation_Pack_Brackets_Finance_Straight_Line_MTH4-14ab_MNU4-09abc_MTH4-13abcd.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Preparation_Pack_Tolerance_Equations_Fractions_SDT_Areas_Volumes.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Preparation_Pack_Powers_SciNotation_Pythagoras_Trig_MTH4-06ab_MTH4-16a.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Preparation_Pack_Circles_Factorising_Indices_Surds_MTH4-17a_4-16a_4-14b_4-06a.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection_Supported.pdf", "files/higher/Assessments/2 December prelim/Practice/Higher_December_Prelim_Prep_Pack.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 1 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 2 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 3 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 4 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 5 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 6 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 7 - Integration.pdf", "files/higher/Revision/december-prelim-revision-pack.pdf", "files/higher/Revision/formulae-list-pupil.pdf", "files/higher/Revision/formulae-to-learn.pdf", "files/higher/Revision/revision-cards.pdf", "files/higher/topics/applications-of-calculus/applications-of-calculus-notes.pdf", "files/higher/topics/circle/circle-notes.pdf", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/differentiation/differentiation-notes.pdf", "files/higher/topics/functions-and-graphs/composite-inverse-functions-questions.pdf", "files/higher/topics/functions-and-graphs/functions-notes.pdf", "files/higher/topics/functions-and-graphs/trig-graph-transformations.pdf", "files/higher/topics/integration/integration-explorer.html", "files/higher/topics/integration/integration-notes.pdf", "files/higher/topics/logs-and-exponentials/logs-and-exponentials-notes.pdf", "files/higher/topics/polynomials/polynomials-notes.pdf", "files/higher/topics/quadratics/quadratics-explorer.html", "files/higher/topics/quadratics/quadratics-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-summary-sheet.pdf", "files/higher/topics/straight-line/straight-line-notes.pdf", "files/higher/topics/trig-equations/trig-equations-notes.pdf", "files/higher/topics/trig-expressions/degrees-radians-war-card-game.pdf", "files/higher/topics/trig-expressions/trig-expressions-notes.pdf", "files/higher/topics/vectors/vectors-notes.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_December_Prelim_Prep_Pack.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_Term1_Assessment_Prep_Pack.pdf", "files/nat5/Homework/Term 1/Term1_Homework_Pupil.pdf", "files/nat5/Homework/Term 2/Term2_Homework_Pupil.pdf", "files/nat5/Revision/december-prelim-revision-pack.pdf", "files/nat5/Revision/formulae-list-pupil.pdf", "files/nat5/Revision/revision-cards.pdf", "files/nat5/topics/algebraic-fractions/algebraic-fractions-explorer.html", "files/nat5/topics/algebraic-fractions/algebraic-fractions-notes.pdf", "files/nat5/topics/angles-and-circles/angles-and-circles-explorer.html", "files/nat5/topics/angles-and-circles/angles-and-circles-notes.pdf", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-explorer.html", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-notes.pdf", "files/nat5/topics/changing-the-subject/changing-the-subject-explorer.html", "files/nat5/topics/changing-the-subject/changing-the-subject-notes.pdf", "files/nat5/topics/equations-and-inequations/equations-and-inequations-explorer.html", "files/nat5/topics/equations-and-inequations/equations-and-inequations-notes.pdf", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-explorer.html", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-notes.pdf", "files/nat5/topics/fractions/fractions-explorer.html", "files/nat5/topics/fractions/fractions-notes.pdf", "files/nat5/topics/function-notation/function-notation-explorer.html", "files/nat5/topics/function-notation/function-notation-notes.pdf", "files/nat5/topics/percentages/percentages-explorer.html", "files/nat5/topics/percentages/percentages-notes.pdf", "files/nat5/topics/pythagoras/pythagoras-explorer.html", "files/nat5/topics/pythagoras/pythagoras-notes.pdf", "files/nat5/topics/quadratic-equations/quadratic-equations-notes.pdf", "files/nat5/topics/quadratic-functions/quadratic-functions-notes.pdf", "files/nat5/topics/similarity/similarity-explorer.html", "files/nat5/topics/similarity/similarity-notes.pdf", "files/nat5/topics/simultaneous-equations/balance-scales.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-explorer.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-notes.pdf", "files/nat5/topics/simultaneous-equations/simultaneous-equations-topic-page.html", "files/nat5/topics/statistics/statistics-explorer.html", "files/nat5/topics/statistics/statistics-notes.pdf", "files/nat5/topics/straight-line/straight-line-explorer.html", "files/nat5/topics/straight-line/straight-line-notes.pdf", "files/nat5/topics/surds-and-indices/surds-and-indices-explorer.html", "files/nat5/topics/surds-and-indices/surds-and-indices-notes.pdf", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-notes.pdf", "files/nat5/topics/trigonometry/trigonometry-explorer.html", "files/nat5/topics/trigonometry/trigonometry-notes.pdf", "files/nat5/topics/vectors/vectors-explorer.html", "files/nat5/topics/vectors/vectors-notes.pdf"]};</script><script src="../../../../assets/embed.js"></script>
+</body>
+</html>
