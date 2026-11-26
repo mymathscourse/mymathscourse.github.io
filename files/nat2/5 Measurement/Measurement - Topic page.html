@@ -698,8 +698,8 @@ const QCAP = [
       help: hb("Look at the top of the drink. Count up the lines in 100s.", countUp(0, 100, v, x => `${x} ml`)), helpSay: "Look at the top of the drink. Count up the lines in hundreds until you reach it." }; },
   () => { const ds = sample(DRINKS, 3), vals = sample([200, 300, 500, 600, 800, 900], 3), w = pick(["most", "least"]), k = vals.indexOf(w === "most" ? Math.max(...vals) : Math.min(...vals));
     return { text: `Which jug has the <b>${w}</b>?`, say: `Which jug has the ${w}?`, opts: ds.map(([n, c], i) => opt(n, i === k, measJug(vals[i], c))),
-      help: hb("The highest drink is the most. The lowest is the least.", markLine(vals, { hi: 1000, tick: 100, every: 200, unit: " ml", labels: ds.map(x => x[0]) })),
-      helpSay: "Look at how high the drink is in each jug. The highest is the most. The lowest is the least." }; },
+      help: hb("The jug where the drink is highest has the most. Lowest has the least.", markLine(vals, { hi: 1000, tick: 100, every: 200, unit: " ml", labels: ds.map(x => x[0]) })),
+      helpSay: "Look at how high the drink is in each jug. The jug where the drink is highest has the most. The jug where it is lowest has the least." }; },
   () => { const [v, right] = pick([[1000, "full"], [0, "empty"], [500, "half full"]]);
     return { text: "Full, half full or empty?", say: "Is the jug full, half full or empty?", pic: measJug(v, "#7CC4FF", 500), opts: words(right, ["full", "half full", "empty"]),
       help: hb("Which one looks the same?", cards([[measJug(1000, "#7CC4FF", 500), "full"], [measJug(500, "#7CC4FF", 500), "half full"], [measJug(0, "#7CC4FF", 500), "empty"]])),
