@@ -96,6 +96,19 @@
     padding: 2px 9px; border-radius: 6px; color: #fff; vertical-align: 2px; }
   .badge.two { background: var(--good); } .badge.eq { background: var(--warn); } .badge.none { background: var(--bad); }
 
+  /* Practice questions */
+  .practice { margin-top: 12px; }
+  .phead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .phead h2 { font-size: 18px; margin: 0 auto 0 0; }
+  .plist { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: pq; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 10px; align-items: start; }
+  .plist > li { counter-increment: pq; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 10px; }
+  .pq { font-size: 17px; line-height: 1.6; margin-bottom: 8px; }
+  .pq::before { content: counter(pq) ". "; font-weight: 700; }
+  .pq .mm { font-family: "Times New Roman", Times, serif; font-size: 20px; }
+  .psol { font-size: 14px !important; padding: 5px 10px !important; }
+  .pws { margin-top: 6px; }
+  .pws .st { font-weight: 700; font-size: 15px; }
+  .pqsvg svg { max-width: 520px; }
   /* Fractions, surds */
   .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .78em; line-height: 1.12; margin: 0 2px; }
   .fr > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 3px; }
@@ -595,6 +608,7 @@ function setLevel(l) {
   const u = new URL(location.href); u.searchParams.set("level", l); u.searchParams.set("hub", hub);
   history.replaceState(null, "", u);
   Object.values(TABS).forEach(t => t.level && t.level());
+  if (typeof PBOX !== "undefined") Object.values(PBOX).forEach(b => b.fill());
   showTab(l === "n5" && active === "ineq" ? "explore" : active);
 }
 
@@ -749,7 +763,7 @@ function sqRender() {
     P.point(h.v, q.v, "var(--tp)", done ? pt(h, q) : "?");
   });
 }
-function sqNew() {
+function sqGen() {
   let a, b, c;
   const kind = level === "n5" ? pick(["even", "even", "even", "neg1"]) : pick(["even", "odd", "a", "a", "neg", "frac"]);
   if (kind === "even") { a = 1; b = 2 * nz(-5, 5); c = ri(-9, 9); }
@@ -758,6 +772,10 @@ function sqNew() {
   else if (kind === "a") { a = pick([2, 3]); b = 2 * a * nz(-4, 4); c = ri(-9, 9); }
   else if (kind === "neg") { a = pick([-1, -2, -3]); b = 2 * a * nz(-3, 3); c = ri(-6, 9); }
   else { a = 2; b = 2 * nz(-4, 4) + (Math.random() < .5 ? 2 : 0); c = ri(-5, 9); if ((b / a) % 2 === 0) b += 2; }
+  return [a, b, c];
+}
+function sqNew() {
+  const [a, b, c] = sqGen();
   setF("#sqA", a); setF("#sqB", b); setF("#sqC", c);
   SQ.steps.reset(); sqRender();
 }
@@ -808,7 +826,7 @@ function rtRender() {
     if (n >= 2) { const [cl, t] = nature(sol.D); P.note(t, cl === "two" ? "var(--good)" : cl === "eq" ? "var(--warn)" : "var(--bad)"); }
   });
 }
-function rtNew() {
+function rtGen() {
   let a, b, c;
   const kind = pick(["fac", "fac", "fac", "surd", "surd", "eq", "none"]);
   for (let tries = 0; tries < 200; tries++) {
@@ -825,6 +843,10 @@ function rtNew() {
     if (Math.abs(c) > 20) continue;
     break;
   }
+  return [a, b, c];
+}
+function rtNew() {
+  const [a, b, c] = rtGen();
   setF("#rtA", a); setF("#rtB", b); setF("#rtC", c);
   RT.steps.reset(); rtRender();
 }
@@ -1060,10 +1082,14 @@ function inRender() {
     sol.roots.forEach(r => P.point(num(r), 0, n >= 4 ? "var(--good)" : "var(--root)", n >= 1 ? `${val(r)}` : "", n >= 4 && strict));
   });
 }
-function inNew() {
+function inGen() {
   const r1 = ri(-6, 4), r2 = r1 + ri(1, 6), a = pick([1, 1, 1, -1, 2, -2]);
-  setF("#inA", a); setF("#inB", -a * (r1 + r2)); setF("#inC", a * r1 * r2);
-  $("#inS").value = pick(["gt", "ge", "lt", "le"]);
+  return [a, -a * (r1 + r2), a * r1 * r2, pick(["gt", "ge", "lt", "le"])];
+}
+function inNew() {
+  const [a, b, c, sg] = inGen();
+  setF("#inA", a); setF("#inB", b); setF("#inC", c);
+  $("#inS").value = sg;
   IN.steps.reset(); inRender();
 }
 TABS.ineq = { render: inRender, onNew: inNew, steps: IN.steps };
@@ -1123,7 +1149,7 @@ function lnRender(refit) {
     xs.forEach(x => P.point(num(x), f(num(x)), "var(--tp)", n >= L.length ? pt(x, x instanceof F ? e.mul(x).mul(x).add(m.mul(x)).add(d) : g(x)) : ""));
   });
 }
-function lnNew() {
+function lnGen() {
   for (let t = 0; t < 200; t++) {
     const a = level === "n5" ? 1 : pick([1, 1, 2, -1]), b = ri(-4, 4), c = ri(-6, 6);
     const f = x => a * x * x + b * x + c;
@@ -1131,9 +1157,12 @@ function lnNew() {
     if (level === "higher" && Math.random() < .5) { const x0 = ri(-3, 3); m = 2 * a * x0 + b; d = f(x0) - m * x0; }
     else { const r1 = ri(-4, 2), r2 = r1 + ri(1, 5); m = a * (r1 + r2) + b; d = f(r1) - m * r1; }
     if (Math.abs(m) > 10 || Math.abs(d) > 20) continue;
-    setF("#lnA", a); setF("#lnB", b); setF("#lnC", c); setF("#lnE", 0); setF("#lnM", m); setF("#lnD", d);
-    break;
+    return [a, b, c, 0, m, d];
   }
+}
+function lnNew() {
+  const v = lnGen();
+  if (v) ["#lnA", "#lnB", "#lnC", "#lnE", "#lnM", "#lnD"].forEach((id, i) => setF(id, v[i]));
   LN.steps.reset(); lnRender(true);
 }
 TABS.line = { render: () => lnRender(true), onNew: lnNew, steps: LN.steps, level: () => { if (level === "n5") setF("#lnE", 0); } };
@@ -1149,6 +1178,122 @@ $("#lnTan").onclick = () => {
 ["#lnE", "#lnM", "#lnD"].forEach(s => $(s).addEventListener("input", () => { LN.steps.reset(); lnRender(); }));
 $("#lnMs").addEventListener("input", () => { setF("#lnM", +$("#lnMs").value); LN.steps.reset(); lnRender(); });
 $("#lnDs").addEventListener("input", () => { setF("#lnD", +$("#lnDs").value); LN.steps.reset(); lnRender(); });
+
+/* =========================================================
+   Practice questions (one box under each tab)
+   ========================================================= */
+let pqN = 0;
+// a small graph of one or two quadratics for a worked solution
+function pqGraph(a, b, c, extra) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.id = "pqg" + (++pqN); svg.setAttribute("viewBox", "0 0 720 440");
+  const f = x => a.v * x * x + b.v * x + c.v, sol = solveQ(a, b, c);
+  plot(svg, autoWin([...quadPts(a, b, c), ...(extra ? extra.pts : [])]), P => {
+    if (extra) extra.draw(P);
+    P.curve(f, 'stroke="var(--new)" stroke-width="4"');
+    sol.roots.forEach(r => P.point(num(r), 0, "var(--root)", ""));
+    if (extra && extra.top) extra.top(P);
+  });
+  return `<div class="pqsvg">${svg.outerHTML}</div>`;
+}
+const pqLines = L => L.map(l => ({ title: l.title || "", html: `<div class="mm">${l.m}</div>${l.why ? `<div class="why">${l.why}</div>` : ""}` }));
+const yq = cs => `<span class="mm">y = ${polyHTML(cs)}</span>`;
+const PQ = {
+  explore() {
+    if (level === "n5" && Math.random() < .35) {
+      const k = pick([2, 3, -2, 4, -1, 5, -3]), x = pick([1, 2, 3, -2]), y = k * x * x;
+      return { q: `The graph of <span class="mm">y = <i>k</i>x²</span> passes through the point (${int(x)}, ${int(y)}). Find the value of <i>k</i>.`,
+        sol: pqLines([{ m: `${int(y)} = <i>k</i> × ${par(x)}²`, why: "Substitute the point into the equation.", title: "Substitute" },
+          { m: `${int(y)} = ${x * x}<i>k</i>`, why: "", title: "Square" }, { m: `<b><i>k</i> = ${int(k)}</b>`, why: `Divide both sides by ${x * x}.`, title: "Answer" }]) };
+    }
+    const a = level === "n5" ? F.of(pick([1, 1, -1])) : pick(A_LIST.filter(x => x.isInt())), h = new F(nz(-6, 6)), q = new F(ri(-8, 8));
+    const form = level === "n5" ? "(x − a)² + b" : "a(x + p)² + q", rule = level === "n5" ? "For y = (x − a)² + b the turning point is (a, b)." : "For y = a(x + p)² + q the turning point is (−p, q).";
+    return { q: `For the graph of <span class="mm">y = ${vertexHTML(a, h, q)}</span>, state the coordinates and nature of the turning point and the equation of the axis of symmetry.`,
+      sol: pqLines([
+        { m: `y = ${vertexHTML(a, h, q)}`, why: `Compare with y = ${form}.`, title: "Compare" },
+        { m: `Turning point ${pt(h, q)}`, why: rule + " Watch the sign inside the bracket.", title: "Turning point" },
+        { m: a.s > 0 ? "Minimum turning point" : "Maximum turning point", why: a.s > 0 ? "The x² term is positive, so it is a ∪ shape." : "The x² term is negative, so it is a ∩ shape.", title: "Nature" },
+        { m: `<b>Axis of symmetry: x = ${val(h)}</b>`, why: "The vertical line through the turning point.", title: "Axis of symmetry" },
+      ]).concat([{ title: "Sketch", html: pqGraph(a, a.mul(h).mul(-2), a.mul(h.sq()).add(q), { pts: [], draw: () => {}, top: P => P.point(h.v, q.v, "var(--tp)", pt(h, q)) }) }]) };
+  },
+  square() {
+    const [a, b, c] = sqGen().map(F.of);
+    return { q: `Write ${yq([a, b, c])} in the form <span class="mm">${a.is(1) ? "(x + p)² + q" : "a(x + p)² + q"}</span>, and state the turning point.`, sol: pqLines(sqLines(a, b, c)) };
+  },
+  roots() {
+    const [a, b, c] = rtGen().map(F.of), D = b.sq().sub(a.mul(c).mul(4));
+    const ask = level === "n5" || D.s >= 0 ? "Use the discriminant to find the nature of the roots of" : "Find the nature of the roots of";
+    return { q: `${ask} <span class="mm">${polyHTML([a, b, c])} = 0</span>${D.s >= 0 ? ", then solve the equation (give answers to 2 decimal places where needed)" : ""}.`,
+      sol: pqLines(rtLines(a, b, c)).concat([{ title: "Sketch", html: pqGraph(a, b, c) }]) };
+  },
+  findk() {
+    const P = (a, b, c) => ({ a: a.map(F.of), b: b.map(F.of), c: c.map(F.of) });
+    const conds = level === "n5" ? ["equal"] : ["equal", "equal", "real", "none", "distinct"];
+    let p, cond = pick(conds), lead = "";
+    const t = pick(level === "n5" ? [1, 2, 3] : [1, 2, 3, 3, 4, 5]);
+    if (t === 1) { const s = pick([1, 2, 3, 4, 5]); p = P([1, 0], [0, 1], [s * s, 0]); }
+    else if (t === 2) { const u = nz(-5, 5); p = P([1, 0], [2 * u, 0], [0, 1]); }
+    else if (t === 3) { const u = nz(-4, 4), w = pick([1, 2, 4].filter(v => (u * u) % v === 0)); p = P([0, 1], [2 * u, 0], [w, 0]); }
+    else if (t === 4) { const s = pick([1, 2, 3]); p = P([1, 0], [nz(-4, 4), 1], [s * s, 0]); }
+    else { const s = pick([1, 2, 3]); p = P([1, 0], [0, 1], [-s * s, 0]); cond = "real"; lead = "Show that the roots of "; }
+    const R = fkLines(p, cond), eq = `<span class="mm">${kEqHTML(p)}</span>`;
+    const q = lead ? `${lead}${eq} are real for all values of <i>k</i>.` : `Find the values of <i>k</i> for which ${eq} has ${COND[cond].name}.`;
+    return { q, sol: pqLines(R.L) };
+  },
+  ineq() {
+    const [a, b, c, sg] = inGen(), A = F.of(a), B = F.of(b), C = F.of(c);
+    const r = inLines(A, B, C, sg), above = sg === "gt" || sg === "ge";
+    const f = x => A.v * x * x + B.v * x + C.v;
+    return { q: `Solve <span class="mm">${polyHTML([A, B, C])} ${SIGN[sg]} 0</span>.`,
+      sol: pqLines(r.L).concat([{ title: "Sketch", html: pqGraph(A, B, C, { pts: [], draw: P => P.curve(f, 'stroke="var(--good)" stroke-width="7"', x => above ? f(x) > 1e-9 : f(x) < -1e-9) }) }]) };
+  },
+  line() {
+    const v = lnGen(); if (!v) return null;
+    const [a, b, c, e, m, d] = v.map(F.of), D = b.sub(m).sq().sub(a.mul(c.sub(d)).mul(4));
+    const lineH = `<span class="mm">y = ${polyHTML([m, d])}</span>`;
+    const q = D.s === 0 && level === "higher" ? `Show that the line ${lineH} is a tangent to the curve ${yq([a, b, c])}, and find the point of contact.`
+      : `Find the coordinates of the points where the line ${lineH} meets the curve ${yq([a, b, c])}.`;
+    const g = x => m.v * x + d.v, r = lnLines(a, b, c, e, m, d);
+    return { q, sol: pqLines(r.L).concat([{ title: "Sketch", html: pqGraph(a, b, c, { pts: r.xs.map(x => [num(x), g(num(x))]), draw: P => P.curve(g, 'stroke="var(--two)" stroke-width="4"'),
+      top: P => r.xs.forEach(x => P.point(num(x), g(num(x)), "var(--tp)", "")) }) }]) };
+  },
+};
+function PracticeBox(host, make) {
+  const box = document.createElement("div");
+  box.className = "practice panel";
+  box.innerHTML = `<div class="phead"><h2>Practice questions</h2><label>How many <select class="n pcount"><option>2</option><option>4</option><option selected>6</option><option>8</option></select></label>
+    <button class="btn primary pnew">New questions</button><button class="btn pall">Show all solutions</button></div><ol class="plist"></ol>`;
+  host.appendChild(box);
+  const list = box.querySelector(".plist"), allB = box.querySelector(".pall");
+  function fill() {
+    const n = +box.querySelector(".pcount").value, seen = new Set(), items = [];
+    for (let t = 0; items.length < n && t < n * 25; t++) {
+      let it = null;
+      try { it = make(); } catch (e) { console.error(e); }
+      if (!it || !it.sol || seen.has(it.q)) continue;
+      seen.add(it.q); items.push(it);
+    }
+    list.innerHTML = items.map(it => `<li><div class="pq">${it.q}</div><button class="btn psol" aria-expanded="false">Show worked solution</button><div class="pws" hidden>` +
+      it.sol.map((s, i) => `<div class="step"><span class="num">${i + 1}</span><div class="body">${s.title ? `<div class="st">${s.title}</div>` : ""}${s.html}</div></div>`).join("") + `</div></li>`).join("");
+    allB.textContent = "Show all solutions";
+  }
+  function toggle(b, open) {
+    const w = b.nextElementSibling; w.hidden = !open;
+    b.textContent = open ? "Hide worked solution" : "Show worked solution"; b.setAttribute("aria-expanded", String(open));
+  }
+  list.addEventListener("click", e => { const b = e.target.closest(".psol"); if (b) toggle(b, b.nextElementSibling.hidden); });
+  allB.onclick = () => {
+    const open = allB.textContent.startsWith("Show");
+    list.querySelectorAll(".psol").forEach(b => toggle(b, open));
+    allB.textContent = open ? "Hide all solutions" : "Show all solutions";
+  };
+  box.querySelector(".pnew").onclick = fill;
+  box.querySelector(".pcount").onchange = fill;
+  fill();
+  return { fill };
+}
+const PBOX = {};
+Object.keys(PQ).forEach(id => { PBOX[id] = PracticeBox($("#p-" + id), PQ[id]); });
 
 /* ---------- wiring ---------- */
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));

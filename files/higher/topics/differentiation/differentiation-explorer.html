@@ -155,6 +155,18 @@
   svg .lab.sp { fill: var(--sp); } svg .lab.hi { fill: var(--hi); } svg .lab.u { fill: var(--up); }
   svg .arrow { fill: var(--f); }
 
+  /* practice questions */
+  .practice { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px 14px; }
+  .phead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .phead h2 { font-size: 1.15rem; margin: 0 auto 0 0; }
+  .plist { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: pq; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 10px; align-items: start; }
+  .plist > li { counter-increment: pq; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 10px; }
+  .pq { font-size: 17px; line-height: 1.6; margin-bottom: 8px; }
+  .pq::before { content: counter(pq) ". "; font-weight: 700; }
+  .pq .mm { font-size: 19px; }
+  .psol { font-size: 14px !important; padding: 5px 10px !important; }
+  .pws { margin-top: 6px; }
+  .psvg svg.g { max-width: 520px; cursor: default; }
   @media (max-width: 960px) { .cols { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -1788,6 +1800,254 @@ TABS.push({
   }
 });
 
+// ===================== Practice questions =====================
+// Each tab can have a generator in PRACTICE: () => { q: question html, sol: [{ title, html }] }.
+// Solutions are worked out by a hidden copy of the tab, so they match the tab's own working.
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const nz = (a, b) => { let v = 0; while (!v) v = ri(a, b); return v; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const PRACTICE = {};
+const shadows = {};
+let svgN = 0;
+function copySvgs(p, sel = 'svg.g') {
+  return [...p.querySelectorAll(sel)].map(s => {
+    const id = (s.innerHTML.match(/clipPath id="([^"]+)"/) || [])[1], h = s.outerHTML;
+    return id ? h.split(id).join(id + 'p' + (++svgN)) : h;
+  }).join('');
+}
+function solveIn(id, fill, graph, qsel) {
+  let s = shadows[id];
+  if (!s) { const p = document.createElement('section'); s = shadows[id] = { p, api: TABS.find(t => t.id === id).build(p) }; }
+  fill(s.p, s.api);
+  if ([...s.p.querySelectorAll('.err')].some(e => e.textContent.trim())) return null;
+  const qsvg = qsel ? copySvgs(s.p, qsel).replace(/<(line|path|circle)[^>]*class="(ct|pf|pd|ptr|vl)"[^>]*(\/>|><\/\1>)/g, '').replace(/<text[^>]*class="lab[^"]*"[^>]*>[^<]*<\/text>/g, '') : '';
+  s.api.st.go(99);
+  const out = [...s.p.querySelectorAll('.stepper .step')].map(el => {
+    const b = el.querySelector('.body').cloneNode(true), t = b.querySelector('.st'), title = t.innerHTML;
+    t.remove();
+    return { title, html: b.innerHTML };
+  });
+  if (!out.length) return null;
+  if (graph) out.push({ title: 'Sketch', html: '<div class="psvg">' + copySvgs(s.p) + '</div>' });
+  out.qsvg = qsvg;
+  return out;
+}
+// set inputs in a hidden tab (firing the events the tab listens for), then press its button
+function setIn(p, pairs, go = '.go') {
+  pairs.forEach(([sel, v]) => {
+    const el = p.querySelector(sel);
+    el.value = v; el.dispatchEvent(new Event(el.tagName === 'SELECT' ? 'change' : 'input'));
+  });
+  if (go) p.querySelector(go).click();
+}
+// coefficient boxes for a polynomial, highest power first
+const coIn = (co, deg, pre = '') => {
+  const s = co.map(c => fracText(typeof c === 'number' ? fr(c) : c));
+  while (s.length < deg + 1) s.unshift('0');
+  return s.map((v, i) => [pre + 'input.n[data-k="' + (deg - i) + '"]', v]);
+};
+const coF = a => ptrim(a.map(c => typeof c === 'number' ? fr(c) : c));
+// a sum of terms as text the tabs' "your own" box can read
+function tsText(ts) {
+  return ts.map(t => {
+    const m = fabs(t.c), ct = isOne(m) ? '' : fracText(m);
+    let s;
+    if (t.t !== 'pow') s = ct + t.t + '(' + (isOne(t.b) ? '' : fracText(t.b)) + 'x)';
+    else if (t.p.n === 0) s = fracText(m);
+    else if (t.p.n > 0) s = t.p.n === 1 && t.p.d === 2 ? ct + 'sqrt(x)' : ct + 'x' + (isOne(t.p) ? '' : '^(' + fracText(t.p) + ')');
+    else {
+      const q = fneg(t.p);
+      if (m.d === 1) s = m.n + '/' + (q.n === 1 && q.d === 2 ? 'sqrt(x)' : 'x' + (isOne(q) ? '' : '^(' + fracText(q) + ')'));
+      else if (m.n === 1 && q.d === 1) s = '1/(' + m.d + 'x^' + q.n + ')';
+      else s = ct + 'x^(' + fracText(t.p) + ')';
+    }
+    return (t.c.n < 0 ? '-' : '+') + s;
+  }).join('').replace(/^\+/, '');
+}
+const angText2 = A => angText(A).replace('π', 'pi');
+const mm = h => '<span class="mm">' + h + '</span>';
+const plainH = h => mm(h);
+// px + q as html (q may be an angle {f, pi})
+function linPQ(p, q) {
+  const A = q.f ? q : { f: q, pi: false }, qz = isZ(A.f), qH = angH({ f: fabs(A.f), pi: A.pi }), qneg = A.f.n < 0;
+  if (qz) return coefH(p) + X;
+  if (p.n < 0 && !qneg) return qH + ' − ' + coefH(fabs(p)) + X;
+  return coefH(p) + X + (qneg ? ' − ' : ' + ') + qH;
+}
+// k(px + q)^n written the way a question would show it
+function bracketQ(k, p, q, n) {
+  const L = linPQ(p, q), kk = isOne(k) ? '' : fracH(k);
+  if (n.n === 1 && n.d === 2) return kk + sqrtH(L);
+  if (n.n === -1 && n.d === 2) return stack(fracH(k), sqrtH(L));
+  if (n.n < 0 && n.d === 1) return stack(fracH(k), '(' + L + ')' + (n.n === -1 ? '' : sup(-n.n)));
+  return coefH(k) + '(' + L + ')' + sup(n);
+}
+function PracticeBox(host, make) {
+  const box = document.createElement('div');
+  box.className = 'practice';
+  box.innerHTML = '<div class="phead"><h2>Practice questions</h2><label>How many <select class="pcount"><option>2</option><option>4</option><option selected>6</option><option>8</option></select></label>' +
+    '<button class="btn primary pnew">New questions</button><button class="btn pall">Show all solutions</button></div><ol class="plist"></ol>';
+  host.appendChild(box);
+  const list = box.querySelector('.plist'), allB = box.querySelector('.pall');
+  function fill() {
+    const n = Number(box.querySelector('.pcount').value), seen = new Set(), items = [];
+    for (let t = 0; items.length < n && t < n * 25; t++) {
+      let it = null;
+      try { it = make(); } catch (e) { console.error(e); }
+      if (!it || !it.sol || seen.has(it.q)) continue;
+      seen.add(it.q); items.push(it);
+    }
+    list.innerHTML = items.map(it => '<li><div class="pq">' + it.q + '</div><button class="btn psol" aria-expanded="false">Show worked solution</button>' +
+      '<div class="pws" hidden>' + it.sol.map((s, i) => '<div class="step"><div class="num">' + (i + 1) + '</div><div class="body"><div class="st">' + s.title + '</div>' + s.html + '</div></div>').join('') + '</div></li>').join('');
+    allB.textContent = 'Show all solutions';
+  }
+  function toggle(b, open) {
+    const w = b.nextElementSibling; w.hidden = !open;
+    b.textContent = open ? 'Hide worked solution' : 'Show worked solution'; b.setAttribute('aria-expanded', String(open));
+  }
+  list.addEventListener('click', e => { const b = e.target.closest('.psol'); if (b) toggle(b, b.nextElementSibling.hidden); });
+  allB.addEventListener('click', () => {
+    const open = allB.textContent.startsWith('Show');
+    list.querySelectorAll('.psol').forEach(b => toggle(b, open));
+    allB.textContent = open ? 'Hide all solutions' : 'Show all solutions';
+  });
+  box.querySelector('.pnew').addEventListener('click', fill);
+  box.querySelector('.pcount').addEventListener('change', fill);
+  fill();
+  return { fill };
+}
+// ---------- differentiation question generators ----------
+function dPolyTs() {
+  const ps = pick([[3, 2, 1], [3, 1, 0], [2, 1, 0], [4, 2], [3, 2, 0], [4, 1, 0]]);
+  return ps.map(p => T(nz(-6, 6), p));
+}
+function dPowTs() {
+  const one = pick([() => T(nz(-6, 6), -1), () => T(nz(-8, 8), -2), () => T(nz(-4, 4), -3), () => T(pick([2, 4, 6, 8]), fr(1, 2)), () => T(pick([2, 4, 6]), fr(-1, 2)),
+    () => T(fr(1, pick([2, 3, 4])), -pick([2, 3, 4])), () => T(pick([2, 4, 6]), fr(3, 2)), () => T(pick([3, 6]), fr(2, 3))])();
+  return Math.random() < 0.5 ? [one] : [T(nz(-5, 5), pick([2, 1])), one];
+}
+function dRewrite() {
+  if (Math.random() < 0.5) {
+    const p = pick([1, 2, 3]), q = nz(-5, 5), r = pick([1, 1, 2]), s = nz(-5, 5);
+    const ts = [T(p * r, 2), T(p * s + q * r, 1), T(q * s, 0)].filter(t => !isZ(t.c));
+    const orig = '(' + linPQ(fr(p), fr(q)) + ')(' + linPQ(fr(r), fr(s)) + ')';
+    return { ts, orig, pre: { title: 'Expand the brackets', html: '<div class="mm">' + orig + ' = ' + sumH(ts, 'index') + '</div>' } };
+  }
+  const m = pick([3, 4, 5]), a = nz(-4, 4), b = nz(-6, 6), ts = [T(a, m - 2), T(b, -2)];
+  const orig = stack(polyH([fr(a), ...Array(m - 1).fill(fr(0)), fr(b)]), X + sup(2));
+  return { ts, orig, pre: { title: 'Split the fraction', html: '<div class="mm">' + orig + ' = ' + sumH(ts, 'index') + '</div><p class="why">Divide every term on top by the bottom.</p>' } };
+}
+const posAt = ts => ts.some(t => t.t === 'pow' && (t.p.d > 1 || t.p.n < 0)) ? pick(['1', '4']) : String(nz(-2, 3));
+function diffSolve(ts, at) { return solveIn('differentiate', p => setIn(p, [['.sel', 'own'], ['.own', tsText(ts)], ['.at', at]])); }
+const yEq = ts => mm('<i>y</i> = ' + sumH(ts, 'nice'));
+
+PRACTICE.gradient = () => {
+  const ts = Math.random() < 0.6 ? dPolyTs() : dPowTs(), at = posAt(ts);
+  return { q: 'Find the gradient of the tangent to the curve ' + yEq(ts) + ' at the point where <i>x</i> = ' + fmtInt(Number(at)) + '.', sol: diffSolve(ts, at) };
+};
+PRACTICE.differentiate = () => {
+  const kind = pick(['poly', 'pow', 'pow', 'rewrite', 'rewrite', 'trig']);
+  if (kind === 'rewrite') {
+    const r = dRewrite(), at = posAt(r.ts), sol = diffSolve(r.ts, at);
+    return { q: 'Given ' + mm('<i>y</i> = ' + r.orig) + ', find ' + mm(dydx) + ' and its value when <i>x</i> = ' + fmtInt(Number(at)) + '.', sol: sol && [r.pre, ...sol] };
+  }
+  if (kind === 'trig') {
+    const b = pick([1, 2, 3]), ts = [TS(pick(['sin', 'cos']), nz(-5, 5), b)];
+    if (Math.random() < 0.4) ts.push(TS(ts[0].t === 'sin' ? 'cos' : 'sin', nz(-3, 3), 1));
+    const A = { f: pick([fr(1, 6), fr(1, 4), fr(1, 3), fr(1, 2)]), pi: true };
+    return { q: 'Given ' + yEq(ts) + ', find the exact value of ' + mm(dydx) + ' when <i>x</i> = ' + angH(A) + '.', sol: diffSolve(ts, angText2(A)) };
+  }
+  const ts = kind === 'poly' ? dPolyTs() : dPowTs(), at = posAt(ts);
+  return { q: 'Given ' + yEq(ts) + ', find ' + mm(dydx) + ' and its value when <i>x</i> = ' + fmtInt(Number(at)) + '.', sol: diffSolve(ts, at) };
+};
+PRACTICE.tangent = () => {
+  const ts = Math.random() < 0.7 ? dPolyTs().map(t => t.p.n > 3 ? T(t.c, 3) : t).filter((t, i, a) => a.findIndex(u => u.p.n === t.p.n) === i) : [T(nz(-3, 3), 1), T(pick([2, 4, 6, 8, -4]), -1)];
+  const at = String(Math.random() < 0.5 ? nz(-2, 3) : pick([1, 2]));
+  if (ts.some(t => t.p.n < 0) && at === '0') return null;
+  return { q: 'Find the equation of the tangent to the curve ' + yEq(ts) + ' at the point where <i>x</i> = ' + fmtInt(Number(at)) + '.',
+    sol: solveIn('tangent', p => setIn(p, [['.sel', 'own'], ['.own', tsText(ts)], ['.at', at]]), true) };
+};
+PRACTICE.chain = () => {
+  const form = pick(['lin', 'lin', 'lin', 'sin', 'cos', 'sinn', 'cosn']);
+  let k, n, a, b, c, q;
+  if (form === 'lin') {
+    for (let t = 0; t < 100; t++) {
+      a = pick([2, 3, 4, 5, -2]); b = nz(-5, 5); n = pick([fr(3), fr(4), fr(5), fr(-1), fr(-2), fr(1, 2), fr(-1, 2)]); k = pick([1, 1, 2, 3, 6]); c = ri(0, 3);
+      const u = a * c + b;
+      if (u === 0 || (n.d === 2 && (u <= 0 || !Number.isInteger(Math.sqrt(u))))) continue;
+      break;
+    }
+    q = 'Given ' + mm(fX + ' = ' + bracketQ(fr(k), fr(a), fr(b), n)) + ', find ' + mm('<i>f</i> ′(' + c + ')') + '.';
+    return { q, sol: solveIn('chain', p => setIn(p, [['.sel', 'own'], ['.form', 'lin'], ['.ik', String(k)], ['.in', fracText(n)], ['.ia', String(a)], ['.ib', String(b)], ['.at', String(c)]])) };
+  }
+  k = nz(-4, 4); a = pick([1, 2, 3, 4]);
+  const B = form.endsWith('n') ? { f: fr(0), pi: false } : pick([{ f: fr(1, 3), pi: true }, { f: fr(-1, 6), pi: true }, { f: fr(1, 4), pi: true }, { f: fr(0), pi: false }]);
+  n = form.endsWith('n') ? pick([2, 3, 4]) : 1;
+  const C = { f: pick([fr(1, 6), fr(1, 4), fr(1, 3), fr(1, 12)]), pi: true }, fn = form.slice(0, 3);
+  const arg = linPQ(fr(a), B), body = fn + (n > 1 ? sup(n) : '') + (isZ(B.f) ? ' ' + arg : '(' + arg + ')');
+  q = 'Given ' + mm(fX + ' = ' + coefH(fr(k)) + body) + ', find ' + mm(fP) + ' and the exact value of ' + mm('<i>f</i> ′(' + angH(C) + ')') + '.';
+  return { q, sol: solveIn('chain', p => setIn(p, [['.sel', 'own'], ['.form', form], ['.ik', String(k)], ['.in', String(n)], ['.ia', String(a)], ['.ib', angText2(B)], ['.at', angText2(C)]])) };
+};
+// cubic with stationary points at r1 and r2: f′(x) = 3a(x − r1)(x − r2) (+ m)
+function cubicSP(m = 0) {
+  for (let t = 0; t < 100; t++) {
+    const a = pick([1, 1, -1, 2]), r1 = ri(-3, 2), r2 = r1 + ri(1, 4);
+    if ((3 * a * (r1 + r2)) % 2) continue;
+    return [fr(a), fr(-3 * a * (r1 + r2) / 2), fr(3 * a * r1 * r2 + m), fr(ri(-6, 6))];
+  }
+}
+const fEq = co => mm(fX + ' = ' + polyH(co));
+PRACTICE.incdec = () => {
+  let co = cubicSP(), want = pick(['+', '-']), q;
+  if (Math.random() < 0.2) { const h = ri(-2, 2), a = pick([1, -1]); co = [fr(a), fr(-3 * a * h), fr(3 * a * h * h), fr(ri(-5, 5))]; want = a > 0 ? '+' : '-'; }
+  q = 'Find the values of <i>x</i> for which ' + fEq(co) + ' is ' + (want === '+' ? 'increasing' : 'decreasing') + '.';
+  const sol = solveIn('incdec', p => { setIn(p, coIn(co, 3), '.pdraw'); p.querySelector('[data-q="' + want + '"]').click(); });
+  return { q, sol };
+};
+PRACTICE.given = () => {
+  const m = nz(-9, 12), co = cubicSP(m);
+  return { q: 'Find the coordinates of the points on the curve ' + mm('<i>y</i> = ' + polyH(co)) + ' where the gradient of the tangent is ' + fmtInt(m) + '.',
+    sol: solveIn('given', p => setIn(p, [['.sel', 'own'], ...coIn(co, 3), ['.mi', String(m)]], '.pdraw'), true) };
+};
+function quarticSP() {
+  if (Math.random() < 0.3) { const r = pick([3, -3, 6]); return [fr(1), fr(-4 * r / 3), fr(0), fr(0), fr(ri(-5, 5))]; }
+  for (let t = 0; t < 100; t++) { const r1 = ri(-3, 3), r2 = ri(-3, 3); if (r1 === r2 || !r1 || !r2 || (r1 + r2) % 3) continue; return [fr(1), fr(-4 * (r1 + r2) / 3), fr(2 * r1 * r2), fr(0), fr(ri(-5, 5))]; }
+}
+PRACTICE.stationary = () => {
+  const co = Math.random() < 0.7 ? cubicSP() : quarticSP();
+  return { q: 'Find the coordinates of the stationary points on the curve ' + mm('<i>y</i> = ' + polyH(co)) + ' and determine their nature.',
+    sol: solveIn('stationary', p => setIn(p, coIn(co, 4), '.pdraw'), true) };
+};
+// curves whose roots and stationary points are all whole numbers
+function niceCurve() {
+  const k = pick([1, -1]), r = 3 * pick([1, 2, -1]);
+  const fam = pick([
+    () => [k, -k * r, 0, 0],                         // k x²(x − r)
+    () => [k, -2 * k * r, k * r * r, 0],             // k x(x − r)²
+    () => { const s = 4 * pick([1, -1]); return [k, -k * s, 0, 0, 0]; }  // k x³(x − s)
+  ]);
+  return coF(fam());
+}
+PRACTICE.sketch = () => {
+  const co = niceCurve();
+  return { q: 'Sketch the curve ' + mm('<i>y</i> = ' + polyH(co)) + ', showing the coordinates of the stationary points and where it meets the axes.',
+    sol: solveIn('sketch', p => setIn(p, coIn(co, 4), '.pdraw'), true) };
+};
+PRACTICE.derived = () => {
+  const co = Math.random() < 0.5 ? niceCurve() : cubicSP().slice(0, 3).concat([fr(0)]);
+  const sol = solveIn('derived', p => setIn(p, coIn(co, 4), '.pdraw'), true, 'svg.g1');
+  return { q: 'The diagram shows the graph of ' + mm('<i>y</i> = <i>f</i>(<i>x</i>)') + ', where ' + fEq(co) + '. Sketch the graph of ' + mm('<i>y</i> = <i>f</i> ′(<i>x</i>)') + '.' +
+    (sol ? '<div class="psvg">' + sol.qsvg + '</div>' : ''), sol: sol && sol.filter(x => !/^Slide/.test(x.title)) };
+};
+PRACTICE.interval = () => {
+  const co = cubicSP(), S = stationary(co), xs = S.pts.map(p => p.x);
+  if (xs.length < 2) return null;
+  const lo = Math.round(xs[0]) - ri(0, 2), hi = Math.random() < 0.6 ? Math.round(xs[1]) + ri(0, 2) : Math.round(xs[1]) - 1;
+  if (hi <= lo) return null;
+  return { q: 'Find the greatest and least values of ' + fEq(co) + ' in the interval ' + mm(fmtInt(lo) + ' ≤ ' + X + ' ≤ ' + fmtInt(hi)) + '.',
+    sol: solveIn('interval', p => setIn(p, [...coIn(co, 3), ['.ip', String(lo)], ['.iq', String(hi)]], '.pdraw'), true) };
+};
+
 // ===================== Tab switching and keys =====================
 const tabsEl = document.getElementById('tabs'), panesEl = document.getElementById('panes'), seqEl = document.getElementById('seq');
 const built = {};
@@ -1807,7 +2067,11 @@ function show(id) {
   TABS.forEach(x => { document.getElementById('p-' + x.id).hidden = x.id !== t.id; });
   tabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t.id)));
   seqEl.textContent = t.seq;
-  if (!built[t.id]) built[t.id] = t.build(document.getElementById('p-' + t.id));
+  if (!built[t.id]) {
+    const pane = document.getElementById('p-' + t.id);
+    built[t.id] = t.build(pane);
+    if (PRACTICE[t.id]) PracticeBox(pane, PRACTICE[t.id]);
+  }
   history.replaceState(null, '', '#' + t.id);
 }
 document.addEventListener('keydown', e => {

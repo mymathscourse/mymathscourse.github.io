@@ -165,6 +165,18 @@
   svg .strip.neg { fill: var(--down); stroke: var(--down); }
   svg .fbet { fill: var(--up); opacity: .22; }
   svg .fup, svg .fdown { opacity: .28; }
+  /* practice questions */
+  .practice { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px 14px; }
+  .phead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .phead h2 { font-size: 1.15rem; margin: 0 auto 0 0; }
+  .plist { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: pq; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 10px; align-items: start; }
+  .plist > li { counter-increment: pq; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 10px; }
+  .pq { font-size: 17px; line-height: 1.6; margin-bottom: 8px; }
+  .pq::before { content: counter(pq) ". "; font-weight: 700; }
+  .pq .mm { font-size: 19px; }
+  .psol { font-size: 14px !important; padding: 5px 10px !important; }
+  .pws { margin-top: 6px; }
+  .psvg svg.g { max-width: 520px; cursor: default; }
   @media (max-width: 960px) { .cols { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -1372,7 +1384,7 @@ TABS.push({
         '<p class="why">Substitute into ' + (d.lhs === 'f' ? '<i>f</i>(<i>x</i>), not <i>f</i> ′(<i>x</i>)' : '<i>' + N.yv + '</i>, not the rate') + '.' + (d.note ? ' ' + d.note : '') + '</p>' });
       out.push({ title: 'Find C', html: '<div class="mm"><i>C</i> = ' + fracH(d.y0) + ' − ' + par(exH(E, Fa)) + ' = ' + (CE ? exactH(CE) : fmt(Cv, 3)) + '</div>' });
       out.push({ title: 'Write the equation', html: '<div class="mm">' + N.L + ' = ' + V(Fi) + Ch + '</div>' +
-        (d.F1 ? '' : ansBox('<span class="mm">' + N.L + ' = ' + V(sumH(d.its, 'nice')) + Ch + '</span>')) + '<p class="why">Finding C isn’t the end: the question wants the full equation.</p>' });
+        ansBox('<span class="mm">' + N.L + ' = ' + V(sumH(d.its, 'nice')) + Ch + '</span>') + '<p class="why">Finding C isn’t the end: the question wants the full equation.</p>' });
       if (d.F1) {
         const E1 = exactEval(d.its, d.F1), v1 = evalTerms(d.its, angVal(d.F1)) + Cv, tot = E1 && CE ? Eadd(E1, CE) : null, fH = angH(d.F1);
         out.push({ title: 'Use it', html: '<div class="mm">When ' + V(X) + ' = ' + fH + ':&ensp;<i>' + N.yv + '</i> = ' + V(sumH(d.its, 'index', fH)) + Ch + '<br>&emsp;= ' + valH(tot, v1) + '</div>' +
@@ -1831,6 +1843,286 @@ TABS.push({
   }
 });
 
+// ===================== Practice questions =====================
+// Each tab can have a generator in PRACTICE: () => { q: question html, sol: [{ title, html }] }.
+// Solutions are worked out by a hidden copy of the tab, so they match the tab's own working.
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const nz = (a, b) => { let v = 0; while (!v) v = ri(a, b); return v; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const PRACTICE = {};
+const shadows = {};
+let svgN = 0;
+function copySvgs(p, sel = 'svg.g') {
+  return [...p.querySelectorAll(sel)].map(s => {
+    const id = (s.innerHTML.match(/clipPath id="([^"]+)"/) || [])[1], h = s.outerHTML;
+    return id ? h.split(id).join(id + 'p' + (++svgN)) : h;
+  }).join('');
+}
+function solveIn(id, fill, graph, qsel) {
+  let s = shadows[id];
+  if (!s) { const p = document.createElement('section'); s = shadows[id] = { p, api: TABS.find(t => t.id === id).build(p) }; }
+  fill(s.p, s.api);
+  if ([...s.p.querySelectorAll('.err')].some(e => e.textContent.trim())) return null;
+  const qsvg = qsel ? copySvgs(s.p, qsel) : '';
+  s.api.st.go(99);
+  const out = [...s.p.querySelectorAll('.stepper .step')].map(el => {
+    const b = el.querySelector('.body').cloneNode(true), t = b.querySelector('.st'), title = t.innerHTML;
+    t.remove();
+    return { title, html: b.innerHTML };
+  });
+  if (!out.length) return null;
+  if (graph) out.push({ title: 'Sketch', html: '<div class="psvg">' + copySvgs(s.p) + '</div>' });
+  out.qsvg = qsvg;
+  return out;
+}
+// set inputs in a hidden tab (firing the events the tab listens for), then press its button
+function setIn(p, pairs, go = '.go') {
+  pairs.forEach(([sel, v]) => {
+    const el = p.querySelector(sel);
+    el.value = v; el.dispatchEvent(new Event(el.tagName === 'SELECT' ? 'change' : 'input'));
+  });
+  if (go) p.querySelector(go).click();
+}
+// coefficient boxes for a polynomial, highest power first
+const coIn = (co, deg, pre = '') => {
+  const s = co.map(c => fracText(typeof c === 'number' ? fr(c) : c));
+  while (s.length < deg + 1) s.unshift('0');
+  return s.map((v, i) => [pre + 'input.n[data-k="' + (deg - i) + '"]', v]);
+};
+const coF = a => ptrim(a.map(c => typeof c === 'number' ? fr(c) : c));
+// a sum of terms as text the tabs' "your own" box can read
+function tsText(ts) {
+  return ts.map(t => {
+    const m = fabs(t.c), ct = isOne(m) ? '' : fracText(m);
+    let s;
+    if (t.t !== 'pow') s = ct + t.t + '(' + (isOne(t.b) ? '' : fracText(t.b)) + 'x)';
+    else if (t.p.n === 0) s = fracText(m);
+    else if (t.p.n > 0) s = t.p.n === 1 && t.p.d === 2 ? ct + 'sqrt(x)' : ct + 'x' + (isOne(t.p) ? '' : '^(' + fracText(t.p) + ')');
+    else {
+      const q = fneg(t.p);
+      if (m.d === 1) s = m.n + '/' + (q.n === 1 && q.d === 2 ? 'sqrt(x)' : 'x' + (isOne(q) ? '' : '^(' + fracText(q) + ')'));
+      else if (m.n === 1 && q.d === 1) s = '1/(' + m.d + 'x^' + q.n + ')';
+      else s = ct + 'x^(' + fracText(t.p) + ')';
+    }
+    return (t.c.n < 0 ? '-' : '+') + s;
+  }).join('').replace(/^\+/, '');
+}
+const angText2 = A => angText(A).replace('π', 'pi');
+const mm = h => '<span class="mm">' + h + '</span>';
+const plainH = h => mm(h);
+// px + q as html (q may be an angle {f, pi})
+function linPQ(p, q) {
+  const A = q.f ? q : { f: q, pi: false }, qz = isZ(A.f), qH = angH({ f: fabs(A.f), pi: A.pi }), qneg = A.f.n < 0;
+  if (qz) return coefH(p) + X;
+  if (p.n < 0 && !qneg) return qH + ' − ' + coefH(fabs(p)) + X;
+  return coefH(p) + X + (qneg ? ' − ' : ' + ') + qH;
+}
+// k(px + q)^n written the way a question would show it
+function bracketQ(k, p, q, n) {
+  const L = linPQ(p, q), kk = isOne(k) ? '' : fracH(k);
+  if (n.n === 1 && n.d === 2) return kk + sqrtH(L);
+  if (n.n === -1 && n.d === 2) return stack(fracH(k), sqrtH(L));
+  if (n.n < 0 && n.d === 1) return stack(fracH(k), '(' + L + ')' + (n.n === -1 ? '' : sup(-n.n)));
+  return coefH(k) + '(' + L + ')' + sup(n);
+}
+function PracticeBox(host, make) {
+  const box = document.createElement('div');
+  box.className = 'practice';
+  box.innerHTML = '<div class="phead"><h2>Practice questions</h2><label>How many <select class="pcount"><option>2</option><option>4</option><option selected>6</option><option>8</option></select></label>' +
+    '<button class="btn primary pnew">New questions</button><button class="btn pall">Show all solutions</button></div><ol class="plist"></ol>';
+  host.appendChild(box);
+  const list = box.querySelector('.plist'), allB = box.querySelector('.pall');
+  function fill() {
+    const n = Number(box.querySelector('.pcount').value), seen = new Set(), items = [];
+    for (let t = 0; items.length < n && t < n * 25; t++) {
+      let it = null;
+      try { it = make(); } catch (e) { console.error(e); }
+      if (!it || !it.sol || seen.has(it.q)) continue;
+      seen.add(it.q); items.push(it);
+    }
+    list.innerHTML = items.map(it => '<li><div class="pq">' + it.q + '</div><button class="btn psol" aria-expanded="false">Show worked solution</button>' +
+      '<div class="pws" hidden>' + it.sol.map((s, i) => '<div class="step"><div class="num">' + (i + 1) + '</div><div class="body"><div class="st">' + s.title + '</div>' + s.html + '</div></div>').join('') + '</div></li>').join('');
+    allB.textContent = 'Show all solutions';
+  }
+  function toggle(b, open) {
+    const w = b.nextElementSibling; w.hidden = !open;
+    b.textContent = open ? 'Hide worked solution' : 'Show worked solution'; b.setAttribute('aria-expanded', String(open));
+  }
+  list.addEventListener('click', e => { const b = e.target.closest('.psol'); if (b) toggle(b, b.nextElementSibling.hidden); });
+  allB.addEventListener('click', () => {
+    const open = allB.textContent.startsWith('Show');
+    list.querySelectorAll('.psol').forEach(b => toggle(b, open));
+    allB.textContent = open ? 'Hide all solutions' : 'Show all solutions';
+  });
+  box.querySelector('.pnew').addEventListener('click', fill);
+  box.querySelector('.pcount').addEventListener('change', fill);
+  fill();
+  return { fill };
+}
+// ---------- integration question generators ----------
+const intH = ts => INT + (ts.length > 1 ? par(sumH(ts, 'nice')) : sumH(ts, 'nice')) + DX;
+function polyTs(small) {
+  const ps = pick([[2, 1, 0], [3, 1], [3, 2, 0], [2, 0], [3, 1, 0], [1, 0], [3, 0], [2, 1]]);
+  return ps.map(p => T(p === 0 ? nz(-9, 9) : Math.random() < (small ? 0.9 : 0.75) ? (p + 1) * nz(small ? -2 : -4, small ? 2 : 4) : nz(-7, 7), p));
+}
+function powTs() {
+  const k = pick(['neg2', 'neg3', 'half', 'mhalf', 'trap', 'threehalf']);
+  const one = {
+    neg2: () => T(nz(-6, 6), -2), neg3: () => T(2 * nz(-4, 4), -3), half: () => T(3 * nz(-3, 3), fr(1, 2)), mhalf: () => T(nz(-5, 5), fr(-1, 2)),
+    trap: () => T(fr(1, pick([2, 3, 4])), -pick([2, 3])), threehalf: () => T(5 * nz(-2, 2), fr(3, 2))
+  }[k]();
+  return Math.random() < 0.5 ? [one] : [one, T(pick([2, 4, 6, -2]) * pick([1, 1, 3]), pick([1, 0]))].sort((a, b) => fval(b.p) - fval(a.p));
+}
+function trigTs() {
+  const b = pick([1, 2, 3, 4]), fn = pick(['sin', 'cos']), out = [TS(fn, b * nz(-3, 3), b)];
+  if (Math.random() < 0.4) out.push(TS(fn === 'sin' ? 'cos' : 'sin', nz(-3, 3), 1));
+  else if (Math.random() < 0.3) out.push(T(2 * nz(-2, 3), 1));
+  return out;
+}
+// a question that needs rewriting first: returns { ts, orig, pre }
+function rewriteQ() {
+  if (Math.random() < 0.5) {
+    const p = pick([1, 1, 2, 3]), q = nz(-5, 5), r = pick([1, 1, 2]), s = nz(-5, 5), sq = Math.random() < 0.3;
+    const [P2, Q2] = sq ? [p, q] : [r, s];
+    const ts = [T(p * P2, 2), T(p * Q2 + q * P2, 1), T(q * Q2, 0)].filter(t => !isZ(t.c));
+    const L1 = linPQ(fr(p), fr(q)), L2 = linPQ(fr(P2), fr(Q2));
+    const orig = sq ? '(' + L1 + ')' + sup(2) : '(' + L1 + ')(' + L2 + ')';
+    return { ts, orig, pre: { title: 'Expand the brackets', html: '<div class="mm">' + orig + ' = ' + sumH(ts, 'index') + '</div><p class="why">There’s no rule for integrating a bracket: expand first.</p>' } };
+  }
+  if (Math.random() < 0.6) {
+    const m = pick([3, 4]), a = nz(-4, 4) * (m - 1), b = nz(-6, 6);
+    const ts = [T(a, m - 2), T(b, -2)], top = polyH([fr(a), ...Array(m - 1).fill(fr(0)), fr(b)]);
+    const orig = stack(top, X + sup(2));
+    return { ts, orig, pre: { title: 'Split the fraction', html: '<div class="mm">' + orig + ' = ' + stack(coefH(fr(a)) + X + sup(m), X + sup(2)) + (b < 0 ? ' − ' : ' + ') + stack(Math.abs(b), X + sup(2)) + ' = ' + sumH(ts, 'index') + '</div><p class="why">Divide every term on top by the bottom.</p>' } };
+  }
+  const b = nz(-4, 4), ts = [T(1, fr(1, 2)), T(b, fr(-1, 2))], orig = stack(X + (b < 0 ? ' − ' : ' + ') + Math.abs(b), sqrtH(X));
+  return { ts, orig, pre: { title: 'Split the fraction', html: '<div class="mm">' + orig + ' = ' + stack(X, X + sup(fr(1, 2))) + (b < 0 ? ' − ' : ' + ') + stack(Math.abs(b), X + sup(fr(1, 2))) + ' = ' + sumH(ts, 'index') + '</div><p class="why">√x = x<sup>½</sup>, then divide every term on top by it.</p>' } };
+}
+function intSolve(ts) { return solveIn('integrate', p => setIn(p, [['.sel', 'own'], ['.own', tsText(ts)]])); }
+
+PRACTICE.anti = () => {
+  const ts = polyTs(true);
+  return { q: 'Find <i>y</i>, given that ' + mm(dydx + ' = ' + sumH(ts, 'nice')) + '.', sol: intSolve(ts) };
+};
+PRACTICE.integrate = () => {
+  const kind = pick(['poly', 'pow', 'pow', 'rewrite', 'rewrite', 'trig']);
+  if (kind === 'rewrite') {
+    const r = rewriteQ(), sol = intSolve(r.ts);
+    return { q: 'Find ' + mm(INT + par(r.orig) + DX) + '.', sol: sol && [r.pre, ...sol] };
+  }
+  const ts = kind === 'poly' ? polyTs() : kind === 'pow' ? powTs() : trigTs();
+  return { q: 'Find ' + mm(intH(ts)) + '.', sol: intSolve(ts) };
+};
+PRACTICE.definite = () => {
+  const kind = pick(['poly', 'poly', 'pow', 'trig']);
+  let ts, a, b;
+  if (kind === 'poly') { ts = polyTs(true); a = fr(ri(-2, 1)); b = fadd(a, fr(ri(1, 3))); }
+  else if (kind === 'pow') {
+    const c = pick([['neg', [1, 2], [1, 3]], ['root', [1, 4], [0, 4], [4, 9], [1, 9]], ['mroot', [1, 4], [4, 9]]]);
+    const L = pick(c.slice(1));
+    ts = c[0] === 'neg' ? [T(pick([2, 4, 6, 8]), -2)] : c[0] === 'root' ? [T(pick([3, 6, 9]), fr(1, 2))] : [T(pick([1, 2, 3]), fr(-1, 2))];
+    if (Math.random() < 0.4 && c[0] !== 'neg') ts.push(T(pick([2, 4]), 1));
+    a = fr(L[0]); b = fr(L[1]);
+  } else {
+    const k = pick([1, 2, 3]); ts = [TS(pick(['sin', 'cos']), k * pick([1, 2, 3]), k)];
+    if (Math.random() < 0.3) ts.push(TS(ts[0].t === 'sin' ? 'cos' : 'sin', pick([1, 2]), 1));
+    a = { f: fr(0), pi: false }; b = { f: pick([fr(1, 6), fr(1, 4), fr(1, 3), fr(1, 2)]), pi: true };
+  }
+  const A = a.f ? a : { f: a, pi: false }, B = b.f ? b : { f: b, pi: false };
+  const sol = solveIn('definite', p => setIn(p, [['.sel', 'own'], ['.own', tsText(ts)], ['.ia', angText2(A)], ['.ib', angText2(B)]]));
+  return { q: 'Evaluate ' + mm(intL(angH(A), angH(B)) + (ts.length > 1 ? par(sumH(ts, 'nice')) : sumH(ts, 'nice')) + DX) + '.', sol };
+};
+PRACTICE.brackets = () => {
+  const kind = pick(['pow', 'pow', 'pow', 'def', 'trig']);
+  let fill, q;
+  if (kind === 'trig') {
+    const p = fr(pick([2, 3, 4, -2])), k = fmul(fabs(p), fr(pick([1, 1, 2, 3]))), fn = pick(['sin', 'cos']);
+    const b = pick([{ f: fr(1, 3), pi: true }, { f: fr(1, 6), pi: true }, { f: fr(-1, 4), pi: true }, { f: fr(1), pi: false }, { f: fr(-2), pi: false }]);
+    q = 'Find ' + mm(INT + (isOne(k) ? '' : fracH(k) + ' ') + fn + '(' + linPQ(p, b) + ')' + DX) + '.';
+    fill = [['.form', fn], ['.ik', fracText(k)], ['.ip', fracText(p)], ['.iq', angText2(b)], ['.ia', ''], ['.ib', '']];
+  } else if (kind === 'pow') {
+    const p = fr(pick([2, 3, 4, 5, -2, -3])), qq = fr(nz(-5, 5)), n = pick([fr(2), fr(3), fr(4), fr(5), fr(-2), fr(-3), fr(1, 2), fr(-1, 2), fr(3, 2)]);
+    const k = Math.random() < 0.6 ? fr(1) : fmul(fabs(fmul(p, fadd(n, fr(1)))), fr(pick([1, 2])));
+    q = 'Find ' + mm(INT + bracketQ(k, p, qq, n) + DX) + '.';
+    fill = [['.form', 'pow'], ['.ik', fracText(k)], ['.ip', fracText(p)], ['.iq', fracText(qq)], ['.in', fracText(n)], ['.ia', ''], ['.ib', '']];
+  } else {
+    let p, qq, n, a, b;
+    for (let t = 0; t < 100; t++) {
+      p = pick([1, 2, 3, 4]); qq = ri(-3, 5); n = pick([fr(2), fr(3), fr(1, 2), fr(-1, 2), fr(-2)]);
+      a = ri(0, 2); b = a + ri(1, 3);
+      const ua = p * a + qq, ub = p * b + qq;
+      if (ua <= 0 || ub <= 0 || !qq) continue;
+      if (n.d === 2 && (!Number.isInteger(Math.sqrt(ua)) || !Number.isInteger(Math.sqrt(ub)))) continue;
+      break;
+    }
+    if (p * a + qq <= 0) return null;
+    q = 'Evaluate ' + mm(intL(a, b) + bracketQ(fr(1), fr(p), fr(qq), n) + DX) + '.';
+    fill = [['.form', 'pow'], ['.ik', '1'], ['.ip', String(p)], ['.iq', String(qq)], ['.in', fracText(n)], ['.ia', String(a)], ['.ib', String(b)]];
+  }
+  return { q, sol: solveIn('brackets', p => setIn(p, [['.sel', 'own'], ...fill])) };
+};
+PRACTICE.diffeq = () => {
+  const kind = pick(['poly', 'poly', 'pow', 'trig']);
+  let ts, x0, find = '';
+  if (kind === 'poly') { ts = polyTs(true); x0 = { f: fr(ri(-2, 3)), pi: false }; if (Math.random() < 0.4) find = String(ri(-2, 4)); }
+  else if (kind === 'pow') {
+    if (Math.random() < 0.5) { ts = [T(pick([3, 6, 9]), fr(1, 2))]; x0 = { f: fr(pick([1, 4, 9])), pi: false }; }
+    else { ts = [T(nz(-6, 6), -2), T(pick([2, 4, 6]), 1)]; x0 = { f: fr(pick([1, -1, 2])), pi: false }; }
+  } else {
+    const b = pick([1, 2, 3]), m = nz(-4, 4), fn = pick(['sin', 'cos']);
+    ts = [TS(fn, b * m, b)];
+    x0 = fn === 'sin' ? { f: fr(0), pi: false } : { f: fr(1, 2 * b), pi: true };
+  }
+  const its = iTerms(ts), E = exactEval(its, x0);
+  if (!E || !exactIsRational(E)) return null;
+  const y0 = fadd(E[1], fr(nz(-9, 9)));
+  const sol = solveIn('diffeq', p => setIn(p, [['.sel', 'own'], ['.ie', tsText(ts)], ['.ix', angText2(x0)], ['.iy', fracText(y0)], ['.ifd', find]]), true);
+  return { q: 'Given that ' + mm(dydx + ' = ' + sumH(ts, 'nice')) + ' and that the curve passes through the point (' + angH(x0) + ', ' + fracH(y0) + '), express <i>y</i> in terms of <i>x</i>.' +
+    (find ? ' Hence find <i>y</i> when <i>x</i> = ' + fmtInt(Number(find)) + '.' : ''), sol };
+};
+PRACTICE.area = () => {
+  const kind = pick(['enc', 'enc', 'above', 'split', 'cubic']);
+  let co, mode = 'lim', a = '', b = '', q;
+  if (kind === 'enc') { const k = pick([1, -1]), r1 = ri(-4, 2), r2 = r1 + ri(2, 5); co = [k, -k * (r1 + r2), k * r1 * r2]; mode = 'enc'; }
+  else if (kind === 'cubic') { const r = ri(1, 3), s = ri(1, 3), k = pick([1, -1]); co = [k, k * (s - r), -k * r * s, 0]; mode = 'enc'; }
+  else if (kind === 'above') { const h = ri(-1, 2), c = ri(1, 4); co = [1, -2 * h, h * h + c]; const lo = ri(-1, 1); a = String(lo); b = String(lo + ri(2, 3)); }
+  else { const r1 = ri(-3, 1), r2 = r1 + ri(2, 4); co = [1, -(r1 + r2), r1 * r2]; a = String(r1); b = String(r2 + ri(1, 2)); }
+  const C = coF(co), yH = mm('<i>y</i> = ' + polyH(C));
+  q = mode === 'enc' ? 'Find the area enclosed by the curve ' + yH + ' and the <i>x</i>-axis.'
+    : 'Find the total area enclosed by the curve ' + yH + ', the <i>x</i>-axis and the lines <i>x</i> = ' + fmtInt(Number(a)) + ' and <i>x</i> = ' + fmtInt(Number(b)) + '.';
+  const sol = solveIn('area', p => setIn(p, [['.sel', 'own'], ...coIn(C, 3, '.cb '), ['.mode', mode], ['.ia', a], ['.ib', b]]), true);
+  return { q, sol };
+};
+PRACTICE.between = () => {
+  const a = pick([1, 1, 2, -1]), r1 = ri(-3, 1), r2 = r1 + ri(1, 4), b = ri(-4, 4), c = ri(-5, 5);
+  const d = Math.random() < 0.6 ? a : pick([2, 3, -1, -2].filter(v => v !== a));
+  const f = [a, b, c], g = [a - d, b + d * (r1 + r2), c - d * r1 * r2];
+  const F = coF(f), G = coF(g), [one, two] = Math.random() < 0.5 ? [F, G] : [G, F];
+  const sol = solveIn('between', p => setIn(p, [['.sel', 'own'], ...coIn(one, 3, '.cf1 '), ...coIn(two, 3, '.cg1 ')]), true);
+  return { q: 'Find the area enclosed between ' + mm('<i>y</i> = ' + polyH(one)) + ' and ' + mm('<i>y</i> = ' + polyH(two)) + '.', sol };
+};
+PRACTICE.limit = () => {
+  let co, a, k;
+  if (Math.random() < 0.75) { co = [pick([2, 4, 6]), ri(-2, 5)]; a = ri(0, 2); k = a + ri(1, 4); }
+  else { co = [3 * pick([1, 2]), 0, 0]; a = pick([0, 1]); k = a + ri(1, 3); }
+  const C = coF(co), Fc = pint(C), V = fsub(pevalF(Fc, fr(k)), pevalF(Fc, fr(a)));
+  if (V.d !== 1 || V.n <= 0) return null;
+  const sol = solveIn('limit', p => setIn(p, [['.sel', 'own'], ...coIn(C, 2, '.cb '), ['.ia', String(a)], ['.iv', fracText(V)]]));
+  return { q: 'Given that ' + mm(intL(fmtInt(a), '<i>k</i>') + par(polyH(C)) + DX + ' = ' + fracH(V)) + ', where <i>k</i> &gt; ' + fmtInt(a) + ', find the value of <i>k</i>.', sol };
+};
+PRACTICE.hence = () => {
+  const a = pick([1, 1, 2, 3]), m = pick([2, 2, 3]), b = nz(-5, 5), n = pick([3, 4, 5]), N = a * m * n;
+  const k = pick([1, 1, 2, N, N / 2, 3].filter(v => Number.isInteger(v)));
+  const inner = coefH(fr(a)) + X + sup(m) + signed(fr(b), false), xp = m - 1 === 1 ? X : X + sup(m - 1);
+  const sol = solveIn('hence', p => setIn(p, [['.sel', 'own'], ['.ia', String(a)], ['.im', String(m)], ['.ib', String(b)], ['.in', String(n)], ['.ik', String(k)]]));
+  return { q: '(a) Differentiate ' + mm('(' + inner + ')' + sup(n)) + '.<br>(b) Hence find ' + mm(INT + (k === 1 ? '' : k) + xp + '(' + inner + ')' + (n - 1 === 1 ? '' : sup(n - 1)) + DX) + '.', sol };
+};
+PRACTICE.identities = () => {
+  const i = ri(0, IDS.length - 1), d = IDS[i];
+  const sol = solveIn('identities', p => setIn(p, [['.sel', String(i)]], null));
+  return { q: 'Find ' + mm(INT + (d.orig.startsWith('(') ? d.orig : par(d.orig)) + DX) + '.', sol };
+};
+
 // ===================== Tab switching and keys =====================
 const tabsEl = document.getElementById('tabs'), panesEl = document.getElementById('panes'), seqEl = document.getElementById('seq');
 const built = {};
@@ -1850,7 +2142,11 @@ function show(id) {
   TABS.forEach(x => { document.getElementById('p-' + x.id).hidden = x.id !== t.id; });
   tabsEl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t.id)));
   seqEl.textContent = t.seq;
-  if (!built[t.id]) built[t.id] = t.build(document.getElementById('p-' + t.id));
+  if (!built[t.id]) {
+    const pane = document.getElementById('p-' + t.id);
+    built[t.id] = t.build(pane);
+    if (PRACTICE[t.id]) PracticeBox(pane, PRACTICE[t.id]);
+  }
   history.replaceState(null, '', '#' + t.id);
 }
 document.addEventListener('keydown', e => {
