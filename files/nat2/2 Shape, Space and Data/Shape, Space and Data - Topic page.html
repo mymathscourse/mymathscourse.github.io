@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head><meta name="robots" content="noindex">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shape, Space and Data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
+<!--
+  Nat 2 Lifeskills Maths practice page, for pupils (written for a pupil with Down syndrome).
+  MADE BY _maker/web_pages.py from _maker/web/shell.html + _maker/web/units/*.js: edit those, not this file.
+  One tile per skill booklet (or worksheet). Design choices, from DSA / Cardiff Down's Syndrome Vision
+  Research Unit / W3C cognitive accessibility guidance:
+  - big, bold text (24px+), Atkinson Hyperlegible (made for low vision), no italics, short sentences
+  - strong contrast: near-black on cream by default (DSA: black on yellow), thick black outlines on pictures
+  - one question on the screen at a time, plenty of space, nothing moving, no timers
+  - every choice is a big button with a picture and/or word; colour is never the only clue
+  - "Read to me" on every screen (the device's own voice), settings for text size and background colour
+  - kind feedback: a wrong answer just fades so they can try again; after two tries the right one is shown
+-->
+<style>
+:root{
+  --bg:#FFF6D6; --card:#FFFFFF; --ink:#111111; --soft:#333333; --line:#111111;
+  --blue:#0B4F9C; --blue-soft:#DCEAFF; --good:#17703A; --good-soft:#D3F2DC; --gold:#F2B705; --hi:#FFE57A;
+  --head:"Lexend","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",Verdana,system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  font-size:20px;
+}
+:root[data-size="bigger"]{font-size:25px}
+:root[data-bg="yellow"]{--bg:#FFE97A}
+:root[data-bg="white"]{--bg:#FFFFFF}
+:root[data-bg="dark"]{--bg:#111111; --ink:#FFF4C2; --soft:#FFF4C2; --line:#FFF4C2; --blue:#9CCBFF; --blue-soft:#1F3550}
+*{box-sizing:border-box}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:1.2rem;line-height:1.5}
+h1,h2,h3{font-family:var(--head);line-height:1.2;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:var(--blue)}
+:focus-visible{outline:5px solid var(--blue);outline-offset:4px}
+[hidden]{display:none!important}
+.emo{font-family:var(--emoji);font-style:normal}
+
+/* top bar: the same on every screen */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;padding:.7rem 16px;border-bottom:4px solid var(--line)}
+.top .title{font-family:var(--head);font-weight:700;font-size:1.15rem;margin-right:auto}
+.top a.tbtn{text-decoration:none}
+.tbtn{display:inline-flex;align-items:center;gap:.4rem;min-height:56px;padding:.4rem 1rem;border:3px solid var(--line);border-radius:14px;
+  background:var(--card);color:#111;font-weight:700;font-size:1.05rem}
+.tbtn:hover{background:var(--hi)}
+.tbtn[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+:root[data-bg="dark"] .tbtn[aria-pressed="true"]{color:#111}
+
+.wrap{max-width:980px;margin:0 auto;padding:1.2rem 16px 3rem}
+body.playing .wrap{padding-top:.7rem;padding-bottom:.4rem}
+
+/* settings */
+.settings{background:var(--card);color:#111;border:3px solid var(--line);border-radius:18px;padding:1rem 1.2rem;margin:1rem 16px 0}
+.settings h2{font-size:1.2rem;margin-bottom:.6rem}
+.setrow{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin:.6rem 0}
+.setrow > span{min-width:9rem;font-weight:700}
+.sw{width:28px;height:28px;border-radius:50%;border:3px solid #111;display:inline-block}
+
+/* home */
+h1{font-size:2rem;margin:.4rem 0 .3rem}
+.intro{font-size:1.3rem;margin:0 0 1.2rem}
+.tiles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1.1rem}
+.tile{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1rem .8rem 1.1rem;
+  background:var(--card);color:#111;border:4px solid #111;border-radius:22px;text-align:center}
+.tile:hover{background:#FFF1B3}
+.tile .num{align-self:flex-start;width:2.2rem;height:2.2rem;border-radius:50%;background:var(--blue);color:#fff;font-family:var(--head);font-weight:700;display:grid;place-items:center}
+:root[data-bg="dark"] .tile .num{color:#111}
+.tile svg{width:130px;height:110px}
+.tile .tname{font-family:var(--head);font-weight:700;font-size:1.3rem;line-height:1.2}
+.tile .tstars{font-size:1rem;min-height:1.5rem}
+.printbox{margin-top:2rem;padding:1rem 1.2rem;border:3px dashed var(--line);border-radius:18px}
+.printbox h2{font-size:1.25rem;margin-bottom:.4rem}
+.printbox ul{margin:0;padding-left:1.4rem}
+.printbox li{margin:.3rem 0}
+
+/* look */
+.skillhead{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.skillhead svg{width:90px;height:76px}
+.skillhead h1{margin:0}
+.ican{font-size:1.2rem;margin:.6rem 0 1rem}
+.ican b{color:var(--blue)}
+.lookcard{background:var(--card);color:#111;border:4px solid var(--gold);border-radius:22px;padding:1.2rem}
+.lookcard .tag{display:inline-block;background:var(--gold);color:#111;font-weight:700;border-radius:999px;padding:.15rem .9rem;margin-bottom:.8rem}
+.lk{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem 1.2rem}
+.lk > div{text-align:center}
+.lk svg{width:100%;max-width:170px;height:130px}
+.lk .w{display:block;font-family:var(--head);font-weight:700;font-size:1.4rem;color:#0B4F9C}
+.lk .f{display:block;font-size:1.05rem}
+.lk.wide{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.lk.wide svg{max-width:280px;height:170px}
+.lookline{font-size:1.3rem;font-weight:700;text-align:center;margin:1rem 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin-top:1.4rem}
+.big-btn{min-height:76px;padding:.8rem 2.2rem;border:0;border-radius:999px;background:var(--blue);color:#fff;font-family:var(--head);font-weight:700;font-size:1.5rem}
+:root[data-bg="dark"] .big-btn{color:#111}
+.big-btn:hover{filter:brightness(1.15)}
+.plain-btn{min-height:64px;padding:.6rem 1.4rem;border:3px solid var(--line);border-radius:999px;background:var(--card);color:#111;font-weight:700;font-size:1.2rem;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+.plain-btn:hover{background:var(--hi)}
+
+/* play */
+.playbar{display:flex;align-items:center;justify-content:space-between;gap:.6rem 1rem;flex-wrap:wrap;margin-bottom:.7rem}
+.stars{display:flex;gap:.4rem;font-size:2rem;line-height:1}
+.stars span{width:2.4rem;height:2.4rem;display:grid;place-items:center;border:3px solid var(--line);border-radius:50%;font-size:1.4rem;color:transparent}
+.stars span.on{background:var(--gold);border-color:#7A5A00;color:#111}
+.stars span.now{outline:4px solid var(--blue);outline-offset:2px}
+.qtext{font-family:var(--head);font-size:1.75rem;font-weight:700;margin:0 0 .8rem}
+.qtext b{background:var(--hi);color:#111;padding:0 .25rem;border-radius:6px}
+.stage{background:#fff;color:#111;border:3px solid #111;border-radius:22px;padding:1rem;margin-bottom:1.2rem;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.stage:empty{display:none}
+.helpbox{background:#FFFBE6;color:#111;border:4px dashed #B8860B;border-radius:22px;padding:.6rem .8rem;margin-bottom:.9rem}
+.helpbox .note{font-size:1.05rem;margin:0 0 .4rem}
+.helpgrid{display:flex;flex-wrap:wrap;gap:.6rem 1.2rem;align-items:center;justify-content:center}
+.helpgrid > div{flex:1 1 300px;max-width:440px}
+.helpgrid > div:first-child{flex:1.4 1 340px;max-width:600px}
+.helpbox .cards{display:flex;flex-wrap:nowrap;gap:.5rem;justify-content:center}
+@media (max-width:700px){.helpbox .cards{flex-wrap:wrap}}
+.helpbox .card2{padding:.3rem .6rem}
+.helpbox .card2 svg{display:block;height:min(70px, 9vh);width:auto;max-width:100%;margin:.2rem auto}
+.helpbox .card2 .big{font-family:var(--head);font-weight:700;font-size:1.5rem;line-height:1.1}
+.helpbox .card2 .cap{display:block;font-size:1rem;line-height:1.25}
+.helpbox .card2.solo svg{height:min(190px, 26vh)}
+.helpgrid svg.line{width:100%;height:auto;max-height:24vh}
+.helpbox{text-align:center}
+@media (min-width:1000px){
+  body.helpside .wrap{max-width:1340px}
+  body.helpside .duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:1rem;align-items:start;margin-bottom:.9rem}
+  body.helpside .duo > .stage,body.helpside .duo > .helpbox{margin-bottom:0}
+}
+.helpbox > svg.line{display:block;width:100%;max-width:600px;height:auto;max-height:24vh;margin:.3rem auto 0}
+.helpbox > .row,.helpbox > .cards{margin:.2rem 0}
+.helpbox .card2 .sym{font-size:2.2rem}
+.helpbox .card2 > .emo{font-size:1.5rem!important}
+.helpbox .seq{gap:.25rem}
+.helpbox .seq svg,.helpbox .seq .ask{width:52px;height:52px}
+.helpbox .seq .ask{font-size:1.8rem}
+.helpbox .chunk{border:3px solid #111;border-radius:12px;padding:.25rem .4rem;background:#fff}
+.helpbox .chunk.odd{background:#FFE0B8}
+.helpbox .card2 .swatch{margin:.2rem auto;width:48px;height:48px}
+.helpbox .mrow{gap:.3rem}
+.helpbox .card2 .big{display:block}
+.helpbox .cal{margin:0 auto}
+.helpbox .mrow svg.coin{width:52px;height:52px}
+.helpbox .mrow svg.note{width:90px;height:48px}
+.helpbox .card2 .mrow svg{display:inline-block;margin:.1rem}
+.helpbox .cards.key{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}
+.helpbox .cards.key .card2{display:flex;align-items:center;gap:.6rem;text-align:left}
+.helpbox .cards.key .cap{font-size:1.05rem}
+.hsum{font-family:var(--head);font-weight:700;font-size:1.5rem;margin:.3rem 0}
+.chain{gap:.35rem .4rem;margin:.3rem 0}
+.chain .arrow{font-family:var(--head);font-weight:700;font-size:1.4rem;display:inline-flex;flex-direction:column;align-items:center;line-height:1}
+.chain .arrow small{font-size:.9rem;color:#0B4F9C}
+.hsum u{text-decoration-thickness:3px;background:var(--hi)}
+.stage > svg{width:100%;max-width:420px;height:auto;max-height:min(300px, 36vh)}
+.stage > svg.wide{max-width:560px}
+.stage > svg.coins{width:min(100%, calc(var(--n) * 62px));max-height:none}
+.stage .note{font-size:1.15rem;font-weight:700;margin:0;text-align:center}
+.sentence{font-size:1.5rem;font-weight:700;margin:0;text-align:center}
+.gap{display:inline-block;min-width:4.5rem;border-bottom:4px solid #111;text-align:center}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:1.1rem}
+.opt{position:relative;min-width:150px;min-height:96px;padding:.7rem 1.2rem;background:#fff;color:#111;border:4px solid #111;border-radius:20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;font-family:var(--head);font-weight:700;font-size:1.5rem}
+.opt:hover:not(:disabled){background:#FFF1B3}
+.opt svg{width:140px;height:140px}
+.opt svg.wide{width:250px;height:70px}
+.opt svg.tall{width:80px;height:220px}
+.opt .bigemo{font-size:4rem;line-height:1.1}
+.opt.small svg{width:70px;height:70px}
+.opt.right{background:var(--good-soft);border-color:var(--good);border-width:6px}
+.opt.right::after{content:"✔";position:absolute;top:-16px;right:-14px;width:44px;height:44px;border-radius:50%;background:var(--good);color:#fff;display:grid;place-items:center;font-size:1.5rem}
+.opt.tried{opacity:.35;border-style:dashed;cursor:default}
+.opt.hint{box-shadow:0 0 0 8px var(--hi),0 0 0 11px #111}
+.opt:disabled{cursor:default}
+.stack{flex-direction:column;align-items:center}
+.scene .opt svg{width:250px;height:146px}
+.seqopts .opt{min-width:0;min-height:0;padding:.3rem}
+.seqopts .opt svg{width:72px;height:72px}
+.after{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.5rem 1.4rem;margin-top:.9rem;min-height:76px}
+.fb{font-family:var(--head);font-size:1.6rem;font-weight:700;text-align:center;margin:0}
+.fb.good{color:var(--good)}
+:root[data-bg="dark"] .fb.good{color:#8EE3A8}
+.center{text-align:center}
+
+/* pictures that sit in the stage */
+.seq{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4rem}
+.seq svg{width:72px;height:72px}
+.seq .ask{width:72px;height:72px;border:4px dashed #111;border-radius:14px;display:grid;place-items:center;font-family:var(--head);font-weight:700;font-size:2.4rem}
+.menu{border:4px solid #111;border-radius:18px;padding:.5rem 1rem;background:#FFFDF3;width:100%;max-width:760px}
+.menu h3{text-align:center;font-size:1.3rem;margin-bottom:.3rem}
+.menu ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.4rem 1.6rem}
+.menu li{display:grid;grid-template-columns:2.8rem 1fr auto;align-items:center;gap:.5rem;font-size:1.15rem;white-space:nowrap}
+.menu li .emo{font-size:2.2rem;text-align:center}
+.menu li b{font-family:var(--head);font-size:1.4rem;color:#0B4F9C}
+.order{font-size:1.5rem;font-weight:700;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center}
+.order .emo{font-size:3rem}
+.bag{border:6px solid #6B4423;border-radius:40px 40px 80px 80px;background:#F3E3C3;padding:1.4rem 1rem 1.6rem;position:relative;margin-top:.8rem}
+.bag::before{content:"";position:absolute;top:-22px;left:50%;width:70px;height:26px;margin-left:-35px;border:6px solid #6B4423;border-bottom:0;border-radius:30px 30px 0 0}
+.bag svg{width:100%;max-width:380px;height:auto;display:block}
+.swatch{width:70px;height:70px;border-radius:50%;border:4px solid #111;display:block}
+.chance-pic{font-size:4rem;line-height:1.1}
+.scale{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-top:1rem}
+.scale span{border:3px solid #111;border-radius:14px;padding:.4rem .8rem;font-weight:700;background:#fff;color:#111}
+
+.digital{display:inline-block;background:#111;color:#fff;font-family:var(--head);font-weight:700;font-size:2.2rem;padding:.15rem .9rem;border-radius:12px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.opt .digital{font-size:1.8rem}
+.cal{border-collapse:collapse;font-family:var(--head);background:#fff;color:#111}
+.cal caption{font-weight:700;font-size:1.3rem;padding-bottom:.3rem}
+.cal th,.cal td{border:2px solid #111;width:3rem;height:min(2.5rem, 5.4vh);text-align:center;font-size:1.15rem}
+.cal th{background:#DCEAFF}
+.cal td.m1{background:var(--hi);font-weight:700}
+.cal td.m2{background:#FFC2C2;font-weight:700}
+.story{font-size:1.45rem;font-weight:700;text-align:center;max-width:34rem;margin:0}
+.sym{font-family:var(--head);font-size:3rem;line-height:1}
+.row{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;align-items:center}
+.row > svg{height:110px;width:auto;max-width:100%}
+.chip{border:3px solid #111;border-radius:12px;padding:.3rem .8rem;font-family:var(--head);font-weight:700;font-size:1.4rem;background:#fff;color:#111}
+.chip.blank{border-style:dashed;min-width:5rem;text-align:center}
+.chip.on{background:var(--hi);outline:3px solid #111}
+.tbl{border-collapse:collapse;font-size:1.3rem;background:#fff;color:#111}
+.tbl th,.tbl td{border:2px solid #111;padding:.35rem .9rem;text-align:center}
+.tbl th{background:#DCEAFF;font-family:var(--head)}
+.card2{border:3px solid #111;border-radius:14px;padding:.4rem .7rem;text-align:center;background:#fff;color:#111}
+.card2 .emo{font-size:2.6rem;display:block}
+.mrow{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:center}
+.mrow svg.coin{width:104px;height:104px}
+.mrow svg.note{width:180px;height:96px}
+.opt .mrow svg.coin{width:88px;height:88px}
+.opt .mrow svg.note{width:150px;height:80px}
+@media (max-width:560px){.cal th,.cal td{width:2.4rem;height:2.2rem;font-size:1rem}.mrow svg.coin,.opt .mrow svg.coin{width:76px;height:76px}.mrow svg.note,.opt .mrow svg.note{width:130px;height:70px}}
+
+/* short or narrow screens: tighter spacing so a whole question still fits on one screen */
+@media (max-height:780px), (max-width:560px){
+  body.playing #setBtn, body.playing #siteLink, body.playing #settings{display:none!important}
+  .top{padding:.4rem 16px}
+  .tbtn{min-height:46px;padding:.25rem .8rem}
+  body.playing .wrap{padding-top:.5rem}
+  .playbar{margin-bottom:.4rem}
+  .playbar .plain-btn{min-height:50px;padding:.3rem 1rem;font-size:1.05rem}
+  .stars span{width:2rem;height:2rem;font-size:1.15rem}
+  .qtext{font-size:1.45rem;margin-bottom:.5rem}
+  .stage{padding:.6rem;margin-bottom:.7rem;gap:.4rem}
+  .opts{gap:.8rem}
+  .opt{min-height:76px;padding:.5rem 1rem}
+  .after{min-height:62px;margin-top:.6rem}
+  .after .big-btn{min-height:60px;padding:.5rem 1.8rem;font-size:1.3rem}
+  .fb{font-size:1.4rem}
+}
+
+/* done */
+.done{text-align:center;padding-top:1rem}
+.done .bigstars{font-size:3.2rem;letter-spacing:.2rem;margin:.6rem 0}
+.done .actions{justify-content:center}
+@media (max-width:560px){
+  .opt{min-width:120px;font-size:1.3rem}
+  .opt svg{width:110px;height:110px}
+  .opt svg.wide{width:200px;height:56px}
+  .scene .opt svg{width:200px;height:117px}
+  .qtext{font-size:1.5rem}
+  .seq svg,.seq .ask,.seqopts .opt svg{width:54px;height:54px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <span class="title">Shape, Space and Data</span>
+  <button class="tbtn" id="homeBtn" hidden><span class="emo" aria-hidden="true">🏠</span> Home</button>
+  <button class="tbtn" id="setBtn" aria-expanded="false" aria-controls="settings"><span aria-hidden="true">Aa</span> Settings</button>
+  <a class="tbtn" id="siteLink" href="../index.html" hidden>My maths site</a>
+</header>
+
+<section class="settings" id="settings" hidden aria-labelledby="set-title">
+  <h2 id="set-title">Make it easy to see</h2>
+  <div class="setrow" role="group" aria-label="Text size"><span>Text size</span>
+    <button class="tbtn" data-set="size" data-val="big">Big</button>
+    <button class="tbtn" data-set="size" data-val="bigger">Bigger</button>
+  </div>
+  <div class="setrow" role="group" aria-label="Background colour"><span>Background</span>
+    <button class="tbtn" data-set="bg" data-val="cream"><span class="sw" style="background:#FFF6D6"></span> Cream</button>
+    <button class="tbtn" data-set="bg" data-val="yellow"><span class="sw" style="background:#FFE97A"></span> Yellow</button>
+    <button class="tbtn" data-set="bg" data-val="white"><span class="sw" style="background:#FFFFFF"></span> White</button>
+    <button class="tbtn" data-set="bg" data-val="dark"><span class="sw" style="background:#111"></span> Dark</button>
+  </div>
+  <div class="setrow" role="group" aria-label="Read questions out loud"><span>Read questions out loud</span>
+    <button class="tbtn" data-set="voice" data-val="off">Only when I press it</button>
+    <button class="tbtn" data-set="voice" data-val="on">Every time</button>
+  </div>
+</section>
+
+<main class="wrap">
+  <!-- home -->
+  <section id="home">
+    <h1>Shape, Space and Data</h1>
+    <p class="intro">Choose a picture to start.</p>
+    <ul class="tiles" id="tiles"></ul>
+    <div class="printbox">
+      <h2><span class="emo" aria-hidden="true">🖨️</span> Print and practise</h2>
+      <ul id="printList"></ul>
+    </div>
+  </section>
+
+  <!-- look -->
+  <section id="look" hidden>
+    <div class="skillhead"><span id="lookIcon"></span><h1 id="lookTitle"></h1></div>
+    <p class="ican" id="lookIcan"></p>
+    <div class="lookcard"><span class="tag">Look</span><div id="lookBody"></div></div>
+    <div class="actions">
+      <button class="big-btn" id="goBtn">Have a go ▶</button>
+      <button class="plain-btn" id="lookSay"><span class="emo" aria-hidden="true">🔊</span> Read to me</button>
+      <a class="plain-btn" id="lookPrint" target="_blank" rel="noopener"><span class="emo" aria-hidden="true">🖨️</span> Print the booklet</a>
+    </div>
+  </section>
+
+  <!-- play -->
+  <section id="play" hidden>
+    <div class="playbar">
+      <div class="stars" id="stars" aria-label="Progress"></div>
+      <div class="row"><button class="plain-btn" id="helpBtn" aria-expanded="false" aria-controls="help" hidden><span class="emo" aria-hidden="true">💡</span> <span>Help me</span></button>
+      <button class="plain-btn" id="qSay"><span class="emo" aria-hidden="true">🔊</span> Read to me</button></div>
+    </div>
+    <h2 class="qtext" id="qText"></h2>
+    <div class="duo"><div class="stage" id="stage"></div>
+    <div class="helpbox" id="help" hidden></div></div>
+    <div class="opts" id="opts"></div>
+    <div class="after"><p class="fb" id="fb" role="status" aria-live="polite"></p><button class="big-btn" id="nextBtn" hidden>Next ▶</button></div>
+  </section>
+
+  <!-- done -->
+  <section id="done" class="done" hidden>
+    <h1>You did it!</h1>
+    <div class="bigstars emo" aria-hidden="true">⭐⭐⭐⭐⭐</div>
+    <p class="intro" id="doneMsg"></p>
+    <div class="actions">
+      <button class="big-btn" id="againBtn">Play again</button>
+      <button class="plain-btn" id="lookAgain"><span class="emo" aria-hidden="true">👀</span> Look again</button>
+      <button class="plain-btn" id="otherBtn"><span class="emo" aria-hidden="true">🏠</span> Choose another</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ------------------------------------------------------------------ helpers */
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sample = (a, n) => shuffle(a).slice(0, n);
+const art = w => /^[aeiou]/.test(w) ? "an" : "a";
+const INK = "#111";
+const COLS = { red: "#E53935", blue: "#1E6FD9", green: "#2E9E44", yellow: "#FFC400", orange: "#FB8C00", purple: "#8E44AD" };
+const FILLS = Object.values(COLS);
+const ST = `stroke="${INK}" stroke-width="4" stroke-linejoin="round" vector-effect="non-scaling-stroke"`;
+
+function shade(hex, f) { // f > 0 lighter, f < 0 darker
+  const n = parseInt(hex.slice(1), 16), t = f < 0 ? 0 : 255, p = Math.abs(f);
+  const c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (t - v) * p));
+  return `rgb(${c})`;
+}
+const svg = (vb, inner, cls = "") => `<svg class="${cls}" viewBox="${vb}" aria-hidden="true" focusable="false">${inner}</svg>`;
+const emo = (ch, x, y, size) => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" class="emo">${ch}</text>`;
+
+/* numbers for answer buttons: the right one and two near it, smallest first */
+function numOpts(right, lo, hi, step = 1) {
+  const s = new Set([right]);
+  while (s.size < 3) { const v = right + pick([-2, -1, 1, 2]) * step; if (v >= lo && v <= hi) s.add(v); }
+  return [...s].sort((a, b) => a - b);
+}
+/* money in pence -> "70p" or "£1.70" */
+const money = p => p < 100 ? `${p}p` : `£${(p / 100).toFixed(2)}`;
+
+/* ------------------------------------------------------------------ pictures */
+const S2 = ["circle", "square", "triangle", "rectangle"];
+function flat(kind, fill, scale = 1) {
+  let s;
+  if (kind === "circle") s = `<circle cx="60" cy="60" r="46" fill="${fill}" ${ST}/>`;
+  else if (kind === "square") s = `<rect x="16" y="16" width="88" height="88" fill="${fill}" ${ST}/>`;
+  else if (kind === "triangle") s = `<polygon points="60,12 110,102 10,102" fill="${fill}" ${ST}/>`;
+  else if (kind === "rectangle") s = Math.random() < .5 ? `<rect x="4" y="32" width="112" height="56" fill="${fill}" ${ST}/>`
+                                                         : `<rect x="32" y="4" width="56" height="112" fill="${fill}" ${ST}/>`;
+  if (scale !== 1) s = `<g transform="translate(60 60) scale(${scale}) translate(-60 -60)">${s}</g>`;
+  return svg("0 0 120 120", s);
+}
+
+const S3 = ["cube", "cuboid", "cylinder", "sphere", "cone"];
+function solid(kind, fill) {
+  const L = shade(fill, .45), D = shade(fill, -.25);
+  const s = {
+    cube: `<polygon points="20,42 42,20 102,20 80,42" fill="${L}" ${ST}/><polygon points="80,42 102,20 102,80 80,102" fill="${D}" ${ST}/><rect x="20" y="42" width="60" height="60" fill="${fill}" ${ST}/>`,
+    cuboid: `<polygon points="4,54 24,34 116,34 96,54" fill="${L}" ${ST}/><polygon points="96,54 116,34 116,78 96,98" fill="${D}" ${ST}/><rect x="4" y="54" width="92" height="44" fill="${fill}" ${ST}/>`,
+    cylinder: `<path d="M30 24 V96 A30 11 0 0 0 90 96 V24 Z" fill="${fill}" ${ST}/><ellipse cx="60" cy="24" rx="30" ry="11" fill="${L}" ${ST}/>`,
+    sphere: `<circle cx="60" cy="60" r="48" fill="${fill}" ${ST}/><ellipse cx="60" cy="60" rx="48" ry="13" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="5 5" opacity=".7"/><ellipse cx="43" cy="38" rx="13" ry="8" fill="#fff" opacity=".6"/>`,
+    cone: `<path d="M60 10 L100 96 A40 12 0 0 1 20 96 Z" fill="${fill}" ${ST}/><path d="M20 96 A40 12 0 0 1 100 96" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="5 5" opacity=".7"/>`
+  }[kind];
+  return svg("0 0 120 120", s);
+}
+
+/* where is it? */
+const OBJS = [{ e: "🐱", n: "cat" }, { e: "⚽", n: "ball" }, { e: "🧸", n: "teddy" }, { e: "🍎", n: "apple" }, { e: "🐶", n: "dog" }, { e: "🦆", n: "duck" }];
+const POSW = ["on", "under", "next to", "in", "between"];
+const PLACES = { on: ["table", "box"], under: ["table"], "next to": ["table", "box"], in: ["box"], between: ["trees"] };
+const plName = p => p === "trees" ? "the two trees" : "the " + p;
+const WOOD = "#B07A45", BOXC = "#E0A96A";
+const table = (a, b) => `<rect x="${a}" y="92" width="${b - a}" height="13" rx="3" fill="${WOOD}" ${ST}/><rect x="${a + 10}" y="105" width="11" height="55" fill="${WOOD}" ${ST}/><rect x="${b - 21}" y="105" width="11" height="55" fill="${WOOD}" ${ST}/>`;
+const boxShut = (a, b) => `<rect x="${a}" y="100" width="${b - a}" height="60" fill="${BOXC}" ${ST}/><line x1="${(a + b) / 2}" y1="100" x2="${(a + b) / 2}" y2="124" stroke="${INK}" stroke-width="3"/>`;
+function scene(o, word, place) {
+  const E = (x, y, sz) => emo(o.e, x, y, sz);
+  let s = `<line x1="4" y1="161" x2="236" y2="161" stroke="${INK}" stroke-width="4"/>`;
+  if (place === "table") {
+    if (word === "on") s += table(60, 180) + E(120, 88, 54);
+    if (word === "under") s += table(36, 204) + E(120, 154, 48);
+    if (word === "next to") s += table(10, 134) + E(190, 154, 54);
+  } else if (place === "box") {
+    if (word === "on") s += boxShut(70, 170) + E(120, 96, 54);
+    if (word === "next to") s += boxShut(16, 120) + E(186, 154, 54);
+    if (word === "in") s += `<polygon points="66,92 84,78 190,78 172,92" fill="${shade(BOXC, -.35)}" ${ST}/>` + E(126, 126, 56) + `<rect x="66" y="92" width="106" height="68" fill="${BOXC}" ${ST}/>`;
+  } else {
+    s += emo("🌳", 42, 158, 80) + emo("🌳", 198, 158, 80) + E(120, 154, 50);
+  }
+  return svg("0 26 240 140", s);
+}
+
+/* bigger or smaller */
+const pencil = len => svg("0 0 260 60",
+  `<rect x="8" y="17" width="18" height="26" fill="#F48FB1" ${ST}/><rect x="26" y="17" width="${len - 50}" height="26" fill="#FFC400" ${ST}/>` +
+  `<polygon points="${len - 24},17 ${len + 4},30 ${len - 24},43" fill="#F1D3A8" ${ST}/><polygon points="${len - 6},26 ${len + 4},30 ${len - 6},34" fill="${INK}"/>`, "wide");
+function tower(n) {
+  let s = `<line x1="0" y1="292" x2="80" y2="292" stroke="${INK}" stroke-width="4"/>`;
+  for (let i = 0; i < n; i++) s += `<rect x="15" y="${290 - (i + 1) * 27}" width="50" height="27" fill="${i < 5 ? "#1E6FD9" : "#FFC400"}" ${ST}/>`;
+  return svg("0 0 80 300", s, "tall");
+}
+function balance(L, R) { // L and R: [emoji, name, weight]; the heavier side goes down
+  const a = (L[2] > R[2] ? -12 : 12) * Math.PI / 180, cx = 130, cy = 60, h = 95;
+  const ends = [[cx - h * Math.cos(a), cy - h * Math.sin(a)], [cx + h * Math.cos(a), cy + h * Math.sin(a)]];
+  let s = `<polygon points="130,60 112,168 148,168" fill="#9E9E9E" ${ST}/><rect x="90" y="166" width="80" height="10" rx="4" fill="#9E9E9E" ${ST}/>` +
+    `<line x1="${ends[0][0]}" y1="${ends[0][1]}" x2="${ends[1][0]}" y2="${ends[1][1]}" stroke="${INK}" stroke-width="9" stroke-linecap="round"/>`;
+  [L, R].forEach((it, i) => {
+    const [x, y] = ends[i], py = y + 42;
+    s += `<line x1="${x}" y1="${y}" x2="${x - 30}" y2="${py}" stroke="${INK}" stroke-width="3"/><line x1="${x}" y1="${y}" x2="${x + 30}" y2="${py}" stroke="${INK}" stroke-width="3"/>` +
+      emo(it[0], x, py - 2, 46) + `<path d="M${x - 40} ${py} L${x + 40} ${py} Q${x} ${py + 24} ${x - 40} ${py} Z" fill="#CFD8DC" ${ST}/>`;
+  });
+  return svg("0 0 260 180", s);
+}
+
+/* ten frames: anything a pupil counts is grouped in fives and tens */
+function tenFrames(items, cell = 44) { // items: emoji strings or {c: colour}
+  const frames = Math.max(1, Math.ceil(items.length / 10)), fw = 5 * cell, gap = 22;
+  let s = "";
+  for (let f = 0; f < frames; f++) {
+    const x0 = 4 + f * (fw + gap);
+    s += `<rect x="${x0}" y="4" width="${fw}" height="${2 * cell}" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
+    for (let i = 1; i < 5; i++) s += `<line x1="${x0 + i * cell}" y1="4" x2="${x0 + i * cell}" y2="${4 + 2 * cell}" stroke="${INK}" stroke-width="${i === 5 ? 3 : 1.5}"/>`;
+    s += `<line x1="${x0}" y1="${4 + cell}" x2="${x0 + fw}" y2="${4 + cell}" stroke="${INK}" stroke-width="1.5"/>`;
+    items.slice(f * 10, f * 10 + 10).forEach((it, i) => {
+      const x = x0 + (i % 5) * cell + cell / 2, y = 4 + Math.floor(i / 5) * cell + cell / 2;
+      s += typeof it === "string" ? emo(it, x, y + cell * .3, cell * .72)
+                                  : `<circle cx="${x}" cy="${y}" r="${cell * .36}" fill="${COLS[it.c]}" stroke="${INK}" stroke-width="3"/>`;
+    });
+  }
+  return svg(`0 0 ${frames * (fw + gap) - gap + 8} ${2 * cell + 8}`, s, "wide");
+}
+function bag(counts) { // counts: {red: 8, blue: 2}
+  const items = Object.entries(counts).flatMap(([c, n]) => Array(n).fill({ c }));
+  return `<div class="bag">${tenFrames(items)}</div>`;
+}
+function spinner(cols) {
+  const n = cols.length, r = 92;
+  let s = "";
+  cols.forEach((c, i) => {
+    const a0 = (i / n) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / n) * 2 * Math.PI - Math.PI / 2;
+    s += `<path d="M100 100 L${100 + r * Math.cos(a0)} ${100 + r * Math.sin(a0)} A${r} ${r} 0 0 1 ${100 + r * Math.cos(a1)} ${100 + r * Math.sin(a1)} Z" fill="${COLS[c]}" ${ST}/>`;
+  });
+  s += `<circle cx="100" cy="100" r="8" fill="${INK}"/>`;
+  return svg("0 0 200 200", s);
+}
+function barChart(data, guide = -1) { // data: [{e, v, col}], scale 0 to 10; guide: a bar to trace across to the scale
+  const x0 = 50, base = 268, u = 23, bw = 54, gapw = (320 - data.length * bw) / (data.length + 1);
+  let s = "";
+  for (let v = 0; v <= 10; v++) {
+    const y = base - v * u, strong = v % 5 === 0;
+    s += `<line x1="${x0}" y1="${y}" x2="370" y2="${y}" stroke="${strong ? "#333" : "#AAA"}" stroke-width="${strong ? 2.5 : 1.2}"/>` +
+      `<text x="${x0 - 10}" y="${y + 6}" font-size="17" font-weight="700" text-anchor="end" font-family="Lexend, sans-serif">${v}</text>`;
+  }
+  data.forEach((d, i) => {
+    const x = x0 + gapw + i * (bw + gapw);
+    s += `<rect x="${x}" y="${base - d.v * u}" width="${bw}" height="${d.v * u}" fill="${d.col}" ${ST}/>` + (i === guide ? `<rect x="${x - 4}" y="${base - d.v * u - 4}" width="${bw + 8}" height="${d.v * u + 4}" fill="none" stroke="#0B4F9C" stroke-width="4"/>` : "") + emo(d.e, x + bw / 2, base + 40, 34);
+    if (i === guide) s += `<line x1="${x + bw / 2}" y1="${base - d.v * u}" x2="${x0 + 4}" y2="${base - d.v * u}" stroke="#0B4F9C" stroke-width="4" stroke-dasharray="8 6"/>` +
+      `<polygon points="${x0 + 2},${base - d.v * u} ${x0 + 16},${base - d.v * u - 8} ${x0 + 16},${base - d.v * u + 8}" fill="#0B4F9C"/><circle cx="${x0 - 22}" cy="${base - d.v * u}" r="17" fill="none" stroke="#0B4F9C" stroke-width="4"/>`;
+  });
+  s += `<line x1="${x0}" y1="${base}" x2="${x0}" y2="${base - 10 * u - 6}" stroke="${INK}" stroke-width="3"/><line x1="${x0}" y1="${base}" x2="372" y2="${base}" stroke="${INK}" stroke-width="3"/>`;
+  return svg("0 0 380 318", s);
+}
+function coins(n) {
+  let s = "";
+  for (let i = 0; i < n; i++) {
+    const x = 34 + (i % 5) * 62, y = 34 + Math.floor(i / 5) * 62;
+    s += `<circle cx="${x}" cy="${y}" r="27" fill="#F2C94C" stroke="#7A5A00" stroke-width="4"/><text x="${x}" y="${y + 7}" font-size="19" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif">£1</text>`;
+  }
+  return svg(`0 0 ${Math.min(n, 5) * 62 + 6} ${Math.ceil(n / 5) * 62 + 6}`, s, "coins").replace("<svg ", `<svg style="--n:${Math.min(n, 5)}" `);
+}
+
+/* a unit in a pattern: a coloured shape or a picture */
+const unitPic = u => u.e ? svg("0 0 100 100", emo(u.e, 50, 84, 80)) : flat(u.k, u.c);
+const unitName = u => u.e ? u.n : `${u.cn} ${u.k}`;
+
+/* ------------------------------------------------------------------ question makers
+   Each returns {text (HTML), say, pic (HTML for the stage), opts: [{label, pic, right, aria}], cls} */
+const opt = (label, right, pic = "", aria = "") => ({ label, right, pic, aria });
+const words = (right, all) => shuffle([right, ...sample(all.filter(w => w !== right), 2)]).map(w => opt(w, w === right));
+
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const MARK = ["#DCEAFF", "#FFE0B8", "#E6D6F5"];
+/* ---- scaffolds ("Help me") for every question ---- */
+/* note on top; a second part (usually a number line) goes beside the first on wide screens */
+const hb = (note, a, b) => `<p class="note">${note}</p>` + (b ? `<div class="helpgrid"><div>${a}</div><div>${b}</div></div>` : a);
+const hsum = t => `<p class="hsum">${t}</p>`;
+const cards = (list, cls = "") => `<div class="cards ${cls}">${list.map(([pic, cap, bg]) => `<div class="card2${list.length === 1 ? " solo" : ""}"${bg ? ` style="background:${bg}"` : ""}>${pic}${cap ? `<span class="cap">${cap}</span>` : ""}</div>`).join("")}</div>`;
+const digits = n => [Math.floor(n / 100), Math.floor(n / 10) % 10, n % 10];
+const partsText = n => { const [h, t, o] = digits(n); return [[h, "hundred"], [t, "ten"], [o, "one"]].filter(p => p[0]).map(p => plural(...p)).join(", "); };
+/* number line with jumps from `from` to `to` (counting on or back) */
+function jumpLine(from, to, jump, lo, hi, every) {
+  if (lo === undefined) {
+    const a = Math.min(from, to), b = Math.max(from, to);
+    lo = Math.max(0, Math.floor(a / 10) * 10 - 10); hi = Math.ceil(b / 10) * 10 + 10; if (hi - lo < 60) hi = lo + 60;
+  }
+  every = every || (hi - lo <= 100 ? 10 : 20);
+  const tick = jump < 10 ? jump : jump >= 100 ? 50 : 10, x0 = 30, x1 = 570, base = 74, X = v => x0 + (x1 - x0) * (v - lo) / (hi - lo);
+  let s = `<line x1="${x0}" y1="${base}" x2="${x1}" y2="${base}" stroke="${INK}" stroke-width="4"/>`;
+  for (let v = lo; v <= hi; v += tick) {
+    const big = v % every === 0;
+    s += `<line x1="${X(v)}" y1="${base - (big ? 11 : 7)}" x2="${X(v)}" y2="${base + (big ? 11 : 7)}" stroke="${INK}" stroke-width="${big ? 3.5 : 2}"/>` +
+      (big ? `<text x="${X(v)}" y="${base + 38}" font-size="22" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif">${v}</text>` : "");
+  }
+  const dir = to >= from ? 1 : -1, n = Math.round(Math.abs(to - from) / jump), w = (x1 - x0) * jump / (hi - lo), h = Math.min(34, 10 + w * .45);
+  for (let i = 0; i < n; i++) {
+    const a = X(from + dir * i * jump), b = X(from + dir * (i + 1) * jump);
+    s += `<path d="M${a} ${base - 6} Q${(a + b) / 2} ${base - 6 - 2 * h} ${b} ${base - 6}" fill="none" stroke="#1E6FD9" stroke-width="4"/>` +
+      `<polygon points="${b - 6},${base - 16} ${b + 6},${base - 16} ${b},${base - 5}" fill="#1E6FD9"/>` +
+      (w >= 34 ? `<text x="${(a + b) / 2}" y="${base - 12 - h}" font-size="17" font-weight="700" text-anchor="middle" fill="#0B4F9C" font-family="Lexend, sans-serif">${dir > 0 ? "+" : "–"}${jump}</text>` : "");
+  }
+  s += `<circle cx="${X(from)}" cy="${base}" r="10" fill="${COLS.orange}" stroke="${INK}" stroke-width="3"/>`;
+  return svg(`0 0 600 ${base + 48}`, s, "line");
+}
+/* a chain of chips: a -> b -> c, with optional words on the arrows */
+const chain = (chips, arrows = []) => `<div class="row chain">${chips.map((c, i) => (i ? `<span class="arrow">${arrows[i - 1] ? `<small>${arrows[i - 1]}</small>` : ""}→</span>` : "") + `<span class="chip${c === "?" ? " blank" : ""}">${c}</span>`).join("")}</div>`;
+/* count up in steps, last one left as "?" */
+const countUp = (from, step, to, fmt = String) => { const c = []; for (let v = from; v < to; v += step) c.push(fmt(v)); return chain([...c, "?"]); };
+/* marks on a line from lo to hi, each number on its own level; optional labels and a shaded band */
+function markLine(vals, { lo = 0, hi, tick, every, labels = [], band, unit = "" }) {
+  const x0 = 40, x1 = 560, base = 30 + vals.length * 44, X = v => x0 + (x1 - x0) * (v - lo) / (hi - lo);
+  let s = band ? `<rect x="${X(band[0])}" y="${base - 18}" width="${X(band[1]) - X(band[0])}" height="36" fill="#BDE7C4" stroke="${INK}" stroke-width="2"/>` : "";
+  s += `<line x1="${x0}" y1="${base}" x2="${x1}" y2="${base}" stroke="${INK}" stroke-width="4"/>`;
+  for (let v = lo; v <= hi; v += tick) {
+    const big = (v - lo) % every === 0;
+    s += `<line x1="${X(v)}" y1="${base - (big ? 11 : 6)}" x2="${X(v)}" y2="${base + (big ? 11 : 6)}" stroke="${INK}" stroke-width="${big ? 3.5 : 2}"/>` +
+      (big ? `<text x="${X(v)}" y="${base + 38}" font-size="22" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif">${v}</text>` : "");
+  }
+  vals.forEach((v, i) => {
+    const y = 4 + i * 44, t = `${v}${unit}`, wdt = Math.max(70, t.length * 15 + 16), right = X(v) > 360;
+    s += `<line x1="${X(v)}" y1="${y + 36}" x2="${X(v)}" y2="${base - 4}" stroke="${INK}" stroke-width="3"/><circle cx="${X(v)}" cy="${base}" r="8" fill="${INK}"/>` +
+      `<rect x="${X(v) - wdt / 2}" y="${y}" width="${wdt}" height="36" rx="9" fill="${MARK[i % 3]}" stroke="${INK}" stroke-width="3"/>` +
+      `<text x="${X(v)}" y="${y + 27}" font-size="22" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif">${t}</text>` +
+      (labels[i] ? `<text x="${right ? X(v) - wdt / 2 - 8 : X(v) + wdt / 2 + 8}" y="${y + 26}" font-size="21" font-weight="700" text-anchor="${right ? "end" : "start"}" font-family="Lexend, sans-serif">${labels[i]}</text>` : "");
+  });
+  return svg(`0 0 600 ${base + 48}`, s, "line");
+}
+
+/* Nat 2 Shape, Space and Data: the 8 skills of the Skill Booklets. */
+const UNIT_ID = "ssd";
+
+/* ---- scaffolds ("Help me") ---- */
+const shapeKey = () => cards([["circle", COLS.red, "round, no corners"], ["square", COLS.blue, "4 sides the same"], ["triangle", COLS.green, "3 sides, 3 corners"], ["rectangle", COLS.orange, "2 long, 2 short sides"]]
+  .map(([k, c, f]) => [flat(k, c).replace(/<rect x="32" y="4"[^>]*>/, '<rect x="4" y="32" width="112" height="56" fill="' + c + '" ' + ST + '/>'), `<b>${k}</b><br>${f}`]));
+const shapeKeySay = "A circle is round, with no corners. A square has 4 sides the same. A triangle has 3 sides and 3 corners. A rectangle has 2 long sides and 2 short sides.";
+const solidKey = () => cards([["cube", "🎲 dice"], ["cuboid", "📦 box"], ["cylinder", "🥫 tin"], ["sphere", "⚽ ball"], ["cone", "🍦 cone"]].map(([k, r], i) => [solid(k, FILLS[i]), `<b>${k}</b><br><span class="emo">${r}</span>`]));
+const solidKeySay = "A cube is like a dice. A cuboid is like a box. A cylinder is like a tin. A sphere is like a ball. A cone is like an ice cream cone.";
+/* a shape with its sides or corners numbered */
+function countShape(k, what) {
+  const P = { triangle: [[60, 12], [110, 102], [10, 102]], square: [[16, 16], [104, 16], [104, 104], [16, 104]], rectangle: [[4, 32], [116, 32], [116, 88], [4, 88]] }[k];
+  const out = ([x, y]) => { const dx = x - 60, dy = y - 60, d = Math.hypot(dx, dy) || 1; return [x + dx / d * 20, y + dy / d * 20]; };
+  const spots = what === "corners" ? P.map(out) : P.map((p, i) => out([(p[0] + P[(i + 1) % P.length][0]) / 2, (p[1] + P[(i + 1) % P.length][1]) / 2]));
+  let s = `<polygon points="${P.map(p => p.join(",")).join(" ")}" fill="#DCEAFF" ${ST}/>`;
+  spots.forEach(([x, y], i) => s += `<circle cx="${x}" cy="${y}" r="14" fill="${COLS.yellow}" stroke="${INK}" stroke-width="3"/><text x="${x}" y="${y + 7}" font-size="19" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif">${i + 1}</text>`);
+  return svg("-26 -26 172 172", s);
+}
+const posKey = () => cards([["🐱", "cat", "on", "box"], ["⚽", "ball", "under", "table"], ["🐶", "dog", "next to", "table"], ["🍎", "apple", "in", "box"], ["🦆", "duck", "between", "trees"]]
+  .map(([e, n, w, p]) => [scene({ e, n }, w, p), `<b>${w}</b>`]));
+const yesNoKey = "";
+const chunked = (pics, size, ask) => { const out = []; for (let i = 0; i < pics.length; i += size) out.push(pics.slice(i, i + size)); if (ask) out[out.length - 1].length < size ? out[out.length - 1].push(`<span class="ask">?</span>`) : out.push([`<span class="ask">?</span>`]);
+  return `<div class="seq">${out.map(c => `<span class="seq chunk">${c.join("")}</span>`).join("")}</div>`; };
+const coinsSpent = (n, spent) => { let s = ""; for (let i = 0; i < n; i++) { const x = 34 + i * 62, sp = i < spent;
+    s += `<circle cx="${x}" cy="34" r="27" fill="${sp ? "#DDD" : "#F2C94C"}" stroke="${sp ? "#999" : "#7A5A00"}" stroke-width="4"/><text x="${x}" y="41" font-size="19" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif" fill="${sp ? "#888" : "#111"}">£1</text>` +
+      (sp ? `<path d="M${x - 20} 14 L${x + 20} 54 M${x + 20} 14 L${x - 20} 54" stroke="${COLS.red}" stroke-width="5" stroke-linecap="round"/>` : ""); }
+  return svg(`0 0 ${n * 62 + 6} 70`, s, "coins"); };
+const likelyKey = () => cards([["<span class='sym emo'>✅</span>", "<b>certain</b>: it will happen"], ["<span class='sym emo'>👍</span>", "<b>likely</b>: it will probably happen"],
+  ["<span class='sym emo'>🤔</span>", "<b>unlikely</b>: it probably won't happen"], ["<span class='sym emo'>❌</span>", "<b>impossible</b>: it can never happen"]], "key");
+const likelySay = "Certain means it will happen. Likely means it will probably happen. Unlikely means it probably won't happen. Impossible means it can never happen.";
+
+const Q2D = [
+  () => { const k = pick(S2);
+    return { text: `Which one is a <b>${k}</b>?`, say: `Which one is a ${k}?`,
+      opts: shuffle([k, ...sample(S2.filter(x => x !== k), 2)]).map((x, i) => opt("", x === k, flat(x, pick(FILLS), .7 + Math.random() * .3), x)),
+      help: hb(`Look at the shapes. Find the ${k}.`, shapeKey()), helpSay: shapeKeySay }; },
+  () => { const k = pick(S2);
+    return { text: "What shape is this?", say: "What shape is this?", pic: flat(k, pick(FILLS)), opts: words(k, S2),
+      help: hb("Which one looks the same? Count the sides.", shapeKey()), helpSay: shapeKeySay }; },
+  () => { const k = pick(S2), corners = k === "circle", n = { circle: 0, square: 4, triangle: 3, rectangle: 4 }[k];
+    const what = corners ? "corners" : pick(["sides", "corners"]);
+    return { text: `How many <b>${what}</b>?`, say: `How many ${what} does this shape have?`, pic: flat(k, pick(FILLS)),
+      opts: (corners ? [0, 3, 4] : [3, 4, 5]).map(v => opt(String(v), v === n)),
+      help: corners ? hb("A circle is round all the way. It has no corners.", cards([[flat("circle", COLS.red), "round: no corners"]]))
+                    : hb(`Count the ${what}. Touch each one as you count.`, cards([[countShape(k, what), ""]])),
+      helpSay: corners ? "A circle is round all the way round. It has no corners." : `Count the ${what}. Touch each number as you count.` }; },
+  () => { const [k, clue] = pick([["triangle", "has 3 sides"], ["circle", "is round"], ["square", "has 4 sides the same"]]);
+    const others = k === "square" ? ["rectangle", pick(["triangle", "circle"])] : sample(S2.filter(x => x !== k), 2);
+    return { text: `Which shape <b>${clue}</b>?`, say: `Which shape ${clue}?`,
+      opts: shuffle([k, ...others]).map(x => opt("", x === k, flat(x, pick(FILLS)), x)),
+      help: hb(`Which shape ${clue}?`, shapeKey()), helpSay: shapeKeySay }; }
+];
+
+const REAL3D = [["🥫", "tin of beans", "cylinder"], ["⚽", "football", "sphere"], ["🎲", "dice", "cube"], ["🍦", "ice cream cone", "cone"],
+                ["📦", "box", "cuboid"], ["🍊", "orange", "sphere"], ["🧽", "sponge", "cuboid"], ["🕯️", "candle", "cylinder"]];
+const Q3D = [
+  () => { const k = pick(S3);
+    return { text: `Which one is a <b>${k}</b>?`, say: `Which one is a ${k}?`,
+      opts: shuffle([k, ...sample(S3.filter(x => x !== k), 2)]).map(x => opt("", x === k, solid(x, pick(FILLS)), x)),
+      help: hb(`Look at the shapes. Find the ${k}.`, solidKey()), helpSay: solidKeySay }; },
+  () => { const k = pick(S3);
+    return { text: "What shape is this?", say: "What shape is this?", pic: solid(k, pick(FILLS)), opts: words(k, S3),
+      help: hb("Which one looks the same?", solidKey()), helpSay: solidKeySay }; },
+  () => { const [e, n, k] = pick(REAL3D);
+    return { text: `This is ${art(n)} ${n}. What shape is it?`, say: `This is ${art(n)} ${n}. What shape is it?`,
+      pic: `<span class="chance-pic emo" style="font-size:7rem">${e}</span>`,
+      opts: shuffle([k, ...sample(S3.filter(x => x !== k), 2)]).map(x => opt(x, x === k, solid(x, "#9E9E9E"))), cls: "small",
+      help: hb(`What shape is ${art(n)} ${n} like?`, solidKey()), helpSay: solidKeySay }; },
+  () => { const k = pick(S3), rolls = ["cylinder", "sphere", "cone"].includes(k);
+    return { text: `Can a ${k} <b>roll</b>?`, say: `Can a ${k} roll?`, pic: solid(k, pick(FILLS)),
+      opts: [opt("Yes", rolls, `<span class="bigemo emo">👍</span>`), opt("No", !rolls, `<span class="bigemo emo">👎</span>`)],
+      help: hb("Shapes with a curved side can roll. Shapes with only flat sides can't.", cards([[solid("sphere", COLS.blue), "sphere: rolls"], [solid("cylinder", COLS.green), "cylinder: rolls"], [solid("cone", COLS.orange), "cone: rolls"],
+        [solid("cube", COLS.red), "cube: flat sides"], [solid("cuboid", COLS.purple), "cuboid: flat sides"]])),
+      helpSay: "Shapes with a curved side can roll: a sphere, a cylinder and a cone. A cube and a cuboid only have flat sides, so they can't roll." }; },
+  () => { const is3 = Math.random() < .5, pic = is3 ? solid(pick(S3), pick(FILLS)) : flat(pick(S2), pick(FILLS));
+    return { text: "Is it flat or solid?", say: "Is it flat, or is it solid?", pic,
+      opts: [opt("flat (2D)", !is3, flat("square", "#9E9E9E")), opt("solid (3D)", is3, solid("cube", "#9E9E9E"))], cls: "small",
+      help: hb("Flat shapes are like drawings on paper. Solid shapes are ones you can pick up and hold.", cards([[flat("circle", COLS.red), "flat (2D)"], [flat("triangle", COLS.green), "flat (2D)"], [solid("sphere", COLS.blue), "solid (3D)"], [solid("cube", COLS.orange), "solid (3D)"]])),
+      helpSay: "Flat shapes are like drawings on paper. Solid shapes are ones you can pick up and hold. Solid shapes look like they have a top and a side." }; }
+];
+
+const QPOS = [
+  () => { const o = pick(OBJS), w = pick(POSW), pl = pick(PLACES[w]);
+    return { text: `Where is the ${o.n}?`, say: `Where is the ${o.n}? The ${o.n} is ... ${plName(pl)}.`,
+      pic: scene(o, w, pl) + `<p class="sentence">The ${o.n} is <span class="gap">?</span> ${plName(pl)}.</p>`,
+      opts: words(w, POSW), help: hb("Which picture matches?", posKey()), helpSay: "On, under, next to, in, between. Which picture matches?" }; },
+  () => { const o = pick(OBJS), pl = pick(["table", "box"]), ws = pl === "table" ? ["on", "under", "next to"] : ["on", "in", "next to"], w = pick(ws);
+    return { text: `Find the ${o.n} <b>${w}</b> ${plName(pl)}.`, say: `Find the ${o.n} ${w} ${plName(pl)}.`,
+      opts: shuffle(ws).map((x, i) => opt("", x === w, scene(o, x, pl), "picture")), cls: "scene",
+      help: hb(`What does <b>${w}</b> look like?`, posKey()), helpSay: "On, under, next to, in, between. Look at the examples." }; }
+];
+
+const BIGOBJS = [["🍎", "apple"], ["🐶", "dog"], ["⚽", "ball"], ["🧸", "teddy"], ["🚗", "car"], ["🐟", "fish"], ["🌻", "flower"]];
+const WEIGHTS = [["🍉", "watermelon", 9], ["🎃", "pumpkin", 8], ["🎳", "bowling ball", 9], ["🥛", "milk", 6], ["🍎", "apple", 3],
+                 ["🍪", "biscuit", 1], ["🪶", "feather", 0], ["🍌", "banana", 3], ["📕", "book", 5]];
+const QSIZE = [
+  () => { const [e, n] = pick(BIGOBJS), w = pick(["bigger", "smaller"]);
+    return { text: `Which ${n} is <b>${w}</b>?`, say: `Which ${n} is ${w}?`,
+      opts: shuffle([true, false]).map(isBig => opt("", isBig === (w === "bigger"), svg("0 0 160 160", emo(e, 80, 148, isBig ? 140 : 58)), "picture")),
+      help: hb("The bigger one takes up more space.", cards([[svg("0 0 160 160", emo("🍎", 80, 148, 140)), "bigger"], [svg("0 0 160 160", emo("🍎", 80, 148, 58)), "smaller"]])),
+      helpSay: "The bigger one takes up more space. The smaller one takes up less space." }; },
+  () => { const w = pick(["longer", "shorter"]), [a, b] = shuffle(pick([[80, 180], [80, 240], [110, 240]]));
+    return { text: `Which pencil is <b>${w}</b>?`, say: `Which pencil is ${w}?`,
+      opts: [a, b].map(l => opt("", w === "longer" ? l === Math.max(a, b) : l === Math.min(a, b), pencil(l), "pencil")), cls: "stack",
+      help: hb("Line up the ends. The one that goes further is longer.", svg("0 0 280 124", `<line x1="8" y1="4" x2="8" y2="120" stroke="${INK}" stroke-width="3" stroke-dasharray="6 5"/><g transform="translate(0 4)">${pencil(a).replace(/<\/?svg[^>]*>/g, "")}</g><g transform="translate(0 62)">${pencil(b).replace(/<\/?svg[^>]*>/g, "")}</g>`, "line")),
+      helpSay: "Line up the ends of the pencils. The one that goes further along is longer. The other one is shorter." }; },
+  () => { const w = pick(["taller", "shorter"]); let a, b; do { a = 2 + rnd(9); b = 2 + rnd(9); } while (Math.abs(a - b) < 2);
+    return { text: `Which tower is <b>${w}</b>?`, say: `Which tower is ${w}?`,
+      opts: [a, b].map(n => opt("", w === "taller" ? n === Math.max(a, b) : n === Math.min(a, b), tower(n), "tower")),
+      help: hb("Count the cubes in each tower. More cubes is taller.", cards([[tower(a), `${a} cubes`], [tower(b), `${b} cubes`]])),
+      helpSay: "Count the cubes in each tower. The tower with more cubes is taller. The tower with fewer cubes is shorter." }; },
+  () => { let L, R; do { [L, R] = sample(WEIGHTS, 2); } while (Math.abs(L[2] - R[2]) < 2);
+    const w = pick(["heavier", "lighter"]), heavy = L[2] > R[2] ? L : R, right = w === "heavier" ? heavy : (heavy === L ? R : L);
+    return { text: `Which is <b>${w}</b>?`, say: `Which is ${w}? The heavier side goes down.`,
+      pic: balance(L, R) + `<p class="note">The heavier side goes down.</p>`,
+      opts: [L, R].map(it => opt(it[1], it === right, `<span class="bigemo emo">${it[0]}</span>`)),
+      help: hb("Look at which side goes down.", cards([[`<span class="sym emo">⬇️</span>`, "goes down: <b>heavier</b>"], [`<span class="sym emo">⬆️</span>`, "goes up: <b>lighter</b>"]], "key")),
+      helpSay: "The heavier side goes down. The lighter side goes up." }; }
+];
+
+const CN = Object.keys(COLS);
+function patternUnits() {
+  if (Math.random() < .35) return sample([{ e: "🍎", n: "apple" }, { e: "🍌", n: "banana" }, { e: "🍇", n: "grapes" }, { e: "⭐", n: "star" }, { e: "❤️", n: "heart" }], 3);
+  const ks = sample(["circle", "square", "triangle"], 3), cs = sample(CN, 3);
+  return ks.map((k, i) => ({ k, c: COLS[cs[i]], cn: cs[i] }));
+}
+const QPAT = [
+  () => { const u = patternUnits(), tpl = pick(["AB", "AB", "AAB", "ABB", "ABC"]), L = tpl.length * 2 + rnd(tpl.length) + (tpl.length === 2 ? 2 : 0);
+    const at = i => u["ABC".indexOf(tpl[i % tpl.length])], next = at(L);
+    const seq = Array.from({ length: L }, (_, i) => unitPic(at(i))).join("") + `<span class="ask">?</span>`;
+    return { text: "What comes next?", say: "What comes next? Say the pattern out loud.", pic: `<div class="seq">${seq}</div>`,
+      opts: shuffle(u).map(x => opt("", x === next, unitPic(x), unitName(x))), helpHidesPic: true,
+      help: hb("Find the part that repeats. Say it out loud. What starts the next part?", chunked(Array.from({ length: L }, (_, i) => unitPic(at(i))), tpl.length, true)),
+      helpSay: "Find the part that repeats. Say the pattern out loud, one group at a time. What comes next?" }; },
+  () => { const u = patternUnits(), tpl = pick(["AB", "ABC"]), L = 8, bad = 2 + rnd(L - 2);
+    const items = Array.from({ length: L }, (_, i) => u["ABC".indexOf(tpl[i % tpl.length])]);
+    items[bad] = pick(u.filter(x => x !== items[bad]));
+    return { text: "One is wrong. <b>Find the mistake.</b>", say: "One is wrong. Find the mistake. Tap it.",
+      opts: items.map((x, i) => opt("", i === bad, unitPic(x), `number ${i + 1}`)), cls: "seqopts",
+      help: hb("Here it is in groups. Every group should be the same. Which group is different?", chunked(items.map(unitPic), tpl.length, false)),
+      helpSay: "Look at the groups. Every group should be the same. Find the group that is different, then find the shape that is wrong." }; }
+];
+
+const MENU = [["🥪", "sandwich", 2], ["🍕", "pizza", 3], ["🧃", "juice", 1], ["🍪", "biscuit", 1], ["🍰", "cake", 2], ["🍦", "ice cream", 2]];
+const menuCard = (mark = "") => `<div class="menu"><h3>Café menu</h3><ul>${MENU.map(([e, n, p]) => `<li${n === mark ? ' style="background:var(--hi);outline:3px solid #111;border-radius:8px"' : ""}><span class="emo">${e}</span><span>${n}</span><b>£${p}</b></li>`).join("")}</ul></div>`;
+const pounds = v => `£${v}`;
+/* one thing from the menu with its price: used instead of the whole menu once pupils know what they are buying */
+const item = ([e, n, p]) => `<div class="card2"><span class="emo">${e}</span>${n}<br><b style="font-size:1.4rem;color:#0B4F9C">£${p}</b></div>`;
+const QMENU = [
+  () => { const [e, n, p] = pick(MENU);
+    return { text: `How much is ${art(n)} <b>${n}</b>?`, say: `How much is ${art(n)} ${n}?`, pic: menuCard(),
+      opts: numOpts(p, 1, 5).map(v => opt(pounds(v), v === p)), helpHidesPic: true,
+      help: hb(`Find the ${n} on the menu. Read the price next to it.`, menuCard(n)), helpSay: `Find the ${n} on the menu. It is coloured yellow. Read the price next to it.` }; },
+  () => { const [a, b] = sample(MENU, 2), t = a[2] + b[2];
+    return { text: "How much altogether?", say: `You buy ${art(a[1])} ${a[1]} and ${art(b[1])} ${b[1]}. How much is that altogether?`,
+      pic: `<div class="row">${item(a)}<span class="sym">+</span>${item(b)}<span class="sym">=</span><span class="gap sym">?</span></div>`,
+      opts: numOpts(t, 2, 8).map(v => opt(pounds(v), v === t)),
+      help: hb("Here are the prices in £1 coins. Count all the coins.", cards([[coins(a[2]), `${a[1]} £${a[2]}`], [coins(b[2]), `${b[1]} £${b[2]}`]])),
+      helpSay: `Here are the prices in 1 pound coins. Count all the coins together.` }; },
+  () => { const [a, b] = sample(MENU, 2), t = a[2] + b[2], have = Math.max(2, t + pick([-2, -1, 0, 1, 2])), ok = have >= t;
+    return { text: `You have £${have}. Can you buy both?`, say: `You have ${have} pounds. Can you buy ${art(a[1])} ${a[1]} and ${art(b[1])} ${b[1]}?`,
+      pic: `<div class="row">${item(a)}${item(b)}</div><p class="note">You have £${have}.</p>` + coins(have),
+      opts: [opt("Yes", ok, `<span class="bigemo emo">👍</span>`), opt("No", !ok, `<span class="bigemo emo">👎</span>`)],
+      help: hb("Count the coins for the food. Do you have that many coins?", cards([[coins(a[2]), a[1]], [coins(b[2]), b[1]], [coins(have), "you have", MARK[1]]])),
+      helpSay: "Count the coins you need for the food. Then count the coins you have. Do you have the same or more?" }; },
+  () => { const [e, n, p] = pick(MENU), c = 5 - p;
+    return { text: "How much change?", say: `You buy ${art(n)} ${n}. You pay with 5 pounds. How much change do you get?`,
+      pic: `<div class="row">${item([e, n, p])}</div><p class="note">You pay with £5.</p>` + coins(5),
+      opts: numOpts(c, 1, 4).map(v => opt(pounds(v), v === c)),
+      help: hb(`Cross off the £${p} you spend. The coins left over are your change.`, cards([[coinsSpent(5, p), ""]])),
+      helpSay: `You pay 5 pounds. Cross off ${p} pound${p > 1 ? "s" : ""} for the ${n}. Count the coins that are left. That is your change.` }; }
+];
+
+const FRUIT = [["🍎", "apples", "#E53935"], ["🍌", "bananas", "#FFC400"], ["🍊", "oranges", "#FB8C00"], ["🍇", "grapes", "#8E44AD"], ["🍓", "strawberries", "#E91E63"]];
+function fruitData() { const fs = sample(FRUIT, pick([3, 4])), vs = sample([1, 2, 3, 4, 5, 6, 7, 8, 9], fs.length); return fs.map((f, i) => ({ e: f[0], n: f[1], col: f[2], v: vs[i] })); }
+const QBAR = [
+  () => { const d = fruitData(), f = pick(d);
+    return { text: `How many chose <b>${f.n}</b>?`, say: `Look at the bar graph. How many people chose ${f.n}? Find the bar, then look across to the number.`,
+      pic: `<p class="note">Favourite fruit</p>` + barChart(d), opts: numOpts(f.v, 0, 10).map(v => opt(String(v), v === f.v)), helpHidesPic: true,
+      help: hb(`Find the ${f.n} bar. Go to the top of the bar, then follow the line across to the number.`, barChart(d, d.indexOf(f)).replace("<svg", '<svg class="line" style="max-height:36vh"')),
+      helpSay: `Find the ${f.n} bar. Go to the top of the bar. Follow the dotted line across to the number.` }; },
+  () => { const d = fruitData(), w = pick(["most", "least"]), f = d.reduce((a, b) => (w === "most" ? b.v > a.v : b.v < a.v) ? b : a);
+    return { text: `Which fruit is the <b>${w}</b>?`, say: `Look at the bar graph. Which fruit did the ${w} people choose? The ${w === "most" ? "tallest" : "shortest"} bar is the ${w}.`,
+      pic: `<p class="note">Favourite fruit</p>` + barChart(d), opts: shuffle(d).map(x => opt(x.n, x === f, `<span class="bigemo emo">${x.e}</span>`)),
+      help: hb("The tallest bar is the most. The shortest bar is the least.", cards([[svg("0 0 60 100", `<rect x="14" y="8" width="32" height="88" fill="${COLS.blue}" ${ST}/>`), "<b>tallest</b> = most"], [svg("0 0 60 100", `<rect x="14" y="70" width="32" height="26" fill="${COLS.blue}" ${ST}/>`), "<b>shortest</b> = least"]])),
+      helpSay: "The tallest bar is the most. The shortest bar is the least." }; },
+  () => { const f = pick(FRUIT), n = 3 + rnd(13);
+    return { text: `Count the ${f[1]}. How many?`, say: `Count the ${f[1]}. How many are there?`,
+      pic: tenFrames(Array(n).fill(f[0])), opts: numOpts(n, 1, 20).map(v => opt(String(v), v === n)),
+      help: hb("A full row is 5. A full frame is 10. Then count on.", tenFrames(Array.from({ length: n }, (_, i) => i === n - 1 ? "?" : String(i + 1))).replace("<svg", '<svg style="display:block;margin:auto;max-width:520px;width:100%;height:auto"')),
+      helpSay: "A full row is 5. A full ten frame is 10. Count the full ones first, then count on." }; }
+];
+
+const STATEMENTS = [["☀️", "The sun will come up tomorrow.", "certain"], ["🌙", "It will get dark tonight.", "certain"],
+  ["🐱🚀", "A cat will fly to the moon.", "impossible"], ["🐶💬", "A dog will talk to you.", "impossible"],
+  ["🌧️", "It will rain in Scotland this month.", "likely"], ["🚗", "You will see a car today.", "likely"],
+  ["🍦", "You will eat 20 ice creams today.", "unlikely"], ["❄️", "It will snow in July.", "unlikely"]];
+const LIKELY = ["certain", "likely", "unlikely", "impossible"];
+const colourOpt = (c, right) => opt(c, right, `<span class="swatch" style="background:${COLS[c]}"></span>`);
+const QCHANCE = [
+  () => { const cs = sample(["red", "blue", "green", "yellow"], pick([2, 3])), vs = sample([1, 2, 3, 6, 7, 8, 9], cs.length);
+    const counts = Object.fromEntries(cs.map((c, i) => [c, vs[i]])), w = pick(["most", "least"]);
+    const ans = cs.reduce((a, b) => (w === "most" ? counts[b] > counts[a] : counts[b] < counts[a]) ? b : a);
+    return { text: `Take one without looking. Which colour is <b>${w} likely</b>?`, say: `Take one without looking. Which colour is ${w} likely?`,
+      pic: bag(counts), opts: shuffle(cs).map(c => colourOpt(c, c === ans)),
+      help: hb(`Count each colour. The most counters is most likely. The fewest is least likely.`, cards(cs.map(c => [`<span class="swatch" style="background:${COLS[c]}"></span>`, `${counts[c]} ${c}`]))),
+      helpSay: "Count each colour. The colour with the most counters is most likely. The colour with the fewest is least likely." }; },
+  () => { const [main, other] = sample(["red", "blue", "green", "yellow"], 2), n = pick([4, 6, 8]), k = pick([1, n / 2 - 1].filter(x => x >= 1));
+    const cols = shuffle([...Array(n - k).fill(main), ...Array(k).fill(other)]);
+    return { text: "Spin the spinner. Which colour is <b>most likely</b>?", say: "Spin the spinner. Which colour is most likely?",
+      pic: spinner(cols), opts: shuffle([main, other]).map(c => colourOpt(c, c === main)),
+      help: hb("Count the parts of each colour. More parts is more likely.", cards([main, other].map(c => [`<span class="swatch" style="background:${COLS[c]}"></span>`, `${cols.filter(x => x === c).length} ${c} parts`]))),
+      helpSay: "Count the parts of each colour. The colour with more parts is more likely." }; },
+  () => { const [e, s, ans] = pick(STATEMENTS);
+    return { text: s, say: s + " Is it certain, likely, unlikely, or impossible?", pic: `<span class="chance-pic emo">${e}</span>`,
+      opts: LIKELY.map(w => opt(w, w === ans)), help: hb("What do the words mean?", likelyKey()), helpSay: likelySay }; },
+  () => { const [c, o] = sample(["red", "blue", "green", "yellow"], 2), n = 6 + rnd(5), same = Math.random() < .5, ask = same ? c : o;
+    const ans = same ? "certain" : "impossible";
+    return { text: `Take one. Will it be <b>${ask}</b>?`, say: `Take one without looking. Will it be ${ask}?`,
+      pic: bag({ [c]: n }), opts: ["certain", "likely", "impossible"].map(w => opt(w, w === ans)),
+      help: hb(`Every counter in the bag is ${c}. Is there any ${ask}?`, likelyKey()),
+      helpSay: `Look in the bag. Every counter is ${c}. If you will always get it, it is certain. If you can never get it, it is impossible.` }; }
+];
+
+/* ------------------------------------------------------------------ the 8 skills (same as the Skill Booklets) */
+const SKILLS = [
+  { id: "2d", name: "2D shapes", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 1 - 2D shapes.pdf",
+    ican: ["name 2D shapes", "count sides", "find shapes around me"], qs: Q2D,
+    icon: () => svg("0 0 130 110", `<circle cx="34" cy="62" r="26" fill="${COLS.red}" ${ST}/><polygon points="94,20 124,78 64,78" fill="${COLS.green}" ${ST}/><rect x="56" y="74" width="30" height="30" fill="${COLS.blue}" ${ST}/>`),
+    look: () => `<div class="lk">${[["circle", COLS.red, "round, no corners"], ["square", COLS.blue, "4 sides the same"], ["triangle", COLS.green, "3 sides, 3 corners"], ["rectangle", COLS.orange, "2 long sides, 2 short sides"]]
+      .map(([k, c, f]) => `<div>${flat(k === "rectangle" ? "rectangle" : k, c)}<span class="w">${k}</span><span class="f">${f}</span></div>`).join("")}</div>`,
+    say: "2D shapes are flat. A circle is round. It has no corners. A square has 4 sides the same. A triangle has 3 sides and 3 corners. A rectangle has 2 long sides and 2 short sides." },
+  { id: "3d", name: "3D shapes", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 2 - 3D shapes.pdf",
+    ican: ["name 3D shapes", "find them in real life"], qs: Q3D,
+    icon: () => solid("cube", COLS.blue),
+    look: () => `<div class="lk">${[["cube", "🎲 dice"], ["cuboid", "📦 box"], ["cylinder", "🥫 tin"], ["sphere", "⚽ ball"], ["cone", "🍦 ice cream cone"]]
+      .map(([k, r], i) => `<div>${solid(k, FILLS[i])}<span class="w">${k}</span><span class="f emo">${r}</span></div>`).join("")}</div>`,
+    say: "3D shapes are solid. A cube is like a dice. A cuboid is like a box. A cylinder is like a tin. A sphere is like a ball. A cone is like an ice cream cone." },
+  { id: "position", name: "Where is it?", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 3 - Where is it - position.pdf",
+    ican: ["use position words", "say where things are"], qs: QPOS,
+    icon: () => scene(OBJS[0], "on", "box"),
+    look: () => `<div class="lk wide">${[["🐱", "cat", "on", "box"], ["⚽", "ball", "under", "table"], ["🐶", "dog", "next to", "table"], ["🍎", "apple", "in", "box"], ["🦆", "duck", "between", "trees"]]
+      .map(([e, n, w, p]) => `<div>${scene({ e, n }, w, p)}<span class="w">${w}</span><span class="f">The ${n} is ${w} ${plName(p)}.</span></div>`).join("")}</div>`,
+    say: "The cat is on the box. The ball is under the table. The dog is next to the table. The apple is in the box. The duck is between the two trees." },
+  { id: "size", name: "Bigger or smaller?", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 4 - Bigger or smaller - size and weight.pdf",
+    ican: ["compare size", "compare length", "compare weight"], qs: QSIZE,
+    icon: () => svg("0 0 130 110", emo("🍎", 44, 100, 80) + emo("🍎", 106, 100, 36)),
+    look: () => `<div class="lk wide">
+      <div>${svg("0 0 240 130", emo("🍎", 70, 122, 120) + emo("🍎", 190, 122, 50))}<span class="w">bigger · smaller</span></div>
+      <div>${svg("0 0 260 130", `<g transform="translate(0 10)">${pencil(240).replace(/<\/?svg[^>]*>/g, "")}</g><g transform="translate(0 66)">${pencil(130).replace(/<\/?svg[^>]*>/g, "")}</g>`)}<span class="w">longer · shorter</span></div>
+      <div>${svg("0 0 200 300", `<g transform="translate(20 0)">${tower(9).replace(/<\/?svg[^>]*>/g, "")}</g><g transform="translate(110 0)">${tower(4).replace(/<\/?svg[^>]*>/g, "")}</g>`)}<span class="w">taller · shorter</span></div>
+      <div>${balance(WEIGHTS[0], WEIGHTS[6])}<span class="w">heavier · lighter</span><span class="f">The heavier side goes down.</span></div></div>`,
+    say: "Look for the bigger one and the smaller one. The longer pencil and the shorter pencil. The taller tower and the shorter tower. On the scales, the heavier side goes down. The watermelon is heavier. The feather is lighter." },
+  { id: "patterns", name: "What comes next?", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 5 - Patterns.pdf",
+    ican: ["continue a pattern", "find a mistake in a pattern"], qs: QPAT,
+    icon: () => svg("0 0 130 110", `<circle cx="22" cy="55" r="17" fill="${COLS.red}" ${ST}/><rect x="47" y="38" width="34" height="34" fill="${COLS.blue}" ${ST}/><circle cx="108" cy="55" r="17" fill="${COLS.red}" ${ST}/>`),
+    look: () => { const a = { k: "circle", c: COLS.red }, b = { k: "square", c: COLS.blue };
+      return `<div class="seq">${[a, b, a, b, a, b].map(unitPic).join("")}<span class="ask">?</span></div>
+        <p class="lookline">red circle, blue square, red circle, blue square ...</p><p class="lookline">Say the pattern out loud. What comes next?</p>`; },
+    say: "Red circle, blue square, red circle, blue square, red circle, blue square. Say the pattern out loud. What comes next? A red circle!" },
+  { id: "menus", name: "Menus and bills", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 6 - Menus and bills.pdf",
+    ican: ["read a menu", "add up a bill", "check I have enough money"], qs: QMENU,
+    icon: () => svg("0 0 130 110", emo("🍕", 46, 80, 64) + `<text x="104" y="76" font-size="40" font-weight="700" text-anchor="middle" font-family="Lexend, sans-serif" fill="#0B4F9C">£3</text>`),
+    look: () => menuCard() + `<div class="order" style="margin-top:1rem"><span class="emo">🍕</span> pizza £3 + <span class="emo">🧃</span> juice £1 = <b>£4</b></div>
+      <p class="lookline">Find each thing on the menu. Add the prices.</p>`,
+    say: "Here is the menu. A pizza is 3 pounds. A juice is 1 pound. Pizza and juice: 3 pounds add 1 pound makes 4 pounds altogether." },
+  { id: "bargraph", name: "Bar graphs", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 7 - Making a bar graph.pdf",
+    ican: ["count and fill in a table", "read a bar graph"], qs: QBAR,
+    icon: () => svg("0 0 130 110", `<line x1="10" y1="100" x2="124" y2="100" stroke="${INK}" stroke-width="4"/><rect x="18" y="60" width="26" height="40" fill="${COLS.red}" ${ST}/><rect x="54" y="20" width="26" height="80" fill="${COLS.yellow}" ${ST}/><rect x="90" y="44" width="26" height="56" fill="${COLS.purple}" ${ST}/>`),
+    look: () => `<div class="lk wide"><div>${barChart([{ e: "🍎", v: 3, col: "#E53935" }, { e: "🍌", v: 8, col: "#FFC400" }, { e: "🍇", v: 5, col: "#8E44AD" }])}</div>
+      <div style="text-align:left;align-self:center"><p class="lookline" style="text-align:left">Find the bar.</p><p class="lookline" style="text-align:left">Look across to the number.</p>
+      <p class="lookline" style="text-align:left">The <u>tallest</u> bar is the <u>most</u>: 8 bananas.</p><p class="lookline" style="text-align:left">The <u>shortest</u> bar is the <u>least</u>: 3 apples.</p></div></div>`,
+    say: "This is a bar graph of favourite fruit. Find the bar, then look across to the number. The tallest bar is the most. 8 people chose bananas. The shortest bar is the least. 3 people chose apples." },
+  { id: "chance", name: "What is likely?", path: "Skill Booklets/Shape, Space and Data - Skill Booklet 8 - Most likely - chance.pdf",
+    ican: ["say what is most likely", "say what is least likely", "use likely words"], qs: QCHANCE,
+    icon: () => spinner(["red", "red", "red", "blue"]),
+    look: () => `<div class="lk wide"><div>${bag({ red: 9, blue: 1 })}</div>
+      <div style="align-self:center"><p class="lookline">Take one without looking.</p><p class="lookline">There are lots of red.</p>
+      <p class="lookline">Red is <u>most</u> likely.</p><p class="lookline">Blue is <u>least</u> likely.</p></div></div>
+      <div class="scale"><span>certain ☀️ The sun will come up.</span><span>likely 🌧️ Rain in Scotland.</span><span>unlikely ❄️ Snow in July.</span><span>impossible 🐱🚀 A cat flies to the moon.</span></div>`,
+    say: "Take one without looking. There are lots of red. Red is most likely. Blue is least likely. Certain means it will happen. Impossible means it can not happen." }
+];
+const PRINTS = [
+  { title: "All 8 skill booklets", path: "Skill Booklets/Shape, Space and Data - PRINT PACK - all skill booklets.pdf" },
+  { title: "My numeracy booklet", path: "Numeracy Booklet/Shape, Space and Data - Numeracy Booklet.pdf" }
+];
+/* ------------------------------------------------------------------ settings and voice (saved on this device only) */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("nat2-" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("nat2-" + k, JSON.stringify(v)); } catch {} }
+};
+const prefs = Object.assign({ size: "big", bg: "cream", voice: "off" }, store.get("prefs", {}));
+function applyPrefs() {
+  document.documentElement.dataset.size = prefs.size;
+  document.documentElement.dataset.bg = prefs.bg;
+  document.querySelectorAll("[data-set]").forEach(b => b.setAttribute("aria-pressed", String(prefs[b.dataset.set] === b.dataset.val)));
+}
+document.querySelectorAll("[data-set]").forEach(b => b.addEventListener("click", () => {
+  prefs[b.dataset.set] = b.dataset.val; store.set("prefs", prefs); applyPrefs();
+}));
+$("#setBtn").addEventListener("click", () => {
+  const p = $("#settings"); p.hidden = !p.hidden; $("#setBtn").setAttribute("aria-expanded", String(!p.hidden));
+});
+applyPrefs();
+
+let voice = null;
+function findVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => v.lang === "en-GB" && /female|serena|kate|libby|sonia/i.test(v.name)) || vs.find(v => v.lang === "en-GB") || vs.find(v => v.lang.startsWith("en")) || null;
+}
+if ("speechSynthesis" in window) { findVoice(); speechSynthesis.onvoiceschanged = findVoice; }
+else document.querySelectorAll("#lookSay,#qSay").forEach(b => b.hidden = true);
+function say(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const lb = n => `${n} pound${n === "1" ? "" : "s"}`;
+  text = text.replace(/£(\d+)\.(\d\d)/g, (_, a, b) => b === "00" ? lb(a) : `${lb(a)} ${+b}`)
+    .replace(/£(\d+)/g, (_, n) => lb(n)).replace(/\b1p\b/g, "1 penny").replace(/\b(\d+)p\b/g, "$1 pence")
+    .replace(/(\d) ?°C/g, "$1 degrees").replace(/(\d) ?ml\b/g, "$1 millilitres").replace(/(\d) ?kg\b/g, "$1 kilograms")
+    .replace(/(\d) ?g\b/g, "$1 grams").replace(/(\d) ?cm\b/g, "$1 centimetres").replace(/(\d) ?m\b/g, "$1 metres")
+    .replace(/×/g, " times ").replace(/÷/g, " shared between ").replace(/ [–−] /g, " take away ");
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-GB"; u.rate = .85; if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
+}
+
+/* ------------------------------------------------------------------ screens */
+let skill = null, round = [], qi = 0, tries = 0, q = null;
+const ROUND = 5;
+const stars = store.get(UNIT_ID + "-stars", {});
+function show(id) {
+  ["home", "look", "play", "done"].forEach(s => $("#" + s).hidden = s !== id);
+  document.body.classList.toggle("playing", id === "play");
+  document.body.classList.remove("helpside");
+  $("#homeBtn").hidden = id === "home";
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  window.scrollTo(0, 0);
+}
+
+function renderHome() {
+  $("#tiles").innerHTML = SKILLS.map((s, i) => `<li><button class="tile" data-id="${s.id}">
+    <span class="num">${i + 1}</span>${s.icon()}<span class="tname">${s.name}</span>
+    <span class="tstars">${stars[s.id] ? `<span class="emo" aria-hidden="true">⭐</span> done ${stars[s.id]} time${stars[s.id] > 1 ? "s" : ""}` : ""}</span></button></li>`).join("");
+  document.querySelectorAll(".tile").forEach(t => t.addEventListener("click", () => { location.hash = t.dataset.id; }));
+  $("#printList").innerHTML = [...SKILLS.filter(s => !s.noPrintList).map((s, i) => ({ title: s.printTitle || `Booklet ${i + 1}: ${s.name}`, path: s.path })), ...PRINTS]
+    .map(p => `<li><a href="${encodeURI(p.path)}" target="_blank" rel="noopener">${p.title}</a></li>`).join("");
+}
+
+function openSkill(s) {
+  skill = s;
+  $("#lookIcon").innerHTML = s.icon();
+  $("#lookTitle").textContent = s.name;
+  $("#lookIcan").innerHTML = "I can: " + s.ican.map(x => `<b>${x}</b>`).join(" · ");
+  $("#lookBody").innerHTML = s.look();
+  $("#lookPrint").href = encodeURI(s.path);
+  $("#lookPrint").innerHTML = `<span class="emo" aria-hidden="true">🖨️</span> ${s.printLabel || "Print the booklet"}`;
+  show("look");
+  if (prefs.voice === "on") say(s.say);
+  $("#goBtn").focus();
+}
+
+function startRound() {
+  let list = [];
+  while (list.length < ROUND) list.push(...shuffle(skill.qs));
+  round = list.slice(0, ROUND); qi = 0;
+  show("play");
+  nextQ();
+}
+function drawStars() {
+  $("#stars").innerHTML = Array.from({ length: ROUND }, (_, i) => `<span class="${i < qi ? "on" : ""}${i === qi ? " now" : ""}">★</span>`).join("");
+  $("#stars").setAttribute("aria-label", `Question ${Math.min(qi + 1, ROUND)} of ${ROUND}`);
+}
+function nextQ() {
+  q = round[qi](); tries = 0;
+  drawStars();
+  $("#qText").innerHTML = q.text;
+  $("#stage").innerHTML = q.pic || "";
+  const box = $("#opts");
+  box.className = "opts " + (q.cls || "");
+  box.innerHTML = "";
+  q.opts.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.className = "opt" + (q.cls === "small" ? " small" : "");
+    b.innerHTML = o.pic + (o.label ? `<span>${o.label}</span>` : "");
+    if (!o.label) b.setAttribute("aria-label", `Picture ${i + 1}`);
+    b.addEventListener("click", () => choose(b, o));
+    box.appendChild(b);
+  });
+  $("#fb").textContent = ""; $("#fb").className = "fb";
+  $("#nextBtn").hidden = true;
+  showHelp(false);
+  $("#helpBtn").hidden = !q.help;
+  $("#qText").setAttribute("tabindex", "-1"); $("#qText").focus({ preventScroll: true });
+  if (prefs.voice === "on") say(q.say);
+  requestAnimationFrame(fit);
+}
+const PRAISE = ["Well done!", "Yes! Great work.", "Brilliant!", "That's right!", "Super!"];
+function choose(b, o) {
+  if (b.disabled) return;
+  const all = [...document.querySelectorAll("#opts .opt")];
+  if (o.right) {
+    b.classList.add("right");
+    all.forEach(x => { x.disabled = true; x.classList.remove("hint"); });
+    const p = pick(PRAISE);
+    $("#fb").textContent = p; $("#fb").className = "fb good";
+    say(p);
+    qi++; drawStars();
+    $("#nextBtn").textContent = qi >= ROUND ? "Finish ▶" : "Next ▶";
+    $("#nextBtn").hidden = false; $("#nextBtn").focus({ preventScroll: true });
+    fit();
+  } else {
+    tries++;
+    b.classList.add("tried"); b.disabled = true;
+    const msg = tries >= 2 ? "Have another go. Look at the yellow one." : "Not quite. Have another go.";
+    $("#fb").textContent = msg;
+    say(msg);
+    if (tries >= 2) all[q.opts.findIndex(x => x.right)].classList.add("hint");
+    fit();
+  }
+}
+/* Keep the whole question on one screen, so nothing has to be held in mind while scrolling:
+   if it is too tall, shrink the picture, then the help, then the answer buttons, never below a readable size. */
+function fit() {
+  const phone = innerWidth < 560;  // phones have far less room, so allow a little more shrinking
+  const parts = [["#stage", phone ? .5 : .55], ["#help", phone ? .5 : .6], ["#opts", phone ? .62 : .72]];
+  if (q && q.cls === "stack") parts.splice(1, 0, parts.pop());  // tall rows of answers (money, pencils): shrink those before the help
+  parts.forEach(([sel]) => $(sel).style.zoom = "");
+  if ($("#play").hidden) return;
+  for (let pass = 0; pass < 2; pass++)
+    for (const [sel, floor] of parts) {
+      const el = $(sel), over = document.documentElement.scrollHeight - innerHeight;
+      if (over <= 0) return;
+      if (el.hidden || !el.offsetHeight) continue;
+      const z = +(el.style.zoom || 1), h = el.getBoundingClientRect().height;
+      el.style.zoom = Math.max(floor, z * (h - over) / h).toFixed(3);
+    }
+}
+window.addEventListener("resize", () => requestAnimationFrame(fit));
+$("#nextBtn").addEventListener("click", () => {
+  if (qi < ROUND) return nextQ();
+  stars[skill.id] = (stars[skill.id] || 0) + 1; store.set(UNIT_ID + "-stars", stars);
+  $("#doneMsg").textContent = `You finished ${skill.name}. Well done!`;
+  show("done");
+  say(`You did it! You finished ${skill.name}. Well done!`);
+  $("#againBtn").focus();
+});
+$("#goBtn").addEventListener("click", startRound);
+$("#againBtn").addEventListener("click", startRound);
+$("#lookAgain").addEventListener("click", () => openSkill(skill));
+$("#lookSay").addEventListener("click", () => say(skill.say));
+$("#qSay").addEventListener("click", () => say(q.say));
+/* optional scaffold for a question: q.help (HTML) and q.helpSay */
+function showHelp(on) {
+  $("#help").hidden = !on;
+  $("#stage").hidden = on && !!q.helpHidesPic;  // the help shows the story itself, so don't show it twice
+  // wide screens: help sits beside the picture rather than under it
+  document.body.classList.toggle("helpside", on && !$("#stage").hidden && !!$("#stage").innerHTML.trim());
+  $("#help").innerHTML = on ? q.help : "";
+  $("#helpBtn").setAttribute("aria-expanded", String(on));
+  $("#helpBtn").querySelector("span:last-child").textContent = on ? "Hide help" : "Help me";
+}
+$("#helpBtn").addEventListener("click", () => {
+  const on = $("#help").hidden;
+  showHelp(on);
+  if (on && q.helpSay) say(q.helpSay);
+  fit();
+});
+$("#homeBtn").addEventListener("click", () => { location.hash = ""; });
+$("#otherBtn").addEventListener("click", () => { location.hash = ""; });
+
+function route() {
+  const s = SKILLS.find(x => x.id === location.hash.slice(1));
+  if (s) openSkill(s); else { renderHome(); show("home"); }
+}
+window.addEventListener("hashchange", route);
+route();
+/* on the pupil website, show a link back to the course page */
+window.addEventListener("DOMContentLoaded", () => { if (window.PUPIL_SITE) $("#siteLink").hidden = false; });
+</script>
+<script>window.PUPIL_SITE={"root": "../../..", "home": "nat2/index.html", "homes": {"s1": "s1/index.html", "s2": "s2/index.html", "s3": "s3/index.html", "nat2": "nat2/index.html", "nat5": "nat5/index.html", "higher": "higher/index.html"}, "published": ["files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000 scaffold for every question_B.pdf", "files/bge/2 S1/T1 01 Number Work/Multiplying and Dividing by multiples of 10 100 1000 MNU 3-03b/multiply-divide-by-10-100-1000-table_G_E.pdf", "files/bge/2 S1/T1 01 Number Work/Topic page - Multiply and divide by 10 100 1000.html", "files/bge/2 S1/T1 03 Measurement Angles/Angles_Practice_MTH_3-17a_v2 (1).html", "files/bge/2 S1/T1 03 Measurement Angles/Making_180_Angles_Workbooklet.pdf", "files/bge/2 S1/T2 01 Integers/Integers teaching tool - counters and number line.html", "files/bge/2 S1/T2 01 Integers/Negative Numbers - Bridging Through Zero (MNU 3-04a).pdf", "files/bge/2 S1/T2 01 Integers/Topic page - Integers.html", "files/bge/2 S1/T2 02 Area and Perimeter/Area and perimeter teaching tool - shapes on a grid.html", "files/bge/2 S1/T2 02 Area and Perimeter/Compound area of rectangles worksheet MTH 3-11a.pdf", "files/bge/2 S1/T2 02 Area and Perimeter/Topic page - Area and Perimeter.html", "files/bge/2 S1/T2 03 Coordinates/Coordinates teaching tool - points on a grid.html", "files/bge/2 S1/T2 03 Coordinates/Topic page - Coordinates.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Fractions teaching tool - area model.html", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/H) Fractions/Summary Sheets/Operations with fractions summary sheet pdf.pdf", "files/bge/3 S2/T2 01 Multiplying and Dividing Fractions/Topic page - Multiplying and Dividing Fractions.html", "files/bge/3 S2/T2 02 Scale Drawing and Bearings/Topic page - Scale Drawing and Bearings.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Powers, roots and scientific notation teaching tool.html", "files/bge/4 S3/T2 01 Powers, roots and scientific notation/Topic page - Powers, roots and scientific notation.html", "files/bge/4 S3/T2 02 Pythagoras/Pythagoras teaching tool - squares on the sides.html", "files/bge/4 S3/T2 02 Pythagoras/Topic page - Pythagoras.html", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-B-A4 (1).pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-C-A4.pdf", "files/bge/4 S3/T3 01 Percentages and Probability/Reverse-Percentage-Change-Non-Calculator-Worksheet-D-A4.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Preparation_Pack_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 1/S1_Term1_Assessment_Reflection_Supported_MNU3-01a_3-03a_3-03b_MTH3-17a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Preparation_Pack_Supported_MNU3-04a_3-11a_MTH3-11b_3-14a_3-18a_3-19a.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 2/S1_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Preparation_Pack_FDP_Ratio_Circles_Volume_Money_MNU3-07a_3-08a_MTH4-16b_MNU3-11a_3-09a.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 3/S1_Term3_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Preparation_Pack_All_S1_Topics.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection.pdf", "files/bge/5 Assessments/S1 Term 4/S1_End_of_Year_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Prep_MTH3-05a_MTH3-06a_MTH3-13a.pdf", "files/bge/5 Assessments/S2 Term 1/S2_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Preparation_Pack_Fractions_Scale_Bearings_Statistics_MTH3-07bc_3-17bc_3-20b_3-21a.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 2/S2_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 3/S2_Term3_Third_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Preparation_Pack_Brackets_Finance_Straight_Line_MTH4-14ab_MNU4-09abc_MTH4-13abcd.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S2 Term 4/S2_Term4_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Preparation_Pack_Tolerance_Equations_Fractions_SDT_Areas_Volumes.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 1/S3_Term1_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Preparation_Pack_Powers_SciNotation_Pythagoras_Trig_MTH4-06ab_MTH4-16a.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 2/S3_Term2_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Preparation_Pack_Whole_Course.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 3/S3_Term3_Fourth_Level_Assessment_Reflection_Supported.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Preparation_Pack_Circles_Factorising_Indices_Surds_MTH4-17a_4-16a_4-14b_4-06a.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection.pdf", "files/bge/5 Assessments/S3 Term 4/S3_Term4_Assessment_Reflection_Supported.pdf", "files/higher/Assessments/2 December prelim/Practice/Higher_December_Prelim_Prep_Pack.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 1 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 2 - Differentiation.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 3 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 4 - Polynomials.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 5 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 6 - Quadratics.pdf", "files/higher/Homework/Term 2 (2026-27)/Homework 7 - Integration.pdf", "files/higher/Revision/december-prelim-revision-pack.pdf", "files/higher/Revision/formulae-list-pupil.pdf", "files/higher/Revision/formulae-to-learn.pdf", "files/higher/Revision/revision-cards.pdf", "files/higher/topics/applications-of-calculus/applications-of-calculus-notes.pdf", "files/higher/topics/circle/circle-notes.pdf", "files/higher/topics/differentiation/differentiation-explorer.html", "files/higher/topics/differentiation/differentiation-notes.pdf", "files/higher/topics/functions-and-graphs/composite-inverse-functions-questions.pdf", "files/higher/topics/functions-and-graphs/functions-notes.pdf", "files/higher/topics/functions-and-graphs/trig-graph-transformations.pdf", "files/higher/topics/integration/integration-explorer.html", "files/higher/topics/integration/integration-notes.pdf", "files/higher/topics/logs-and-exponentials/logs-and-exponentials-notes.pdf", "files/higher/topics/polynomials/polynomials-notes.pdf", "files/higher/topics/quadratics/quadratics-explorer.html", "files/higher/topics/quadratics/quadratics-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-notes.pdf", "files/higher/topics/recurrence-relations/recurrence-relations-summary-sheet.pdf", "files/higher/topics/straight-line/straight-line-notes.pdf", "files/higher/topics/trig-equations/trig-equations-notes.pdf", "files/higher/topics/trig-expressions/degrees-radians-war-card-game.pdf", "files/higher/topics/trig-expressions/trig-expressions-notes.pdf", "files/higher/topics/vectors/vectors-notes.pdf", "files/nat2/1 Number and Number Processes/Number - Topic page.html", "files/nat2/1 Number and Number Processes/Numeracy Booklet/Number and Number Processes - Numeracy Booklet.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - PRINT PACK - all skill booklets.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - Skill Booklet 1 - Whole numbers.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - Skill Booklet 2 - Adding and taking away.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - Skill Booklet 3 - Groups and sharing.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - Skill Booklet 4 - Halves and quarters.pdf", "files/nat2/1 Number and Number Processes/Skill Booklets/Number and Number Processes - Skill Booklet 5 - Which sum - make a decision.pdf", "files/nat2/2 Shape, Space and Data/Numeracy Booklet/Shape, Space and Data - Numeracy Booklet.pdf", "files/nat2/2 Shape, Space and Data/Shape, Space and Data - Topic page.html", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - PRINT PACK - all skill booklets.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 1 - 2D shapes.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 2 - 3D shapes.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 3 - Where is it - position.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 4 - Bigger or smaller - size and weight.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 5 - Patterns.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 6 - Menus and bills.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 7 - Making a bar graph.pdf", "files/nat2/2 Shape, Space and Data/Skill Booklets/Shape, Space and Data - Skill Booklet 8 - Most likely - chance.pdf", "files/nat2/3 Money/Money - Topic page.html", "files/nat2/3 Money/Numeracy Booklet/Money - Numeracy Booklet.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 1 - Counting the Tin.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 2 - Counting the Tin (2).pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 3 - Adding Up Lunch.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 4 - Paying With Notes and Coins.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 5 - Working Out Change.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 6 - Travel Costs.pdf", "files/nat2/3 Money/Practice Worksheets/Money - Practice Worksheet 7 - Travel Costs (2).pdf", "files/nat2/4 Time/Numeracy Booklet/Time - Numeracy Booklet.pdf", "files/nat2/4 Time/Skill Booklets/Time - PRINT PACK - all skill booklets.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 1 - Days and months.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 2 - O'clock and half past.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 3 - Quarter past and quarter to.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 4 - Putting times in order.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 5 - Calendars - counting days.pdf", "files/nat2/4 Time/Skill Booklets/Time - Skill Booklet 6 - How long does it take.pdf", "files/nat2/4 Time/Time - Topic page.html", "files/nat2/5 Measurement/Measurement - Topic page.html", "files/nat2/5 Measurement/Numeracy Booklet/Measurement - Numeracy Booklet.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - PRINT PACK - all skill booklets.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - Skill Booklet 1 - Choosing the right tool.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - Skill Booklet 2 - Length.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - Skill Booklet 3 - Weight.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - Skill Booklet 4 - Capacity.pdf", "files/nat2/5 Measurement/Skill Booklets/Measurement - Skill Booklet 5 - Temperature.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_December_Prelim_Prep_Pack.pdf", "files/nat5/Assessments/Practice Assessments/Nat5_Term1_Assessment_Prep_Pack.pdf", "files/nat5/Homework/Term 1/Term1_Homework_Pupil.pdf", "files/nat5/Homework/Term 2/Term2_Homework_Pupil.pdf", "files/nat5/Revision/december-prelim-revision-pack.pdf", "files/nat5/Revision/formulae-list-pupil.pdf", "files/nat5/Revision/revision-cards.pdf", "files/nat5/topics/algebraic-fractions/algebraic-fractions-explorer.html", "files/nat5/topics/algebraic-fractions/algebraic-fractions-notes.pdf", "files/nat5/topics/angles-and-circles/angles-and-circles-explorer.html", "files/nat5/topics/angles-and-circles/angles-and-circles-notes.pdf", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-explorer.html", "files/nat5/topics/arcs-sectors-and-volume/arcs-sectors-and-volume-notes.pdf", "files/nat5/topics/changing-the-subject/changing-the-subject-explorer.html", "files/nat5/topics/changing-the-subject/changing-the-subject-notes.pdf", "files/nat5/topics/equations-and-inequations/equations-and-inequations-explorer.html", "files/nat5/topics/equations-and-inequations/equations-and-inequations-notes.pdf", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-explorer.html", "files/nat5/topics/expanding-and-factorising/expanding-and-factorising-notes.pdf", "files/nat5/topics/fractions/fractions-explorer.html", "files/nat5/topics/fractions/fractions-notes.pdf", "files/nat5/topics/function-notation/function-notation-explorer.html", "files/nat5/topics/function-notation/function-notation-notes.pdf", "files/nat5/topics/percentages/percentages-explorer.html", "files/nat5/topics/percentages/percentages-notes.pdf", "files/nat5/topics/pythagoras/pythagoras-explorer.html", "files/nat5/topics/pythagoras/pythagoras-notes.pdf", "files/nat5/topics/quadratic-equations/quadratic-equations-notes.pdf", "files/nat5/topics/quadratic-functions/quadratic-functions-notes.pdf", "files/nat5/topics/similarity/similarity-explorer.html", "files/nat5/topics/similarity/similarity-notes.pdf", "files/nat5/topics/simultaneous-equations/balance-scales.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-explorer.html", "files/nat5/topics/simultaneous-equations/simultaneous-equations-notes.pdf", "files/nat5/topics/simultaneous-equations/simultaneous-equations-topic-page.html", "files/nat5/topics/statistics/statistics-explorer.html", "files/nat5/topics/statistics/statistics-notes.pdf", "files/nat5/topics/straight-line/straight-line-explorer.html", "files/nat5/topics/straight-line/straight-line-notes.pdf", "files/nat5/topics/surds-and-indices/surds-and-indices-explorer.html", "files/nat5/topics/surds-and-indices/surds-and-indices-notes.pdf", "files/nat5/topics/trig-graphs-and-equations/trig-graph-transformations.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-explorer.html", "files/nat5/topics/trig-graphs-and-equations/trig-graphs-and-equations-notes.pdf", "files/nat5/topics/trigonometry/trigonometry-explorer.html", "files/nat5/topics/trigonometry/trigonometry-notes.pdf", "files/nat5/topics/vectors/vectors-explorer.html", "files/nat5/topics/vectors/vectors-notes.pdf"]};</script><script src="../../../assets/embed.js"></script>
+</body>
+</html>
